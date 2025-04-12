@@ -16,4 +16,6 @@ public interface Constants {
     String SHADER_PATH = "assets/shaders/";
     String DEFAULT_VERTEX_SHADER = SHADER_PATH + "vertexDefault.glsl";
     String DEFAULT_FRAGMENT_SHADER = SHADER_PATH + "fragmentDefault.glsl";
+
+    String TEXTURE_PATH = "assets/images/";
 }

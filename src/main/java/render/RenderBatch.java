@@ -3,6 +3,7 @@ package render;
 import components.SpriteRenderer;
 import engine.Window;
 import org.joml.Vector4f;
+import util.AssetPool;
 
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
@@ -26,8 +27,7 @@ public class RenderBatch {
     private Shader shader;
 
     public RenderBatch(int maxBatchSize) {
-        shader = new Shader(DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER);
-        shader.compile();
+        shader = AssetPool.getShader("vertexDefault.glsl", "fragmentDefault.glsl");
         this.maxBatchSize = maxBatchSize;
         this.sprites = new SpriteRenderer[maxBatchSize];
 

@@ -3,6 +3,7 @@ package engine;
 import components.SpriteRenderer;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
+import util.AssetPool;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_TAB;
 
@@ -34,6 +35,12 @@ public class EditorScene extends Scene {
             }
         }
 
+        loadResources();
+
+    }
+
+    private void loadResources() {
+        AssetPool.getShader("vertexDefault.glsl", "fragmentDefault.glsl");
     }
 
     @Override
