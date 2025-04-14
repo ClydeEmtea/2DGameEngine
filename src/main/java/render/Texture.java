@@ -12,7 +12,7 @@ import static org.lwjgl.stb.STBImage.stbi_load;
 public class Texture {
 
     private String path;
-    private int id;
+    private int id, width, height;
 
     public Texture(String path) {
         this.path = path;
@@ -36,6 +36,8 @@ public class Texture {
 
 
         if (image != null) {
+            this.width = width.get(0);
+            this.height = height.get(0);
             // Upload image data to GPU
             if (channels.get(0) == 3) {
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width.get(0), height.get(0), 0, GL_RGB, GL_UNSIGNED_BYTE, image);
@@ -44,6 +46,7 @@ public class Texture {
             } else {
                 assert false : "(Texture) Unsupported number of channels: " + channels.get(0);
             }
+
         } else {
             assert false : "(Texture) Failed to load texture: " + path;
         }
@@ -59,5 +62,13 @@ public class Texture {
 
     public void unbind() {
         glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
     }
 }

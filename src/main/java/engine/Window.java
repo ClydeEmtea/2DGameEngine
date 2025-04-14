@@ -4,7 +4,6 @@ import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import util.Constants;
-import util.Time;
 
 import java.util.Objects;
 
@@ -108,12 +107,16 @@ public class Window {
         // creates the GLCapabilities instance and makes the OpenGL bindings available for use.
         GL.createCapabilities();
 
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        // glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
         Window.setCurrentScene(0);
     }
 
     public void loop() {
-        float beginTime = Time.getTime();
-        float endTime = Time.getTime();
+        double beginTime = glfwGetTime();
+        double endTime;
         float deltaTime = 0.0f;
 
         while (!glfwWindowShouldClose(glfwWindow)) {
@@ -128,8 +131,8 @@ public class Window {
             // Swap the color buffers
             glfwSwapBuffers(glfwWindow);
 
-            endTime = Time.getTime();
-            deltaTime = endTime - beginTime;
+            endTime = glfwGetTime();
+            deltaTime = (float) (endTime - beginTime);
             beginTime = endTime;
 
             KeyListener.endFrame();

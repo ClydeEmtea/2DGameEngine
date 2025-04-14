@@ -1,9 +1,9 @@
 package util;
 
+import components.Spritesheet;
 import render.Shader;
 import render.Texture;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,6 +13,7 @@ import static util.Constants.TEXTURE_PATH;
 public class AssetPool {
     private static Map<String, Shader> shaders = new HashMap<>();
     private static Map<String, Texture> textures = new HashMap<>();
+    private static Map<String, Spritesheet> spriteSheets = new HashMap<>();
 
     public static Shader getShader(String vertexName, String fragmentName) {
         String shaderKey = vertexName + fragmentName;
@@ -35,6 +36,22 @@ public class AssetPool {
             return texture;
         }
 
+    }
+
+    public static void addSpritesheet(String name, Spritesheet spritesheet) {
+        if (spriteSheets.containsKey(name)) {
+            throw new IllegalArgumentException("Spritesheet with name " + name + " already exists.");
+        }
+        spriteSheets.put(name, spritesheet);
+    }
+
+    public static Spritesheet getSpritesheet(String name) {
+        if (spriteSheets.containsKey(name)) {
+            return spriteSheets.get(name);
+        } else {
+            assert false : "Spritesheet with name " + name + " does not exist.";
+        }
+        return null;
     }
 
 }
