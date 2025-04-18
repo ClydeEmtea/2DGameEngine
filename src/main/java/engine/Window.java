@@ -1,5 +1,6 @@
 package engine;
 
+import gui.ImGuiLayer;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
@@ -21,6 +22,8 @@ public class Window {
     private static Window window = null;
 
     private static Scene currentScene = null;
+
+    private ImGuiLayer imGuiLayer;
 
     private Window() {
         this.width = Constants.WIDTH;
@@ -63,6 +66,7 @@ public class Window {
         // Terminate GLFW and free the error callback
         glfwTerminate();
         Objects.requireNonNull(glfwSetErrorCallback(null)).free();
+        imGuiLayer.destroy();
     }
 
     public void init() {
@@ -112,6 +116,9 @@ public class Window {
         // glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
         Window.setCurrentScene(0);
+
+        imGuiLayer = new ImGuiLayer();
+        imGuiLayer.init();
     }
 
     public void loop() {
@@ -127,6 +134,8 @@ public class Window {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             currentScene.update(deltaTime);
+
+            imGuiLayer.update(deltaTime, currentScene);
 
             // Swap the color buffers
             glfwSwapBuffers(glfwWindow);

@@ -26,4 +26,13 @@ public interface Constants {
     String TEXTURE_PATH = "assets/images/";
 
     Vector4f WHITE = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+    float[] GUI_BG =           {0.08f, 0.067f, 0.095f, 1.0f};
+    float[] GUI_TITLE_BG =     {0.25f, 0.10f, 0.30f, 1.0f};
+    float[] GUI_BUTTON =       {0.22f, 0.28f, 0.35f, 1.0f};
+    float[] GUI_BUTTON_HOVER = {0.30f, 0.38f, 0.47f, 1.0f};
+
+    float GUI_ROUNDING = 8.0f;
+
+
 }

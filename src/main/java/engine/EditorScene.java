@@ -3,6 +3,7 @@ package engine;
 import components.Sprite;
 import components.SpriteRenderer;
 import components.Spritesheet;
+import imgui.ImGui;
 import org.joml.Vector2f;
 import util.AssetPool;
 
@@ -77,6 +78,18 @@ public class EditorScene extends Scene {
         if (KeyListener.isKeyTyped(GLFW_KEY_TAB)) {
             Window.setCurrentScene(1);
         }
+
+    }
+
+    @Override
+    public void imgui() {
+        ImGui.begin("Scene");
+        if (ImGui.button("Add GameObject")) {
+            GameObject go = new GameObject("New GameObject", new Transform(new Vector2f(500, 100), new Vector2f(256, 256)), 1);
+            go.addComponent(new SpriteRenderer(new Sprite(AssetPool.getTexture("texture.png"))));
+            this.addGameObjectToScene(go);
+        }
+        ImGui.end();
 
     }
 
