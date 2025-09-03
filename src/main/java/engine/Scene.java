@@ -11,6 +11,8 @@ public abstract class Scene {
     protected Renderer renderer = new Renderer();
     protected Camera camera;
     private boolean isRunning = false;
+
+
     protected List<GameObject> gameObjects = new ArrayList<>();
     protected GameObject activeGameObject = null;
 
@@ -47,7 +49,7 @@ public abstract class Scene {
 
     public void sceneImgui() {
         if (activeGameObject != null) {
-            ImGui.begin("Inspector");
+            ImGui.begin(activeGameObject.getName());
             activeGameObject.imgui();
             ImGui.end();
         }
@@ -57,5 +59,16 @@ public abstract class Scene {
 
     public void imgui() {
 
+    }
+    public List<GameObject> getGameObjects() {
+        return gameObjects;
+    }
+
+    public GameObject getActiveGameObject() {
+        return activeGameObject;
+    }
+
+    public void setActiveGameObject(GameObject activeGameObject) {
+        this.activeGameObject = activeGameObject;
     }
 }

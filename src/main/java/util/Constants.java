@@ -27,10 +27,11 @@ public interface Constants {
 
     Vector4f WHITE = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
 
-    float[] GUI_BG =           {0.08f, 0.067f, 0.095f, 1.0f};
-    float[] GUI_TITLE_BG =     {0.25f, 0.10f, 0.30f, 1.0f};
-    float[] GUI_BUTTON =       {0.22f, 0.28f, 0.35f, 1.0f};
-    float[] GUI_BUTTON_HOVER = {0.30f, 0.38f, 0.47f, 1.0f};
+    float[] GUI_BG =           {0.04f, 0.02f, 0.05f, 1.0f};  // hodně tmavě fialová (pozadí)
+    float[] GUI_TITLE_BG =     {0.20f, 0.08f, 0.28f, 1.0f};  // tmavší purpurová pro titulky
+    float[] GUI_BUTTON =       {0.25f, 0.12f, 0.32f, 1.0f};  // fialová s nádechem do vínova
+    float[] GUI_BUTTON_HOVER = {0.35f, 0.18f, 0.45f, 1.0f};  // světlejší fialová pro hover
+
 
     float GUI_ROUNDING = 8.0f;
 

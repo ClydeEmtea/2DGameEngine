@@ -32,7 +32,8 @@ public class Texture {
         IntBuffer height = BufferUtils.createIntBuffer(1);
         IntBuffer channels = BufferUtils.createIntBuffer(1);
         // Load image data
-        ByteBuffer image = stbi_load(path, width, height, channels, 0);
+        System.out.println(path.replace("\\", "/"));
+        ByteBuffer image = stbi_load(path.replace("\\", "/"), width, height, channels, 0);
 
 
         if (image != null) {
@@ -47,12 +48,13 @@ public class Texture {
                 assert false : "(Texture) Unsupported number of channels: " + channels.get(0);
             }
 
+            // Free image data
+            stbi_image_free(image);
+
         } else {
             assert false : "(Texture) Failed to load texture: " + path;
         }
 
-        // Free image data
-        stbi_image_free(image);
 
     }
 

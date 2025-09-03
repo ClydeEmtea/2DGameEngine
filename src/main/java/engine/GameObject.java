@@ -1,5 +1,9 @@
 package engine;
 
+import components.SpriteRenderer;
+import imgui.ImGui;
+import org.joml.Vector4f;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,5 +80,36 @@ public class GameObject {
         for (Component c : components) {
             c.imgui();
         }
+        // pole musí být mimo if, aby ImGui mohl měnit hodnoty
+        float[] pos = { transform.position.x, transform.position.y };
+
+// dragFloat2 změní obsah pole
+        if (ImGui.dragFloat2("Position", pos, 0.5f)) {
+            transform.position.x = pos[0];
+            transform.position.y = pos[1];
+        }
+
+        float[] scale = { transform.scale.x, transform.scale.y };
+        if (ImGui.dragFloat2("Scale", scale, 0.5f)) {
+            transform.scale.x = scale[0];
+            transform.scale.y = scale[1];
+        }
+
+        Component c = this.components.get(0);
+        if (c instanceof SpriteRenderer sr && sr.isColorOnly()) {
+            float[] color = {
+                    sr.getColor().x,
+                    sr.getColor().y,
+                    sr.getColor().z,
+                    sr.getColor().w
+            };
+
+            if (ImGui.colorEdit4("Color", color)) {
+                sr.setColor(new Vector4f(color[0], color[1], color[2], color[3]));
+            }
+        }
+
+
+
     }
 }

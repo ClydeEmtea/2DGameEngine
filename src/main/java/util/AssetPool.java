@@ -31,7 +31,7 @@ public class AssetPool {
         if (AssetPool.textures.containsKey(fileName)) {
             return AssetPool.textures.get(fileName);
         } else {
-            Texture texture = new Texture(TEXTURE_PATH + fileName);
+            Texture texture = new Texture(fileName);
             AssetPool.textures.put(fileName, texture);
             return texture;
         }
@@ -40,7 +40,7 @@ public class AssetPool {
 
     public static void addSpritesheet(String name, Spritesheet spritesheet) {
         if (spriteSheets.containsKey(name)) {
-            throw new IllegalArgumentException("Spritesheet with name " + name + " already exists.");
+            assert false: "Spritesheet with name " + name + " already exists.";
         }
         spriteSheets.put(name, spritesheet);
     }

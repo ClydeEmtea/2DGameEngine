@@ -10,6 +10,7 @@ import imgui.type.ImBoolean;
 
 import static org.lwjgl.glfw.GLFW.glfwGetCurrentContext;
 
+import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
 import static util.Constants.*;
 
 public class ImGuiLayer {
@@ -17,23 +18,22 @@ public class ImGuiLayer {
     private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
     private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
 
-    private boolean showDemoWindow = true;
+    private boolean showDemoWindow = false;
+    private boolean rightSidebarOpen = true;
+    private boolean bottomSidebarOpen = true;
 
     public void init() {
         // Create context
         ImGui.createContext();
 
-        ImGui.styleColorsDark();
-        ImGui.getStyle().setColor(ImGuiCol.WindowBg, GUI_BG[0], GUI_BG[1], GUI_BG[2], GUI_BG[3]);
-        ImGui.getStyle().setColor(ImGuiCol.TitleBg, GUI_TITLE_BG[0], GUI_TITLE_BG[1], GUI_TITLE_BG[2], GUI_TITLE_BG[3]);
-        ImGui.getStyle().setColor(ImGuiCol.TitleBgActive, GUI_TITLE_BG[0], GUI_TITLE_BG[1], GUI_TITLE_BG[2], GUI_TITLE_BG[3]);
-        tintImGuiStyle(GUI_BUTTON, GUI_BUTTON_HOVER);
+
+        initImGuiStyle(GUI_BUTTON, GUI_BUTTON_HOVER);
         roundImGuiStyle(GUI_ROUNDING);
 
 
         ImGuiIO io = ImGui.getIO();
         io.addConfigFlags(ImGuiConfigFlags.DockingEnable);
-        io.setIniFilename(null); // Disable saving .ini file
+        io.setIniFilename("assets/gui/imgui.ini"); // Disable saving .ini file
         io.getFonts().addFontFromFileTTF("assets/fonts/JetBrainsMono-Regular.ttf", 18);
         io.addConfigFlags(ImGuiConfigFlags.NavEnableKeyboard); // Enable Keyboard Controls
         io.addConfigFlags(ImGuiConfigFlags.DockingEnable);
@@ -42,6 +42,30 @@ public class ImGuiLayer {
         long windowHandle = glfwGetCurrentContext();
         imGuiGlfw.init(windowHandle, true);
         imGuiGl3.init("#version 330");
+
+        imGuiGlfw.newFrame();
+        ImGui.newFrame();
+
+        setupDockspace();
+        ImGui.begin("Right sidebar");
+        ImGui.text("Hello from ImGui!");
+        ImGui.end();
+
+        ImGui.begin("Bottom sidebar");
+        ImGui.text("Hello from ImGui!");
+        ImGui.end();
+
+
+        // Example window
+        if (showDemoWindow) {
+            ImGui.showDemoWindow();
+        }
+
+
+        ImGui.render();
+        imGuiGl3.renderDrawData(ImGui.getDrawData());
+
+        io.setIniFilename(null);
     }
 
     public void update(float dt, Scene currentScene) {
@@ -50,8 +74,69 @@ public class ImGuiLayer {
 
         setupDockspace();
 
-        dockRightWindow();
-        dockTopWindow();
+
+        if (rightSidebarOpen) {
+            ImGui.begin("Right sidebar");
+            if (ImGui.treeNode("Engine Info")) {
+                ImGui.text("FPS: " + (int) (1f / dt));
+                ImGui.text("Frame Time: " + (dt * 1000) + " ms");
+                if (ImGui.button("Exit")) {
+                    glfwSetWindowShouldClose(glfwGetCurrentContext(), true);
+                }
+                ImGui.treePop();
+            }
+
+            if (ImGui.treeNode("Scene objects")) {
+                for (int i = 0; i < currentScene.getGameObjects().size(); i++) {
+                    if (ImGui.selectable(currentScene.getGameObjects().get(i).getName(), currentScene.getGameObjects().get(i) == currentScene.getActiveGameObject())) {
+                        currentScene.setActiveGameObject(currentScene.getGameObjects().get(i));
+                    }
+                }
+                ImGui.treePop();
+            }
+            RightSidebar.render();
+            ImGui.end();
+
+        }
+
+        if (bottomSidebarOpen) {
+            ImGui.begin("Bottom sidebar");
+            ImGui.text("Hello from ImGui!");
+            ImGui.text("Delta Time: " + dt);
+            ImGui.end();
+
+        }
+
+        if (ImGui.beginMainMenuBar()) {
+            if (ImGui.beginMenu("File")) {
+                if (ImGui.menuItem("New")) {
+                    // Akce pro "New"
+                }
+                if (ImGui.menuItem("Open")) {
+                    // Akce pro "Open"
+                }
+
+                ImGui.endMenu();
+            }
+
+            if (ImGui.beginMenu("Edit")) {
+                ImGui.menuItem("Undo");
+                ImGui.menuItem("Redo");
+                ImGui.endMenu();
+            }
+
+            if (ImGui.beginMenu("View")) {
+                if (ImGui.menuItem("Right Sidebar", "", rightSidebarOpen)) {
+                    rightSidebarOpen = !rightSidebarOpen;
+                }
+                if (ImGui.menuItem("Bottom Sidebar", "", bottomSidebarOpen)) {
+                    bottomSidebarOpen = !bottomSidebarOpen;
+                }
+                ImGui.endMenu();
+            }
+
+            ImGui.endMainMenuBar();
+        }
 
         currentScene.sceneImgui();
 
@@ -60,12 +145,6 @@ public class ImGuiLayer {
             ImGui.showDemoWindow();
         }
 
-        ImGui.begin("My ImGui Window");
-        ImGui.text("Hello from ImGui!");
-        if (ImGui.button("Toggle Demo")) {
-            showDemoWindow = !showDemoWindow;
-        }
-        ImGui.end();
 
         ImGui.render();
         imGuiGl3.renderDrawData(ImGui.getDrawData());
@@ -77,7 +156,11 @@ public class ImGuiLayer {
         ImGui.destroyContext();
     }
 
-    private void tintImGuiStyle(float[] baseColor, float[] hoverColor) {
+    private void initImGuiStyle(float[] baseColor, float[] hoverColor) {
+        ImGui.styleColorsDark();
+        ImGui.getStyle().setColor(ImGuiCol.WindowBg, GUI_BG[0], GUI_BG[1], GUI_BG[2], GUI_BG[3]);
+        ImGui.getStyle().setColor(ImGuiCol.TitleBg, GUI_TITLE_BG[0], GUI_TITLE_BG[1], GUI_TITLE_BG[2], GUI_TITLE_BG[3]);
+        ImGui.getStyle().setColor(ImGuiCol.TitleBgActive, GUI_TITLE_BG[0], GUI_TITLE_BG[1], GUI_TITLE_BG[2], GUI_TITLE_BG[3]);
         int[] keys = new int[]{
                 ImGuiCol.Button, ImGuiCol.FrameBg, ImGuiCol.SliderGrab, ImGuiCol.ResizeGrip, ImGuiCol.Tab,
                 ImGuiCol.ScrollbarGrab, ImGuiCol.CheckMark, ImGuiCol.Border, ImGuiCol.TabActive,
@@ -118,7 +201,7 @@ public class ImGuiLayer {
     }
 
     private void setupDockspace() {
-        int windowFlags = ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoDocking;
+        int windowFlags =  ImGuiWindowFlags.NoDocking;
 
         // Set DockSpace size and position
         ImGui.setNextWindowPos(0, 0);
@@ -136,7 +219,7 @@ public class ImGuiLayer {
                 ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoScrollWithMouse |
                 ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoDecoration;
 
-        int dockspaceFlags = ImGuiDockNodeFlags.PassthruCentralNode | ImGuiDockNodeFlags.NoResize;
+        int dockspaceFlags = ImGuiDockNodeFlags.PassthruCentralNode;
 
         // Begin the invisible DockSpace window (no visible title bar or borders)
         ImGui.begin("DockSpaceRoot", new ImBoolean(true), windowFlags);
@@ -145,38 +228,10 @@ public class ImGuiLayer {
         ImGui.popStyleVar(3);
 
         // Create a DockSpace
-        int dockspaceId = ImGui.getID("MyDockSpace");
+        int dockspaceId = ImGui.getID("DockSpaceRoot");
         ImGui.dockSpace(dockspaceId, 0, 0, dockspaceFlags); // No resize for DockSpace
 
         // End the DockSpace window
-        ImGui.end();
-    }
-
-    private void dockRightWindow() {
-        // Prepare the window to dock on the right side
-        ImGui.setNextWindowDockID(ImGui.getID("MyDockSpace"), ImGuiDockNodeFlags.NoResize);
-
-        // Set the window's position to the right side of the screen
-        ImGui.setNextWindowPos(ImGui.getIO().getDisplaySizeX() - 400, 200);
-        ImGui.setNextWindowSize(400, ImGui.getIO().getDisplaySizeY());
-
-        // Create the window
-        ImGui.begin("Docked Right Window", new ImBoolean(true), ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoDocking);
-        ImGui.text("This window is docked to the right!");
-        ImGui.end();
-    }
-
-    private void dockTopWindow() {
-        // Prepare the window to dock on the top
-        ImGui.setNextWindowDockID(ImGui.getID("MyDockSpace"), ImGuiDockNodeFlags.NoResize);
-
-        // Set the window's position to the top of the screen
-        ImGui.setNextWindowPos(0, 0);  // Position at the top
-        ImGui.setNextWindowSize(ImGui.getIO().getDisplaySizeX(), 200);  // Set height to 200 pixels, adjust as necessary
-
-        // Create the window
-        ImGui.begin("Docked Top Window", new ImBoolean(true), ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoDocking);
-        ImGui.text("This window is docked to the top!");
         ImGui.end();
     }
 

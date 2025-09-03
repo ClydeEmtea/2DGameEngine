@@ -1,5 +1,7 @@
 package engine;
 
+import org.joml.Vector2f;
+
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 
@@ -85,5 +87,9 @@ public class MouseListener {
             return get().mouseButtonPressed[button];
         }
         return false;
+    }
+
+    public static Vector2f getDelta() {
+        return new Vector2f(getDx(), getDy());
     }
 }
