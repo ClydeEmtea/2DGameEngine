@@ -1,5 +1,6 @@
 package engine;
 
+import components.GridRenderer;
 import gui.ImGuiLayer;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -130,7 +131,9 @@ public class Window {
             // Poll for window events
             glfwPollEvents();
             // Clear the framebuffer
-            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+            // Background color
+            glClearColor(Constants.BACKGROUND_COLOR[0], Constants.BACKGROUND_COLOR[1], Constants.BACKGROUND_COLOR[2], Constants.BACKGROUND_COLOR[3]);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             currentScene.update(deltaTime);

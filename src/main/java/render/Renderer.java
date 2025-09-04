@@ -2,10 +2,12 @@ package render;
 
 import components.SpriteRenderer;
 import engine.GameObject;
+import org.joml.Vector4f;
 
 import java.util.Collections;
 import java.util.List;
 
+import static org.lwjgl.opengl.GL11.*;
 import static util.Constants.MAX_BATCH_SIZE;
 
 public class Renderer {
@@ -49,5 +51,20 @@ public class Renderer {
         for (RenderBatch batch : renderBatches) {
             batch.render();
         }
+    }
+
+    public static void beginLines(Vector4f color) {
+        glLineWidth(1.0f);
+        glColor4f(color.x, color.y, color.z, color.w);
+        glBegin(GL_LINES);
+    }
+
+    public static void drawLine(float x1, float y1, float x2, float y2) {
+        glVertex2f(x1, y1);
+        glVertex2f(x2, y2);
+    }
+
+    public static void endLines() {
+        glEnd();
     }
 }

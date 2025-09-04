@@ -27,6 +27,8 @@ public interface Constants {
 
     Vector4f WHITE = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
 
+    float[] BACKGROUND_COLOR = {0.07f, 0.07f, 0.07f, 1.0f};
+
     float[] GUI_BG =           {0.04f, 0.02f, 0.05f, 1.0f};  // hodně tmavě fialová (pozadí)
     float[] GUI_TITLE_BG =     {0.20f, 0.08f, 0.28f, 1.0f};  // tmavší purpurová pro titulky
     float[] GUI_BUTTON =       {0.25f, 0.12f, 0.32f, 1.0f};  // fialová s nádechem do vínova

@@ -41,6 +41,13 @@ public class ObjectCreationWindow {
         if (useSprite) {
             if (ImGui.button("Browse Texture")) {
                 JFileChooser chooser = new JFileChooser();
+                chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+
+                chooser.setCurrentDirectory(new File("assets/images"));
+
+                chooser.setAcceptAllFileFilterUsed(false);
+                chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+                        "Image files", "png", "jpg", "jpeg"));
                 int result = chooser.showOpenDialog(null);
                 if (result == JFileChooser.APPROVE_OPTION) {
                     File file = chooser.getSelectedFile();
