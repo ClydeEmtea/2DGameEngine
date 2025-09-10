@@ -1,21 +1,6 @@
 #version 330 core
+out vec4 FragColor;
 
-in vec2 vPos;
-
-uniform vec2 uCameraPos;
-uniform float uCellSize;
-uniform vec4 uColor;
-
-out vec4 fragColor;
-
-void main()
-{
-    // pozice pixelu relativně k gridu
-    vec2 worldPos = vPos + uCameraPos;
-
-    // modulo pro grid
-    vec2 grid = abs(fract(worldPos / uCellSize - 0.5) - 0.5) / fwidth(worldPos / uCellSize);
-    float line = min(grid.x, grid.y);
-
-    fragColor = uColor * (1.0 - min(line, 1.0));
+void main() {
+    FragColor = vec4(0.3, 0.3, 0.3, 1.0); // šedá čára
 }

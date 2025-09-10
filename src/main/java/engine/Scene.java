@@ -41,6 +41,16 @@ public abstract class Scene {
         }
     }
 
+    public void addLine(GameObject line) {}
+
+    public void removeGameObject(GameObject gameObject) {
+        this.gameObjects.remove(gameObject);
+        this.renderer = new Renderer(); // TODO: Optimize this
+        for (GameObject go : gameObjects) {
+            this.renderer.add(go);
+        }
+    }
+
     public abstract void update(float dt);
 
     public Camera camera() {
@@ -67,6 +77,8 @@ public abstract class Scene {
     public GameObject getActiveGameObject() {
         return activeGameObject;
     }
+
+    public List<GameObject> getGridLines() {return null;}
 
     public void setActiveGameObject(GameObject activeGameObject) {
         this.activeGameObject = activeGameObject;

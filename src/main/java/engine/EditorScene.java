@@ -1,16 +1,17 @@
 package engine;
 
-import components.GridRenderer;
-import components.Sprite;
-import components.SpriteRenderer;
-import components.Spritesheet;
+import components.*;
 import gui.ObjectCreationWindow;
 import gui.RightSidebar;
 import imgui.ImGui;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
+import render.Renderer;
 import util.AssetPool;
 import util.Constants;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static util.Constants.WHITE;
@@ -22,6 +23,8 @@ public class EditorScene extends Scene {
 //    private Spritesheet spritesheet;
 
     private boolean showCreationWindow = false;
+    protected List<GameObject> gridLines = new ArrayList<>();
+
 
     public EditorScene() {
         System.out.println("Editor Scene Initialized");
@@ -31,6 +34,11 @@ public class EditorScene extends Scene {
     public void init() {
         loadResources();
         this.camera = new Camera(new Vector2f());
+        Grid.initialize(this);
+        for (GameObject line : gridLines) {
+            line.start();
+            this.renderer.add(line);
+        }
 
     }
 
@@ -50,7 +58,11 @@ public class EditorScene extends Scene {
     @Override
     public void update(float dt) {
 
-        GridRenderer.render(this.camera, Constants.WIDTH, Constants.HEIGHT);
+        //GridRenderer.render(this.camera, Constants.WIDTH, Constants.HEIGHT);
+        Grid.render(this);
+        for (GameObject line : gridLines) {
+            line.update(dt);
+        }
 //        GridRenderer.render();
 
 
@@ -80,6 +92,29 @@ public class EditorScene extends Scene {
             this.camera.setZoom(zoom);
         }
 
+    }
+
+    @Override
+    public void addLine(GameObject line) {
+         gridLines.add(line);
+         line.start();
+         this.renderer.add(line);
+    }
+
+    public void removeLine(GameObject line) {
+        gridLines.remove(line);
+        this.renderer = new Renderer(); // TODO: Optimize this
+        for (GameObject go : gameObjects) {
+            this.renderer.add(go);
+        }
+        for (GameObject go : gridLines) {
+            this.renderer.add(go);
+        }
+    }
+
+    @Override
+    public List<GameObject> getGridLines() {
+        return this.gridLines;
     }
 
     @Override
