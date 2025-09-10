@@ -73,4 +73,8 @@ public class Texture {
     public int getHeight() {
         return height;
     }
+
+    public String getFilePath() {
+        return path;
+    }
 }

@@ -18,11 +18,7 @@ import static util.Constants.WHITE;
 
 public class EditorScene extends Scene {
 
-//    private GameObject obj1 = new GameObject("Player", new Transform(new Vector2f(100,100), new Vector2f(256,256)), 1);
-//    private GameObject obj2 = new GameObject("Pla", new Transform(new Vector2f(100,100), new Vector2f(128,128)), 2);
-//    private Spritesheet spritesheet;
-
-    private boolean showCreationWindow = false;
+    public boolean showCreationWindow = false;
     protected List<GameObject> gridLines = new ArrayList<>();
 
 
@@ -45,27 +41,16 @@ public class EditorScene extends Scene {
     private void loadResources() {
         AssetPool.getShader("vertexDefault.glsl", "fragmentDefault.glsl");
 
-
-//        AssetPool.addSpritesheet("C:\\Users\\EmTea\\IdeaProjects\\2DGameEngine\\assets\\images\\spritesheet.png",
-//                new Spritesheet(AssetPool.getTexture("C:\\Users\\EmTea\\IdeaProjects\\2DGameEngine\\assets\\images\\spritesheet.png"), 16, 16, 26, 0));
     }
 
-
-//    private int spriteIndex = 0;
-//    private float spriteFlipTime = 0.2f;
-//    private float spriteFlipTimeLeft = 0.0f;
 
     @Override
     public void update(float dt) {
 
-        //GridRenderer.render(this.camera, Constants.WIDTH, Constants.HEIGHT);
         Grid.render(this);
         for (GameObject line : gridLines) {
             line.update(dt);
         }
-//        GridRenderer.render();
-
-
 
         for (GameObject go : this.gameObjects) {
             go.update(dt);
@@ -125,13 +110,14 @@ public class EditorScene extends Scene {
         }
 
         if (this.showCreationWindow) {
-            ObjectCreationWindow.imgui(this);
+            if (ObjectCreationWindow.imgui(this)) {
+                this.showCreationWindow = false; // zavřít po vytvoření
+            }
         }
 
-
         ImGui.end();
-
     }
+
 
 
 }

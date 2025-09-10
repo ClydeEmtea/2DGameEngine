@@ -4,6 +4,7 @@ import components.Sprite;
 import components.SpriteRenderer;
 import engine.GameObject;
 import engine.Transform;
+import engine.Window;
 import imgui.ImGui;
 import imgui.flag.ImGuiInputTextFlags;
 import imgui.type.ImString;
@@ -25,7 +26,8 @@ public class ObjectCreationWindow {
 
     private static String selectedFilePath = "";
 
-    public static void imgui(engine.Scene scene) {
+    public static boolean imgui(engine.Scene scene) {
+        boolean created = false;
         ImGui.begin("Create Object");
 
         ImGui.inputText("Name", name, ImGuiInputTextFlags.EnterReturnsTrue | ImGuiInputTextFlags.AutoSelectAll);
@@ -51,8 +53,10 @@ public class ObjectCreationWindow {
                 int result = chooser.showOpenDialog(null);
                 if (result == JFileChooser.APPROVE_OPTION) {
                     File file = chooser.getSelectedFile();
-                    String filePath = file.getAbsolutePath();
+                    String filePath = file.getName();
                     String lower = filePath.toLowerCase();
+
+                    System.out.println(filePath);
                     // Jen .png nebo .jpg
                     if (lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg")) {
                         selectedFilePath = filePath;
@@ -88,6 +92,7 @@ public class ObjectCreationWindow {
             GameObject go;
 
             if (useSprite && !selectedFilePath.isEmpty()) {
+                System.out.println("Loading texture: " + selectedFilePath);
                 Texture tex = AssetPool.getTexture(selectedFilePath);
                 int width = tex.getWidth();
                 int height = tex.getHeight();
@@ -113,8 +118,12 @@ public class ObjectCreationWindow {
             color[2] = 1;
             color[3] = 1;
             selectedFilePath = "";
+
+            created = true;
+
         }
 
         ImGui.end();
+        return created;
     }
 }

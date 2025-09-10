@@ -28,10 +28,12 @@ public class AssetPool {
     }
 
     public static Texture getTexture(String fileName) {
+        System.out.println(TEXTURE_PATH + fileName);
         if (AssetPool.textures.containsKey(fileName)) {
             return AssetPool.textures.get(fileName);
         } else {
-            Texture texture = new Texture(fileName);
+            Texture texture = new Texture(TEXTURE_PATH + fileName);
+            System.out.println("ano");
             AssetPool.textures.put(fileName, texture);
             return texture;
         }
