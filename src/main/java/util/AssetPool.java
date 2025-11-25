@@ -41,6 +41,7 @@ public class AssetPool {
     }
 
     public static void addSpritesheet(String name, Spritesheet spritesheet) {
+
         if (spriteSheets.containsKey(name)) {
             assert false: "Spritesheet with name " + name + " already exists.";
         }

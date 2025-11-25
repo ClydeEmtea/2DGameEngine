@@ -54,6 +54,9 @@ dependencies {
     implementation "io.github.spair:imgui-java-lwjgl3:$imguiVersion"
     implementation "io.github.spair:imgui-java-natives-windows:$imguiVersion"
 
+    // GSON for JSON parsing
+    implementation 'com.google.code.gson:gson:2.11.0'
+
 
     // Testování
     testImplementation platform('org.junit:junit-bom:5.10.0')

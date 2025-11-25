@@ -1,12 +1,17 @@
 package gui;
 
 import engine.Scene;
+import engine.Window;
 import imgui.ImGui;
 import imgui.ImGuiIO;
 import imgui.flag.*;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 import imgui.type.ImBoolean;
+import project.ProjectManager;
+
+import javax.swing.*;
+import java.nio.file.Path;
 
 import static org.lwjgl.glfw.GLFW.glfwGetCurrentContext;
 
@@ -110,10 +115,93 @@ public class ImGuiLayer {
         if (ImGui.beginMainMenuBar()) {
             if (ImGui.beginMenu("File")) {
                 if (ImGui.menuItem("New")) {
-                    // Akce pro "New"
+                    ProjectManager pm = ProjectManager.get();
+
+                    // 1) Nejprve okno pro zadání názvu projektu
+                    String projectName = JOptionPane.showInputDialog(
+                            null,
+                            "Zadejte název projektu:",
+                            "New Project",
+                            JOptionPane.PLAIN_MESSAGE
+                    );
+
+                    // Pokud uživatel zrušil nebo nechal prázdné
+                    if (projectName == null || projectName.trim().isEmpty()) {
+                        System.out.println("Project creation cancelled.");
+                        return;
+                    }
+
+                    projectName = projectName.trim();
+
+                    // 2) Nyní se otevře JFileChooser pro výběr složky
+                    JFileChooser chooser = new JFileChooser();
+                    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                    chooser.setCurrentDirectory(Path.of(".").toFile());
+
+                    int result = chooser.showOpenDialog(null);
+                    if (result == JFileChooser.APPROVE_OPTION) {
+                        Path selectedDir = chooser.getSelectedFile().toPath();
+
+                        System.out.println("New project directory: " + selectedDir);
+                        System.out.println("Project name: " + projectName);
+
+                        pm.createNewProject(projectName, selectedDir);
+
+                        Window.get().updateTitle();
+
+                        Window.getScene().resetGameObjects();
+                        Window.setCurrentScene(0);
+                    } else {
+                        System.out.println("Directory selection cancelled.");
+                    }
                 }
+
                 if (ImGui.menuItem("Open")) {
                     // Akce pro "Open"
+                }
+                if (ImGui.menuItem("Save")) {
+                    ProjectManager pm = ProjectManager.get();
+                    if (pm.getCurrentProject() == null) {
+                        // 1) Nejprve okno pro zadání názvu projektu
+                        String projectName = JOptionPane.showInputDialog(
+                                null,
+                                "Zadejte název projektu:",
+                                "New Project",
+                                JOptionPane.PLAIN_MESSAGE
+                        );
+
+                        // Pokud uživatel zrušil nebo nechal prázdné
+                        if (projectName == null || projectName.trim().isEmpty()) {
+                            System.out.println("Project creation cancelled.");
+                            return;
+                        }
+
+                        projectName = projectName.trim();
+
+                        // 2) Nyní se otevře JFileChooser pro výběr složky
+                        JFileChooser chooser = new JFileChooser();
+                        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                        chooser.setCurrentDirectory(Path.of(".").toFile());
+
+                        int result = chooser.showOpenDialog(null);
+                        if (result == JFileChooser.APPROVE_OPTION) {
+                            Path selectedDir = chooser.getSelectedFile().toPath();
+
+                            System.out.println("New project directory: " + selectedDir);
+                            System.out.println("Project name: " + projectName);
+
+                            pm.createNewProject(projectName, selectedDir);
+
+                            Window.get().updateTitle();
+
+                        } else {
+                            System.out.println("Directory selection cancelled.");
+                        }
+                    }
+
+                    if (pm.getCurrentProject() != null) {
+                        pm.saveProject();
+                    }
                 }
 
                 ImGui.endMenu();

@@ -6,6 +6,7 @@ import gui.RightSidebar;
 import imgui.ImGui;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
+import project.ProjectManager;
 import render.Renderer;
 import util.AssetPool;
 import util.Constants;
@@ -46,6 +47,8 @@ public class EditorScene extends Scene {
 
     @Override
     public void update(float dt) {
+
+        System.out.println(ProjectManager.get().getCurrentProject());
 
         Grid.render(this);
         for (GameObject line : gridLines) {

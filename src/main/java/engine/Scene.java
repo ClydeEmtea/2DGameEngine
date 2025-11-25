@@ -74,6 +74,11 @@ public abstract class Scene {
         return gameObjects;
     }
 
+    public void resetGameObjects() {
+        this.gameObjects = new ArrayList<>();
+        this.renderer = new Renderer();
+    }
+
     public GameObject getActiveGameObject() {
         return activeGameObject;
     }

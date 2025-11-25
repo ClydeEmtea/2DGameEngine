@@ -5,6 +5,7 @@ import gui.ImGuiLayer;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
+import project.ProjectManager;
 import util.Constants;
 
 import java.util.Objects;
@@ -29,7 +30,9 @@ public class Window {
     private Window() {
         this.width = Constants.WIDTH;
         this.height = Constants.HEIGHT;
-        this.title = Constants.TITLE;
+        ProjectManager projectManager = ProjectManager.get();
+        String projectName = (projectManager.getCurrentProject() != null) ? projectManager.getCurrentProject().getName() : "Unnamed Project";
+        this.title = Constants.TITLE + " - " + projectName;
     }
 
     public static void setCurrentScene(int scene) {
@@ -53,6 +56,18 @@ public class Window {
         get();
         return currentScene;
     }
+
+    public void updateTitle() {
+        String projectName = "Unnamed Project";
+        ProjectManager pm = ProjectManager.get();
+
+        if (pm.getCurrentProject() != null) {
+            projectName = pm.getCurrentProject().getName();
+        }
+
+        glfwSetWindowTitle(this.glfwWindow, Constants.TITLE + " - " + projectName);
+    }
+
 
     public void run() {
         System.out.println("LWJGL " + Version.getVersion() + "!");
