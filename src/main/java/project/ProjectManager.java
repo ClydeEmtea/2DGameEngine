@@ -2,12 +2,18 @@ package project;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import components.Sprite;
 import components.SpriteRenderer;
 import engine.GameObject;
 import engine.Scene;
+import engine.Transform;
 import engine.Window;
+import org.joml.Vector2f;
 import org.joml.Vector4f;
+import render.Texture;
+import util.AssetPool;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -47,26 +53,26 @@ public class ProjectManager {
 
         // Make directories for the new project
         try {
-            java.nio.file.Files.createDirectories(currentProject.getProjectPath());
-            java.nio.file.Files.createDirectories(currentProject.getAssetsPath());
-            java.nio.file.Files.createDirectories(currentProject.getScenesPath());
-            java.nio.file.Files.createDirectories(currentProject.getScriptsPath());
-            java.nio.file.Files.createDirectories(currentProject.getTexturesPath());
-            java.nio.file.Files.createDirectories(currentProject.getShadersPath());
-            java.nio.file.Files.createDirectories(currentProject.getAudioPath());
-        } catch (java.io.IOException e) {
+            Files.createDirectories(currentProject.getProjectPath());
+            Files.createDirectories(currentProject.getAssetsPath());
+            Files.createDirectories(currentProject.getScenesPath());
+            Files.createDirectories(currentProject.getScriptsPath());
+            Files.createDirectories(currentProject.getImagesPath());
+            Files.createDirectories(currentProject.getShadersPath());
+            Files.createDirectories(currentProject.getAudioPath());
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
         // Make config file and add default Scene
         try {
-            java.nio.file.Path configPath = currentProject.getConfigPath();
-            if (!java.nio.file.Files.exists(configPath)) {
-                java.nio.file.Files.createFile(configPath);
+            Path configPath = currentProject.getConfigPath();
+            if (!Files.exists(configPath)) {
+                Files.createFile(configPath);
             }
             // Add default scene
-            java.nio.file.Files.createFile(currentProject.getScenesPath().resolve("MainScene.json"));
-        } catch (java.io.IOException e) {
+            Files.createFile(currentProject.getScenesPath().resolve("MainScene.json"));
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -90,8 +96,67 @@ public class ProjectManager {
         // Implement project creation with default scenes logic here
     }
 
-    public void openProject(Project project) {
-        this.currentProject = project;
+    public void openProject(String path) {
+        try {
+            String json = Files.readString(Path.of(path));
+            ProjectConfig cfg = gson.fromJson(json, ProjectConfig.class);
+            this.currentProject = new Project(cfg.projectName, Path.of(cfg.projectPath));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public List<GameObject> loadSceneObjects(String scene) {
+        if (currentProject == null) {
+            return null;
+        }
+        Path file = scenesDir().resolve(scene + ".json");
+        if (!Files.exists(file)) {
+            return null;
+        }
+
+        try {
+            String json = Files.readString(file);
+            SceneData sceneData = gson.fromJson(json, SceneData.class);
+            List<GameObject> gameObjects = new ArrayList<>();
+
+            if (sceneData == null || sceneData.objects == null) {
+                return gameObjects; // Return empty list if no objects
+            }
+
+            for (GameObjectData god : sceneData.objects) {
+                GameObject go;
+                float x = god.posX;
+                float y = god.posY;
+                float scaleX = god.scaleX;
+                float scaleY = god.scaleY;
+                int zIndex = god.zIndex;
+
+                SpriteRenderer sr = null;
+
+                if (god.colorOnly) {
+                    sr = new SpriteRenderer(new Vector4f(god.r, god.g, god.b, god.a));
+                } else {
+                    if (god.texturePath != null) {
+                        String fileName = new File(god.texturePath).getName();
+                        System.out.println("Loading texture: " + fileName);
+                        Texture tex = AssetPool.getTexture(fileName);
+                        sr = new SpriteRenderer(new Sprite(tex));
+                    }
+                }
+                go = new GameObject(god.name, new Transform(new Vector2f(x, y), new Vector2f(scaleX, scaleY)), zIndex);
+                go.addComponent(sr);
+                gameObjects.add(go);
+            }
+
+            return gameObjects;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        return null;
     }
 
     public void saveProject() {
@@ -113,6 +178,7 @@ public class ProjectManager {
             god.posY = go.transform.position.y;
             god.scaleX = go.transform.scale.x;
             god.scaleY = go.transform.scale.y;
+            god.zIndex = go.getZIndex();
 
             SpriteRenderer spriteRenderer = go.getComponent(SpriteRenderer.class);
             if (spriteRenderer != null) {
@@ -152,6 +218,7 @@ class GameObjectData {
     String name;
     float posX, posY;
     float scaleX, scaleY;
+    int zIndex;
 
     boolean colorOnly;
     String texturePath;  // null pokud není sprite

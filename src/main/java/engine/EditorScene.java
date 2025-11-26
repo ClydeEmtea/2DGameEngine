@@ -2,20 +2,16 @@ package engine;
 
 import components.*;
 import gui.ObjectCreationWindow;
-import gui.RightSidebar;
 import imgui.ImGui;
 import org.joml.Vector2f;
-import org.joml.Vector4f;
 import project.ProjectManager;
 import render.Renderer;
 import util.AssetPool;
-import util.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
-import static util.Constants.WHITE;
 
 public class EditorScene extends Scene {
 
@@ -36,6 +32,12 @@ public class EditorScene extends Scene {
             line.start();
             this.renderer.add(line);
         }
+        List<GameObject> sceneObjects = ProjectManager.get().loadSceneObjects("MainScene");
+        if (sceneObjects != null) {
+            for (GameObject go : sceneObjects) {
+                this.addGameObjectToScene(go);
+            }
+        }
 
     }
 
@@ -48,7 +50,10 @@ public class EditorScene extends Scene {
     @Override
     public void update(float dt) {
 
-        System.out.println(ProjectManager.get().getCurrentProject());
+        if (ProjectManager.get().getCurrentProject() != null && false) {
+            System.out.println(ProjectManager.get().getCurrentProject().getProjectPath());
+            System.out.println(ProjectManager.get().getCurrentProject().getImagesPath());
+        }
 
         Grid.render(this);
         for (GameObject line : gridLines) {

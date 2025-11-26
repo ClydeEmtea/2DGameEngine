@@ -37,8 +37,8 @@ public class Project {
         return projectPath.resolve("assets/scripts");
     }
 
-    public Path getTexturesPath() {
-        return projectPath.resolve("assets/textures");
+    public Path getImagesPath() {
+        return projectPath.resolve("assets/images");
     }
 
     public Path getShadersPath() {

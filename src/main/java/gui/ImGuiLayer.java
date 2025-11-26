@@ -157,7 +157,29 @@ public class ImGuiLayer {
                 }
 
                 if (ImGui.menuItem("Open")) {
-                    // Akce pro "Open"
+                    JFileChooser chooser = new JFileChooser();
+                    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                    chooser.setCurrentDirectory(Path.of(".").toFile());
+                    chooser.setDialogTitle("Select project.json");
+                    chooser.setAcceptAllFileFilterUsed(false);
+                    chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Project JSON", "json"));
+
+                    int result = chooser.showOpenDialog(null);
+                    if (result == JFileChooser.APPROVE_OPTION) {
+                        Path selectedFile = chooser.getSelectedFile().toPath();
+
+                        // Otevření projektu přes ProjectManager
+                        ProjectManager.get().openProject(selectedFile.toString());
+
+                        // Aktualizace okna a scény
+                        Window.get().updateTitle();
+                        Window.getScene().resetGameObjects();
+                        Window.setCurrentScene(0);
+                        System.out.println("Project opened: " + selectedFile);
+                    } else {
+                        System.out.println("Open project cancelled.");
+                    }
+
                 }
                 if (ImGui.menuItem("Save")) {
                     ProjectManager pm = ProjectManager.get();

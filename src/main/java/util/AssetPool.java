@@ -1,6 +1,7 @@
 package util;
 
 import components.Spritesheet;
+import project.ProjectManager;
 import render.Shader;
 import render.Texture;
 
@@ -28,11 +29,11 @@ public class AssetPool {
     }
 
     public static Texture getTexture(String fileName) {
-        System.out.println(TEXTURE_PATH + fileName);
+        System.out.println((ProjectManager.get().getCurrentProject().getImagesPath() + "\\" + fileName).replace("\\", "/"));
         if (AssetPool.textures.containsKey(fileName)) {
             return AssetPool.textures.get(fileName);
         } else {
-            Texture texture = new Texture(TEXTURE_PATH + fileName);
+            Texture texture = new Texture((ProjectManager.get().getCurrentProject().getImagesPath() + "\\" + fileName).replace("\\", "/"));
             System.out.println("ano");
             AssetPool.textures.put(fileName, texture);
             return texture;
