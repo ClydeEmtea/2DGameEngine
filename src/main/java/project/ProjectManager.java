@@ -101,6 +101,7 @@ public class ProjectManager {
             String json = Files.readString(Path.of(path));
             ProjectConfig cfg = gson.fromJson(json, ProjectConfig.class);
             this.currentProject = new Project(cfg.projectName, Path.of(cfg.projectPath));
+            Window.get().updateTitle();
         } catch (IOException e) {
             e.printStackTrace();
         }

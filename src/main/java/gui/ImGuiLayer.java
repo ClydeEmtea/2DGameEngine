@@ -82,7 +82,7 @@ public class ImGuiLayer {
 
         if (rightSidebarOpen) {
             ImGui.begin("Right sidebar");
-            if (ImGui.treeNode("Engine Info")) {
+            if (ImGui.treeNodeEx("Engine Info", ImGuiTreeNodeFlags.DefaultOpen)) {
                 ImGui.text("FPS: " + (int) (1f / dt));
                 ImGui.text("Frame Time: " + (dt * 1000) + " ms");
                 if (ImGui.button("Exit")) {
@@ -91,7 +91,7 @@ public class ImGuiLayer {
                 ImGui.treePop();
             }
 
-            if (ImGui.treeNode("Scene objects")) {
+            if (ImGui.treeNodeEx("Scene objects", ImGuiTreeNodeFlags.DefaultOpen)) {
                 for (int i = 0; i < currentScene.getGameObjects().size(); i++) {
                     if (ImGui.selectable(currentScene.getGameObjects().get(i).getName(), currentScene.getGameObjects().get(i) == currentScene.getActiveGameObject())) {
                         currentScene.setActiveGameObject(currentScene.getGameObjects().get(i));

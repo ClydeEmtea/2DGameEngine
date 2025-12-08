@@ -57,6 +57,14 @@ public class Window {
         return currentScene;
     }
 
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
     public void updateTitle() {
         String projectName = "Unnamed Project";
         ProjectManager pm = ProjectManager.get();
@@ -113,6 +121,17 @@ public class Window {
 
         glfwSetKeyCallback(glfwWindow, KeyListener::keyCallback);
 
+        glfwSetFramebufferSizeCallback(glfwWindow, (window, w, h) -> {
+            this.width = w;
+            this.height = h;
+
+            glViewport(0, 0, w, h);
+
+            if (Window.getScene() != null && Window.getScene().camera != null) {
+                Window.getScene().camera.adjustProjection();
+            }
+        });
+
 
         // Make the OpenGL context current
         glfwMakeContextCurrent(glfwWindow);
@@ -130,6 +149,8 @@ public class Window {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         // glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+        ProjectManager.get().openProject("C:/Users/EmTea/Desktop/jrbu/project.json");
 
         Window.setCurrentScene(0);
 

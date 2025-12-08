@@ -89,6 +89,14 @@ public class MouseListener {
         return false;
     }
 
+    public static boolean mouseButtonClicked(int button) {
+        if (button < get().mouseButtonPressed.length) {
+            return get().mouseButtonPressed[button] && !get().isDragging;
+        }
+        return false;
+    }
+
+
     public static Vector2f getDelta() {
         return new Vector2f(getDx(), getDy());
     }

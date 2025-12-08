@@ -3,6 +3,8 @@ package engine;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
+import util.Constants;
 
 public class Camera {
 
@@ -22,9 +24,9 @@ public class Camera {
     public void adjustProjection() {
         projectionMatrix.identity();
         float left   = 0.0f;
-        float right  = 32.0f * 40.0f / zoom;
+        float right  = Window.get().getWidth() / zoom;
         float bottom = 0.0f;
-        float top    = 32.0f * 21.0f / zoom;
+        float top    = Window.get().getHeight() / zoom;
         projectionMatrix.ortho(left, right, bottom, top, 0.0f, 100.0f);
     }
 
@@ -49,4 +51,13 @@ public class Camera {
         this.zoom = Math.min(this.zoom, 2.0f);
         adjustProjection();
     }
+
+    public Vector2f screenToWorld(float screenX, float screenY) {
+        float worldX = screenX / zoom + position.x;
+        float worldY = (Constants.HEIGHT - screenY) / zoom + position.y;
+        return new Vector2f(worldX, worldY);
+    }
+
+
+
 }

@@ -1,5 +1,6 @@
 package engine;
 
+import components.SpriteRenderer;
 import imgui.ImGui;
 import render.Renderer;
 
@@ -31,6 +32,7 @@ public abstract class Scene {
         isRunning = true;
     }
 
+
     public void addGameObjectToScene(GameObject gameObject) {
         if (!isRunning) {
             gameObjects.add(gameObject);
@@ -59,6 +61,7 @@ public abstract class Scene {
 
     public void sceneImgui() {
         if (activeGameObject != null) {
+            ImGui.setNextWindowSize(400, 200);
             ImGui.begin(activeGameObject.getName());
             activeGameObject.imgui();
             ImGui.end();

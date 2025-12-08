@@ -3,8 +3,8 @@ package util;
 import org.joml.Vector4f;
 
 public interface Constants {
-    int WIDTH = 1920;
-    int HEIGHT = 1080;
+    int WIDTH = 2560;
+    int HEIGHT = 1440;
     String TITLE = "Game Engine";
 
     int POSITION_SIZE = 2;

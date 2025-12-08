@@ -111,6 +111,23 @@ public class RenderBatch implements Comparable<RenderBatch> {
         // Draw the sprites
         glDrawElements(GL_TRIANGLES, numSprites * 6, GL_UNSIGNED_INT, 0);
 
+//        if (Window.getScene().getActiveGameObject() != null &&
+//                Window.getScene().getActiveGameObject().getComponent(SpriteRenderer.class) != null) {
+//
+//            Vector2f pos = Window.getScene().getActiveGameObject().transform.position;
+//            Vector2f size = Window.getScene().getActiveGameObject().transform.scale;
+//
+//            glColor3f(0.95f, 0.6f, 0.05f);
+//            glLineWidth(4f);
+//
+//            glBegin(GL_LINE_LOOP);
+//            glVertex2f(pos.x, pos.y);
+//            glVertex2f(pos.x + size.x, pos.y);
+//            glVertex2f(pos.x + size.x, pos.y + size.y);
+//            glVertex2f(pos.x, pos.y + size.y);
+//            glEnd();
+//        }
+
         // Disable the VAO
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
@@ -119,6 +136,8 @@ public class RenderBatch implements Comparable<RenderBatch> {
         for (Texture texture : textures) {
             texture.unbind();
         }
+
+
 
         shader.detach();
     }

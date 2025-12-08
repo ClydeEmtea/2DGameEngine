@@ -3,20 +3,27 @@ package engine;
 import components.*;
 import gui.ObjectCreationWindow;
 import imgui.ImGui;
+import imgui.flag.ImGuiHoveredFlags;
 import org.joml.Vector2f;
 import project.ProjectManager;
 import render.Renderer;
 import util.AssetPool;
+import util.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11.*;
 
 public class EditorScene extends Scene {
 
     public boolean showCreationWindow = false;
     protected List<GameObject> gridLines = new ArrayList<>();
+
+    private boolean dragging = false;
+    private Vector2f dragOffset = new Vector2f();
+
 
 
     public EditorScene() {
@@ -66,6 +73,8 @@ public class EditorScene extends Scene {
 
         this.renderer.render();
 
+
+
         if (KeyListener.isKeyTyped(GLFW_KEY_TAB)) {
             Window.setCurrentScene(1);
         }
@@ -80,9 +89,74 @@ public class EditorScene extends Scene {
         }
 
         if (MouseListener.getScrollY() != 0) {
-            float zoom = this.camera.getZoom();
-            zoom += MouseListener.getScrollY() * 0.1f;
-            this.camera.setZoom(zoom);
+
+            float oldZoom = this.camera.getZoom();
+            float newZoom = oldZoom + MouseListener.getScrollY() * 0.1f;
+
+            newZoom = Math.max(0.1f, Math.min(newZoom, 10f));
+
+            float cxBefore = camera.screenToWorld(Window.get().getWidth()/ 4f,Window.get().getHeight() / 4f).x;
+            float cyBefore = camera.screenToWorld(Window.get().getWidth()/ 4f, Window.get().getHeight() / 4f).y;
+
+            camera.setZoom(newZoom);
+
+            float cxAfter = camera.screenToWorld(Window.get().getWidth()/ 4f,Window.get().getHeight() / 4f).x;
+            float cyAfter = camera.screenToWorld(Window.get().getWidth()/ 4f, Window.get().getHeight() / 4f).y;
+
+            camera.position.x += (cxBefore - cxAfter);
+            camera.position.y += (cyBefore - cyAfter);
+        }
+
+        if (MouseListener.mouseButtonClicked(GLFW_MOUSE_BUTTON_1)) {
+            if (ImGui.isAnyItemHovered() || ImGui.isAnyItemActive() || ImGui.isWindowHovered(ImGuiHoveredFlags.AnyWindow)) {
+                return;
+            }
+            Vector2f mouseWorld = new Vector2f (this.camera().screenToWorld(MouseListener.getX(), MouseListener.getY()));
+            boolean found = false;
+            for (GameObject go : this.gameObjects) {
+                if (go.getComponent(SpriteRenderer.class) != null) {
+                    Vector2f pos = go.transform.position;
+                    Vector2f size = go.transform.scale;
+                    if (mouseWorld.x >= pos.x && mouseWorld.x <= pos.x + size.x &&
+                            mouseWorld.y >= pos.y && mouseWorld.y <= pos.y + size.y) {
+                        setActiveGameObject(go);
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if (!found) {
+                setActiveGameObject(null);
+            }
+        }
+
+        if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_1) && this.getActiveGameObject() != null) {
+            if (ImGui.isAnyItemHovered() || ImGui.isAnyItemActive() || ImGui.isWindowHovered(ImGuiHoveredFlags.AnyWindow)) {
+                return;
+            }
+            Vector2f mouseWorld = this.camera().screenToWorld(MouseListener.getX(), MouseListener.getY());
+            Vector2f goPos = this.getActiveGameObject().transform.position;
+            Vector2f goSize = this.getActiveGameObject().transform.scale;
+
+            if (!dragging) {
+                if (mouseWorld.x >= goPos.x && mouseWorld.x <= goPos.x + goSize.x &&
+                        mouseWorld.y >= goPos.y && mouseWorld.y <= goPos.y + goSize.y) {
+
+                    dragging = true;
+
+                    dragOffset.set(mouseWorld.x - goPos.x, mouseWorld.y - goPos.y);
+                }
+            }
+
+            if (dragging) {
+                this.getActiveGameObject().transform.position.set(
+                        mouseWorld.x - dragOffset.x,
+                        mouseWorld.y - dragOffset.y
+                );
+            }
+
+        } else {
+            dragging = false;
         }
 
     }

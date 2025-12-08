@@ -30,6 +30,7 @@ public class ObjectCreationWindow {
 
     public static boolean imgui(engine.Scene scene) {
         boolean created = false;
+        ImGui.setNextWindowSize(400, 200);
         ImGui.begin("Create Object");
 
         ImGui.inputText("Name", name, ImGuiInputTextFlags.EnterReturnsTrue | ImGuiInputTextFlags.AutoSelectAll);

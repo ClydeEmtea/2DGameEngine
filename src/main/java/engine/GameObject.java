@@ -3,6 +3,7 @@ package engine;
 import components.SpriteRenderer;
 import imgui.ImGui;
 import org.joml.Vector4f;
+import project.ProjectManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +47,10 @@ public class GameObject {
         return null;
     }
 
+    public List<Component> getAllComponents() {
+        return components;
+    }
+
     public void addComponent(Component c) {
         components.add(c);
         c.gameObject = this;
@@ -74,6 +79,10 @@ public class GameObject {
 
     public int getZIndex() {
         return zIndex;
+    }
+
+    public void setZIndex(int zIndex) {
+        this.zIndex = zIndex;
     }
 
     public void imgui() {
@@ -108,6 +117,18 @@ public class GameObject {
                 sr.setColor(new Vector4f(color[0], color[1], color[2], color[3]));
             }
         }
+
+        // Použij sliderInt místo dragInt pro omezení rozsahu
+        int[] zIndexArr = { zIndex };
+        if (ImGui.sliderInt("Z Index", zIndexArr, 0, 100)) {
+            zIndex = zIndexArr[0];
+        }
+        // Refresh the whole renderer if zIndex changes
+        if (ImGui.button("Apply Z Index Change")) {
+            ProjectManager.get().saveProject();
+            Window.setCurrentScene(0);
+        }
+
 
 
 

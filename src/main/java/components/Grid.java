@@ -3,6 +3,7 @@ package components;
 import engine.GameObject;
 import engine.Scene;
 import engine.Transform;
+import engine.Window;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import util.Constants;
@@ -19,8 +20,9 @@ public class Grid {
     private static int changing = 2;
 
     public static void initialize(Scene scene) {
-        float width = Constants.WIDTH;
-        float height = Constants.HEIGHT;
+        float width = Window.get().getWidth();
+        float height = Window.get().getHeight();
+        System.out.println("Initializing grid with width: " + width + " height: " + height);
         xCoords = new java.util.ArrayList<>();
         yCoords = new java.util.ArrayList<>();
 
