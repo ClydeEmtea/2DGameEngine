@@ -2,6 +2,7 @@ package components;
 
 import engine.Component;
 import engine.Transform;
+import imgui.ImGui;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.Texture;
@@ -74,5 +75,16 @@ public class SpriteRenderer extends Component {
     }
     public void setDirty() {
         isDirty = true;
+    }
+
+
+    @Override
+    public void imgui() {
+        super.imgui();
+        Texture tex = this.getTexture();
+        if (tex != null) {
+            int texId = tex.getId();
+            ImGui.image(texId, 100,100);
+        }
     }
 }

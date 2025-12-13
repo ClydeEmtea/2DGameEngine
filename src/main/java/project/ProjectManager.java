@@ -2,6 +2,7 @@ package project;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import components.ScriptComponent;
 import components.Sprite;
 import components.SpriteRenderer;
 import engine.GameObject;
@@ -147,6 +148,18 @@ public class ProjectManager {
                 }
                 go = new GameObject(god.name, new Transform(new Vector2f(x, y), new Vector2f(scaleX, scaleY)), zIndex);
                 go.addComponent(sr);
+
+                if (god.scripts != null) {
+                    for (String scriptClass : god.scripts) {
+                        Path p = getScriptPath(scriptClass);
+
+                        if (p != null) {
+                            ScriptComponent sc = new ScriptComponent(scriptClass, p);
+                            go.addComponent(sc);
+                        }
+                    }
+                }
+
                 gameObjects.add(go);
             }
 
@@ -199,6 +212,12 @@ public class ProjectManager {
 
                 }
             }
+            god.scripts = new ArrayList<>();
+            ScriptComponent sc = go.getComponent(ScriptComponent.class);
+            if (sc != null) {
+                god.scripts.add(sc.getClassName());
+            }
+
             sceneData.objects.add(god);
         }
 
@@ -209,6 +228,105 @@ public class ProjectManager {
             e.printStackTrace();
         }
     }
+
+    private static final String SCRIPT_TEMPLATE = """
+import scripts.Script;
+import scripts.Exposed;
+import engine.*;
+import static org.lwjgl.glfw.GLFW.*;
+
+public class %s implements Script {
+    // Environment - DO NOT EDIT
+    private GameObject thisGameObject;
+    private Window window;
+    private MouseListener mouseListener;
+    private KeyListener keyListener;
+    // ------------
+    
+    // Add variables here
+    
+    
+    
+    
+    @Override
+    public void init() {
+        // called once
+    }
+
+    @Override
+    public void update(float dt) {
+        // called every frame
+    }
+    
+    @Override
+    public void setEnvironment(GameObject go, Window window, MouseListener mouseListener, KeyListener keyListener) {
+        // sets environment - DO NOT EDIT
+        this.thisGameObject = go;
+        this.window = window;
+        this.mouseListener = mouseListener;
+        this.keyListener = keyListener;
+    }
+}
+""";
+
+
+    public Path createNewScript(String scriptName) {
+        if (currentProject == null) {
+            throw new IllegalStateException("No project open");
+        }
+
+        // validace názvu
+        if (!scriptName.matches("[A-Z][A-Za-z0-9_]*")) {
+            throw new IllegalArgumentException("Invalid Java class name");
+        }
+
+        Path scriptPath = currentProject.getScriptsPath()
+                .resolve(scriptName + ".java");
+
+        if (Files.exists(scriptPath)) {
+            throw new RuntimeException("Script already exists");
+        }
+
+        try {
+            String content = SCRIPT_TEMPLATE.formatted(scriptName);
+            Files.writeString(scriptPath, content);
+            return scriptPath;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Path getScriptPath(String scriptName) {
+        if (currentProject == null) {
+            throw new IllegalStateException("No project open");
+        }
+
+        // validace názvu
+        if (!scriptName.matches("[A-Z][A-Za-z0-9_]*")) {
+            throw new IllegalArgumentException("Invalid Java class name");
+        }
+
+        Path scriptPath = currentProject.getScriptsPath()
+                .resolve(scriptName + ".java");
+
+        if (Files.exists(scriptPath)) {
+            return scriptPath;
+        }
+        return null;
+    }
+
+    public void openInVSCode(Path file) {
+        try {
+            new ProcessBuilder(
+                    "cmd", "/c", "code", file.toAbsolutePath().toString()
+            ).start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
 }
 
 class SceneData {
@@ -225,4 +343,5 @@ class GameObjectData {
     String texturePath;  // null pokud není sprite
 
     float r, g, b, a; // color fallback
+    ArrayList<String> scripts;
 }

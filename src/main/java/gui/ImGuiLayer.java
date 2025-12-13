@@ -1,5 +1,7 @@
 package gui;
 
+import engine.Component;
+import engine.GameObject;
 import engine.Scene;
 import engine.Window;
 import imgui.ImGui;
@@ -100,6 +102,16 @@ public class ImGuiLayer {
                 ImGui.treePop();
             }
             RightSidebar.render();
+
+            GameObject activeGameObject = currentScene.getActiveGameObject();
+            if (activeGameObject != null) {
+                ImGui.dummy(0, 50);
+                ImGui.separator();
+                ImGui.text(activeGameObject.getName());
+                activeGameObject.imgui();
+
+            }
+
             ImGui.end();
 
         }

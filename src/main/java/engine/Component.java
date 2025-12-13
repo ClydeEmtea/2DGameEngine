@@ -1,5 +1,7 @@
 package engine;
 
+import imgui.ImGui;
+
 public abstract class Component {
 
     public GameObject gameObject = null;
@@ -9,11 +11,15 @@ public abstract class Component {
 
     public void start() {}
 
-    public void imgui() {
+    public void initScript() {}
 
+    public void imgui() {
+        ImGui.text("Component: " + this.getClass().getSimpleName());
     }
 
     public boolean isColorOnly() {
         return isColorOnly;
     }
+
+    public void updateScript(float dt) {}
 }

@@ -77,4 +77,8 @@ public class Texture {
     public String getFilePath() {
         return path;
     }
+
+    public int getId() {
+        return id;
+    }
 }

@@ -1,7 +1,10 @@
 package engine;
 
+import components.ScriptComponent;
 import components.SpriteRenderer;
 import imgui.ImGui;
+import imgui.type.ImString;
+import org.joml.Vector2f;
 import org.joml.Vector4f;
 import project.ProjectManager;
 
@@ -14,6 +17,7 @@ public class GameObject {
     private List<Component> components;
     public Transform transform;
     private int zIndex;
+    private String newScriptName = "";
 
     public GameObject(String name) {
         this.name = name;
@@ -51,9 +55,23 @@ public class GameObject {
         return components;
     }
 
+    public List<Component> getAllScripts() {
+        List<Component> result = new ArrayList<>();
+        for (Component c : components) {
+            if (c instanceof ScriptComponent sc) {
+                result.add(sc);
+            }
+        }
+        return result;
+    }
+
     public void addComponent(Component c) {
         components.add(c);
         c.gameObject = this;
+
+        if (c instanceof ScriptComponent sc) {
+            sc.onAddedToGameObject();
+        }
     }
 
     public <T extends Component> void removeComponent(Class<T> componentClass) {
@@ -86,13 +104,8 @@ public class GameObject {
     }
 
     public void imgui() {
-        for (Component c : components) {
-            c.imgui();
-        }
-        // pole musí být mimo if, aby ImGui mohl měnit hodnoty
         float[] pos = { transform.position.x, transform.position.y };
 
-// dragFloat2 změní obsah pole
         if (ImGui.dragFloat2("Position", pos, 0.5f)) {
             transform.position.x = pos[0];
             transform.position.y = pos[1];
@@ -118,18 +131,55 @@ public class GameObject {
             }
         }
 
-        // Použij sliderInt místo dragInt pro omezení rozsahu
         int[] zIndexArr = { zIndex };
         if (ImGui.sliderInt("Z Index", zIndexArr, 0, 100)) {
             zIndex = zIndexArr[0];
         }
-        // Refresh the whole renderer if zIndex changes
         if (ImGui.button("Apply Z Index Change")) {
             ProjectManager.get().saveProject();
+            Vector2f camPos = Window.getScene().camera.position;
+            float camZoom = Window.getScene().camera.getZoom();
             Window.setCurrentScene(0);
+            Window.getScene().camera.position = camPos;
+            Window.getScene().camera.setZoom(camZoom);
+            Window.getScene().setActiveGameObject(this);
+        }
+
+        ImGui.text("Add Script");
+
+        ImString buffer = new ImString(newScriptName, 64);
+        if (ImGui.inputText("##ScriptName", buffer)) {
+            newScriptName = buffer.get().trim();
+        }
+
+        ImGui.sameLine();
+
+        if (ImGui.button("Create")) {
+            if (!newScriptName.isBlank()) {
+                try {
+                    var pm = ProjectManager.get();
+                    var scriptPath = pm.createNewScript(newScriptName);
+
+                    String className = newScriptName;
+                    this.addComponent(new components.ScriptComponent(className, scriptPath));
+
+                    pm.openInVSCode(scriptPath);
+
+                    newScriptName = "";
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            ProjectManager.get().saveProject();
         }
 
 
+        ImGui.separator();
+        for (Component component : getAllComponents()) {
+            ImGui.dummy(0, 10);
+            component.imgui();
+        }
 
 
     }

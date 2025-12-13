@@ -1,8 +1,10 @@
 package engine;
 
+import components.Sprite;
 import components.SpriteRenderer;
 import imgui.ImGui;
 import render.Renderer;
+import render.Texture;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +18,7 @@ public abstract class Scene {
 
     protected List<GameObject> gameObjects = new ArrayList<>();
     protected GameObject activeGameObject = null;
+    protected GameObject selectedGameObjectIcon = null;
 
     public Scene() {
 
@@ -60,12 +63,12 @@ public abstract class Scene {
     }
 
     public void sceneImgui() {
-        if (activeGameObject != null) {
-            ImGui.setNextWindowSize(400, 200);
-            ImGui.begin(activeGameObject.getName());
-            activeGameObject.imgui();
-            ImGui.end();
-        }
+//        if (activeGameObject != null) {
+//            ImGui.setNextWindowSize(400, 200);
+//            ImGui.begin(activeGameObject.getName());
+//            activeGameObject.imgui();
+//            ImGui.end();
+//        }
 
         imgui();
     }

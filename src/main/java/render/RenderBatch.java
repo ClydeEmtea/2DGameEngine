@@ -1,6 +1,7 @@
 package render;
 
 import components.SpriteRenderer;
+import engine.GameObject;
 import engine.Window;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector2f;
