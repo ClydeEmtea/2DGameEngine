@@ -11,7 +11,7 @@ import java.util.List;
 
 public abstract class Scene {
 
-    protected Renderer renderer = new Renderer();
+    public Renderer renderer = new Renderer();
     protected Camera camera;
     private boolean isRunning = false;
 
@@ -49,12 +49,11 @@ public abstract class Scene {
     public void addLine(GameObject line) {}
 
     public void removeGameObject(GameObject gameObject) {
-        this.gameObjects.remove(gameObject);
-        this.renderer = new Renderer(); // TODO: Optimize this
-        for (GameObject go : gameObjects) {
-            this.renderer.add(go);
+        if (this.gameObjects.remove(gameObject)) {
+            renderer.remove(gameObject);
         }
     }
+
 
     public abstract void update(float dt);
 

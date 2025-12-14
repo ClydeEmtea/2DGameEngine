@@ -2,10 +2,13 @@ package components;
 
 import engine.Component;
 import engine.Transform;
+import engine.Window;
 import imgui.ImGui;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
+import project.ProjectManager;
 import render.Texture;
+import util.AssetPool;
 
 import static util.Constants.WHITE;
 
@@ -55,8 +58,19 @@ public class SpriteRenderer extends Component {
         return sprite.getTexCoords();
     }
 
-    public void setSprite(Sprite sprite) {
-        this.sprite = sprite;
+    public void setSprite(String filename) {
+        Window.getScene().renderer.remove(this.gameObject);
+        this.color = WHITE;
+        this.sprite = new Sprite(AssetPool.getTexture(filename));
+        this.isDirty = true;
+        this.isColorOnly = false;
+        Window.getScene().renderer.add(this.gameObject);
+    }
+
+    public void removeSprite() {
+        this.sprite = new Sprite(null);
+        this.color = WHITE;
+        this.isColorOnly = true;
         this.isDirty = true;
     }
 
@@ -85,6 +99,11 @@ public class SpriteRenderer extends Component {
         if (tex != null) {
             int texId = tex.getId();
             ImGui.image(texId, 100,100);
+        }
+        if (!isColorOnly) {
+            if (ImGui.button("Remove sprite")) {
+                removeSprite();
+            }
         }
     }
 }

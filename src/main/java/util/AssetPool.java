@@ -29,7 +29,7 @@ public class AssetPool {
     }
 
     public static Texture getTexture(String fileName) {
-        System.out.println((ProjectManager.get().getCurrentProject().getImagesPath() + "\\" + fileName).replace("\\", "/"));
+//        System.out.println((ProjectManager.get().getCurrentProject().getImagesPath() + "\\" + fileName).replace("\\", "/"));
         if (AssetPool.textures.containsKey(fileName)) {
             return AssetPool.textures.get(fileName);
         } else {

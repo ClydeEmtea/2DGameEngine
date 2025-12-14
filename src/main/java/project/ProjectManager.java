@@ -132,6 +132,7 @@ public class ProjectManager {
                 float y = god.posY;
                 float scaleX = god.scaleX;
                 float scaleY = god.scaleY;
+                float rotation = god.rotation;
                 int zIndex = god.zIndex;
 
                 SpriteRenderer sr = null;
@@ -146,7 +147,7 @@ public class ProjectManager {
                         sr = new SpriteRenderer(new Sprite(tex));
                     }
                 }
-                go = new GameObject(god.name, new Transform(new Vector2f(x, y), new Vector2f(scaleX, scaleY)), zIndex);
+                go = new GameObject(god.name, new Transform(new Vector2f(x, y), new Vector2f(scaleX, scaleY), rotation), zIndex);
                 go.addComponent(sr);
 
                 if (god.scripts != null) {
@@ -192,6 +193,7 @@ public class ProjectManager {
             god.posY = go.transform.position.y;
             god.scaleX = go.transform.scale.x;
             god.scaleY = go.transform.scale.y;
+            god.rotation = go.transform.rotation;
             god.zIndex = go.getZIndex();
 
             SpriteRenderer spriteRenderer = go.getComponent(SpriteRenderer.class);
@@ -337,6 +339,7 @@ class GameObjectData {
     String name;
     float posX, posY;
     float scaleX, scaleY;
+    float rotation;
     int zIndex;
 
     boolean colorOnly;

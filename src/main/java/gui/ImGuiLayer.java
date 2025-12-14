@@ -10,14 +10,16 @@ import imgui.flag.*;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 import imgui.type.ImBoolean;
+import org.lwjgl.glfw.GLFWDropCallback;
 import project.ProjectManager;
+import render.Texture;
+import util.AssetPool;
 
 import javax.swing.*;
+import java.io.File;
 import java.nio.file.Path;
 
-import static org.lwjgl.glfw.GLFW.glfwGetCurrentContext;
-
-import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
+import static org.lwjgl.glfw.GLFW.*;
 import static util.Constants.*;
 
 public class ImGuiLayer {
@@ -26,8 +28,13 @@ public class ImGuiLayer {
     private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
 
     private boolean showDemoWindow = false;
-    private boolean rightSidebarOpen = true;
-    private boolean bottomSidebarOpen = true;
+    private static boolean rightSidebarOpen = true;
+    private static boolean bottomSidebarOpen = true;
+
+    private Path currentDirectory;
+    private static final float TILE_SIZE = 96f;
+    private static final float TILE_PADDING = 16f;
+
 
     public void init() {
         // Create context
@@ -50,17 +57,32 @@ public class ImGuiLayer {
         imGuiGlfw.init(windowHandle, true);
         imGuiGl3.init("#version 330");
 
+        // Drag and drop
+        glfwSetDropCallback(windowHandle, (window, count, names) -> {
+            for (int i = 0; i < count; i++) {
+                String path = GLFWDropCallback.getName(names, i);
+                Path source = Path.of(path);
+                String lower = path.toLowerCase();
+
+                if (lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg")) {
+                    Path imagesDir = ProjectManager.get().getCurrentProject().getImagesPath();
+
+                    Path target = imagesDir.resolve(source.getFileName());
+
+                    try {
+                        java.nio.file.Files.copy(source, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                        System.out.println("Copied " + source + " to " + target);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+
         imGuiGlfw.newFrame();
         ImGui.newFrame();
 
         setupDockspace();
-        ImGui.begin("Right sidebar");
-        ImGui.text("Hello from ImGui!");
-        ImGui.end();
-
-        ImGui.begin("Bottom sidebar");
-        ImGui.text("Hello from ImGui!");
-        ImGui.end();
 
 
         // Example window
@@ -73,6 +95,11 @@ public class ImGuiLayer {
         imGuiGl3.renderDrawData(ImGui.getDrawData());
 
         io.setIniFilename(null);
+
+        currentDirectory = ProjectManager.get()
+                .getCurrentProject()
+                .getImagesPath();
+
     }
 
     public void update(float dt, Scene currentScene) {
@@ -117,9 +144,18 @@ public class ImGuiLayer {
         }
 
         if (bottomSidebarOpen) {
-            ImGui.begin("Bottom sidebar");
-            ImGui.text("Hello from ImGui!");
-            ImGui.text("Delta Time: " + dt);
+            ImGui.begin("Asset Pool");
+
+            ImGui.columns(2, "asset_browser",true);
+            ImGui.setColumnWidth(0, 200);
+
+            drawDirectoryList(ProjectManager.get().getCurrentProject().getAssetsPath());
+
+            ImGui.nextColumn();
+
+            drawDirectoryContent(currentDirectory);
+
+            ImGui.columns(1);
             ImGui.end();
 
         }
@@ -356,6 +392,132 @@ public class ImGuiLayer {
         // End the DockSpace window
         ImGui.end();
     }
+
+    private void drawDirectoryList(Path root) {
+        if (root == null || !root.toFile().exists()) return;
+
+        File[] files = root.toFile().listFiles(File::isDirectory);
+        if (files == null) return;
+
+        for (File dir : files) {
+            boolean selected = dir.toPath().equals(currentDirectory);
+            if (ImGui.selectable(dir.getName(), selected)) {
+                currentDirectory = dir.toPath();
+            }
+        }
+    }
+
+    private void drawDirectoryContent(Path dir) {
+        if (dir == null || !dir.toFile().exists()) return;
+
+        File[] files = dir.toFile().listFiles();
+        if (files == null) return;
+
+        float panelWidth = ImGui.getContentRegionAvailX();
+        float cellSize = TILE_SIZE + TILE_PADDING;
+        int columns = Math.max(1, (int)(panelWidth / cellSize));
+
+        int i = 0;
+
+        for (File file : files) {
+            String name = file.getName();
+
+            // Skip .class files
+            if (name.endsWith(".class")) continue;
+
+            ImGui.pushID(file.getAbsolutePath());
+            ImGui.beginGroup();
+
+            if (file.isDirectory()) {
+                drawFolderPreview();
+                if (ImGui.isItemClicked()) {
+                    currentDirectory = file.toPath();
+                }
+            } else {
+                drawFilePreview(file);
+
+                // Double click behavior
+                if (ImGui.isItemHovered() && ImGui.isMouseDoubleClicked(0)) {
+                    try {
+                        if (name.endsWith(".java")) {
+                            // Open in VSCode
+                            ProjectManager.get().openInVSCode(file.toPath());
+                        } else {
+                            // Open in system default program
+                            if (java.awt.Desktop.isDesktopSupported()) {
+                                java.awt.Desktop.getDesktop().open(file);
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            ImGui.textWrapped(name);
+            ImGui.endGroup();
+            ImGui.popID();
+
+            i++;
+            if (i % columns != 0) {
+                ImGui.sameLine();
+            }
+        }
+    }
+
+
+    private void drawFolderPreview() {
+        ImGui.button("a", TILE_SIZE, TILE_SIZE);
+    }
+    private void drawFilePreview(File file) {
+        Texture texture = AssetPool.getTexture(file.getName());
+        if (texture == null) return;
+
+        ImGui.beginGroup();
+
+        // interaktivní plocha
+        ImGui.invisibleButton("##drag", TILE_SIZE, TILE_SIZE);
+
+        // pozice buttonu
+        float x = ImGui.getItemRectMinX();
+        float y = ImGui.getItemRectMinY();
+
+        // vykreslení obrázku NAD buttonem
+        ImGui.getWindowDrawList().addImage(
+                texture.getId(),
+                x, y,
+                x + TILE_SIZE, y + TILE_SIZE
+        );
+
+        // === DRAG SOURCE ===
+        if (ImGui.beginDragDropSource()) {
+
+            ImGui.setDragDropPayload(
+                    "ASSET_FILE",
+                    file.getAbsolutePath()
+            );
+
+            ImGui.text(file.getName());
+            ImGui.image(texture.getId(), 48, 48);
+
+            ImGui.endDragDropSource();
+        }
+
+        ImGui.endGroup();
+    }
+
+    public static void hideLayers() {
+        bottomSidebarOpen = false;
+        rightSidebarOpen = false;
+
+    }
+
+    public static void showLayers() {
+        bottomSidebarOpen = true;
+        rightSidebarOpen = true;
+    }
+
+
 
 
 }

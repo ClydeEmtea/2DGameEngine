@@ -2,6 +2,7 @@ package render;
 
 import components.SpriteRenderer;
 import engine.GameObject;
+import engine.Transform;
 import engine.Window;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector2f;
@@ -167,9 +168,11 @@ public class RenderBatch implements Comparable<RenderBatch> {
         SpriteRenderer sprite = this.sprites[index];
         int offset = index * 4 * VERTEX_SIZE;
 
+        Transform t = sprite.gameObject.transform;
         Vector4f color = sprite.getColor();
         Vector2f[] texCoords = sprite.getTexCoords();
 
+        // Texture ID
         int texID = 0;
         if (sprite.getTexture() != null) {
             for (int i = 0; i < textures.size(); i++) {
@@ -177,43 +180,58 @@ public class RenderBatch implements Comparable<RenderBatch> {
                     texID = i + 1;
                     break;
                 }
-
             }
         }
 
+        // Pivot = střed sprite (ale position zůstává levý dolní roh!)
+        float cx = t.position.x + t.scale.x * 0.5f;
+        float cy = t.position.y + t.scale.y * 0.5f;
+
+        float cos = (float) Math.cos(t.rotation);
+        float sin = (float) Math.sin(t.rotation);
+
         float xAdd = 1.0f;
         float yAdd = 1.0f;
+
         for (int i = 0; i < 4; i++) {
-            if (i == 1) {
-                yAdd = 0.0f;
-            }
-            // Top right
-            else if (i == 2) {
-                xAdd = 0.0f;
-            }
-            // Top left
-            else if (i == 3) {
-                yAdd = 1.0f;
-            }
 
-            vertexArray[offset] = sprite.gameObject.transform.position.x + xAdd * sprite.gameObject.transform.scale.x;
-            vertexArray[offset + 1] = sprite.gameObject.transform.position.y + yAdd * sprite.gameObject.transform.scale.y;
+            if (i == 1) yAdd = 0.0f;
+            else if (i == 2) xAdd = 0.0f;
+            else if (i == 3) yAdd = 1.0f;
 
+            // původní (nerotovaná) pozice vrcholu
+            float x = t.position.x + xAdd * t.scale.x;
+            float y = t.position.y + yAdd * t.scale.y;
+
+            // posun do pivotu
+            float dx = x - cx;
+            float dy = y - cy;
+
+            // rotace
+            float rx = dx * cos - dy * sin;
+            float ry = dx * sin + dy * cos;
+
+            // návrat zpět
+            vertexArray[offset]     = rx + cx;
+            vertexArray[offset + 1] = ry + cy;
+
+            // color
             vertexArray[offset + 2] = color.x;
             vertexArray[offset + 3] = color.y;
             vertexArray[offset + 4] = color.z;
             vertexArray[offset + 5] = color.w;
 
+            // tex coords
             vertexArray[offset + 6] = texCoords[i].x;
             vertexArray[offset + 7] = texCoords[i].y;
 
+            // tex id
             vertexArray[offset + 8] = texID;
-
 
             offset += VERTEX_SIZE;
         }
-
     }
+
 
     private int[] generateIndices() {
         int[] indices = new int[maxBatchSize * 6];
@@ -256,4 +274,19 @@ public class RenderBatch implements Comparable<RenderBatch> {
     public int compareTo(@NotNull RenderBatch o) {
         return Integer.compare(this.zIndex, o.zIndex);
     }
+
+    public void removeSprite(SpriteRenderer sprite) {
+        for (int i = 0; i < numSprites; i++) {
+            if (sprites[i] == sprite) {
+                for (int j = i; j < numSprites - 1; j++) {
+                    sprites[j] = sprites[j + 1];
+                }
+                sprites[numSprites - 1] = null;
+                numSprites--;
+                hasRoom = true;
+                break;
+            }
+        }
+    }
+
 }

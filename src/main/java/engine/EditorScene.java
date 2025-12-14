@@ -79,6 +79,13 @@ public class EditorScene extends Scene {
             Window.setCurrentScene(1);
         }
 
+        if (KeyListener.isKeyPressed(GLFW_KEY_LEFT_CONTROL) && KeyListener.isKeyTyped(GLFW_KEY_S)) {
+            if (ProjectManager.get().getCurrentProject() != null) {
+                ProjectManager.get().saveProject();
+                System.out.println("Project saved!");
+            }
+        }
+
 
         if (MouseListener.isDragging() && MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_2)) {
             Vector2f delta = MouseListener.getDelta();
@@ -89,6 +96,11 @@ public class EditorScene extends Scene {
         }
 
         if (MouseListener.getScrollY() != 0) {
+
+            if (ImGui.isAnyItemHovered() || ImGui.isAnyItemActive() ||
+                    ImGui.isWindowHovered(ImGuiHoveredFlags.AnyWindow)) {
+                return;
+            }
 
             float oldZoom = this.camera.getZoom();
             float newZoom = oldZoom + MouseListener.getScrollY() * 0.1f;
@@ -108,48 +120,64 @@ public class EditorScene extends Scene {
         }
 
         if (MouseListener.mouseButtonClicked(GLFW_MOUSE_BUTTON_1)) {
-            if (ImGui.isAnyItemHovered() || ImGui.isAnyItemActive() || ImGui.isWindowHovered(ImGuiHoveredFlags.AnyWindow)) {
+            if (ImGui.isAnyItemHovered() || ImGui.isAnyItemActive() ||
+                    ImGui.isWindowHovered(ImGuiHoveredFlags.AnyWindow)) {
                 return;
             }
-            Vector2f mouseWorld = new Vector2f (this.camera().screenToWorld(MouseListener.getX(), MouseListener.getY()));
+
+            Vector2f mouseWorld = camera().screenToWorld(
+                    MouseListener.getX(),
+                    MouseListener.getY()
+            );
+
             boolean found = false;
-            for (GameObject go : this.gameObjects) {
-                if (go.getComponent(SpriteRenderer.class) != null) {
-                    Vector2f pos = go.transform.position;
-                    Vector2f size = go.transform.scale;
-                    if (mouseWorld.x >= pos.x && mouseWorld.x <= pos.x + size.x &&
-                            mouseWorld.y >= pos.y && mouseWorld.y <= pos.y + size.y) {
-                        setActiveGameObject(go);
-                        found = true;
-                        break;
-                    }
+
+            for (GameObject go : gameObjects) {
+                SpriteRenderer sr = go.getComponent(SpriteRenderer.class);
+                if (sr == null) continue;
+
+                Transform t = go.transform;
+
+                if (pointInRotatedRect(mouseWorld, t.position, t.scale, t.rotation)) {
+                    setActiveGameObject(go);
+                    found = true;
+                    break;
                 }
             }
+
             if (!found) {
                 setActiveGameObject(null);
             }
         }
 
-        if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_1) && this.getActiveGameObject() != null) {
-            if (ImGui.isAnyItemHovered() || ImGui.isAnyItemActive() || ImGui.isWindowHovered(ImGuiHoveredFlags.AnyWindow)) {
+
+        if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_1)
+                && getActiveGameObject() != null) {
+
+            if (ImGui.isAnyItemHovered() || ImGui.isAnyItemActive() ||
+                    ImGui.isWindowHovered(ImGuiHoveredFlags.AnyWindow)) {
                 return;
             }
-            Vector2f mouseWorld = this.camera().screenToWorld(MouseListener.getX(), MouseListener.getY());
-            Vector2f goPos = this.getActiveGameObject().transform.position;
-            Vector2f goSize = this.getActiveGameObject().transform.scale;
+
+            Vector2f mouseWorld = camera().screenToWorld(
+                    MouseListener.getX(),
+                    MouseListener.getY()
+            );
+
+            Transform t = getActiveGameObject().transform;
 
             if (!dragging) {
-                if (mouseWorld.x >= goPos.x && mouseWorld.x <= goPos.x + goSize.x &&
-                        mouseWorld.y >= goPos.y && mouseWorld.y <= goPos.y + goSize.y) {
-
+                if (pointInRotatedRect(mouseWorld, t.position, t.scale, t.rotation)) {
                     dragging = true;
-
-                    dragOffset.set(mouseWorld.x - goPos.x, mouseWorld.y - goPos.y);
+                    dragOffset.set(
+                            mouseWorld.x - t.position.x,
+                            mouseWorld.y - t.position.y
+                    );
                 }
             }
 
             if (dragging) {
-                this.getActiveGameObject().transform.position.set(
+                t.position.set(
                         mouseWorld.x - dragOffset.x,
                         mouseWorld.y - dragOffset.y
                 );
@@ -158,6 +186,7 @@ public class EditorScene extends Scene {
         } else {
             dragging = false;
         }
+
 
     }
 
@@ -199,6 +228,33 @@ public class EditorScene extends Scene {
 
         ImGui.end();
     }
+
+    private boolean pointInRotatedRect(
+            Vector2f point,
+            Vector2f pos,
+            Vector2f size,
+            float rotation
+    ) {
+        float cx = pos.x + size.x * 0.5f;
+        float cy = pos.y + size.y * 0.5f;
+
+        float dx = point.x - cx;
+        float dy = cy - point.y;
+
+        float cos = (float) Math.cos(rotation);
+        float sin = (float) Math.sin(rotation);
+
+        float localX =  dx * cos - dy * sin;
+        float localY =  dx * sin + dy * cos;
+
+        float halfX = size.x * 0.5f;
+        float halfY = size.y * 0.5f;
+
+        return localX >= -halfX && localX <= halfX &&
+                localY >= -halfY && localY <= halfY;
+    }
+
+
 
 
 

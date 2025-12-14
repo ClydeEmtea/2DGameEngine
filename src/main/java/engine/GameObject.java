@@ -1,13 +1,20 @@
 package engine;
 
 import components.ScriptComponent;
+import components.Sprite;
 import components.SpriteRenderer;
 import imgui.ImGui;
+import imgui.ImVec4;
+import imgui.flag.ImGuiCol;
 import imgui.type.ImString;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import project.ProjectManager;
+import render.Texture;
+import util.AssetPool;
+import util.Constants;
 
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +25,8 @@ public class GameObject {
     public Transform transform;
     private int zIndex;
     private String newScriptName = "";
+    private Float editorRotationDeg = null;
+
 
     public GameObject(String name) {
         this.name = name;
@@ -83,6 +92,13 @@ public class GameObject {
         }
     }
 
+    public void removeComponent(Component c) {
+        if (c == null) return;
+
+        components.remove(c);
+        c.gameObject = null; // Odpojení reference na GameObject
+    }
+
     public void update(float dt) {
         for (Component c : components) {
             c.update(dt);
@@ -104,6 +120,20 @@ public class GameObject {
     }
 
     public void imgui() {
+
+        ImGui.beginGroup();
+
+        ImGui.invisibleButton("##GO_DROP_TARGET", ImGui.getContentRegionAvailX(), 50);
+
+        if (ImGui.beginDragDropTarget()) {
+            Object payload = ImGui.acceptDragDropPayload("ASSET_FILE");
+            if (payload != null) {
+                onAssetDropped((String) payload);
+            }
+            ImGui.endDragDropTarget();
+        }
+
+        ImGui.endGroup();
         float[] pos = { transform.position.x, transform.position.y };
 
         if (ImGui.dragFloat2("Position", pos, 0.5f)) {
@@ -113,9 +143,38 @@ public class GameObject {
 
         float[] scale = { transform.scale.x, transform.scale.y };
         if (ImGui.dragFloat2("Scale", scale, 0.5f)) {
+            Vector2f oldCenter = new Vector2f(
+                    transform.position.x + transform.scale.x * 0.5f,
+                    transform.position.y + transform.scale.y * 0.5f
+            );
+
             transform.scale.x = scale[0];
             transform.scale.y = scale[1];
+
+            transform.position.x = oldCenter.x - transform.scale.x * 0.5f;
+            transform.position.y = oldCenter.y - transform.scale.y * 0.5f;
         }
+
+        if (editorRotationDeg == null) {
+            editorRotationDeg = (float) Math.toDegrees(transform.rotation);
+        }
+
+        float speed = ImGui.getIO().getKeyCtrl() ? 0.1f : 1.0f;
+
+        float[] rot = { editorRotationDeg };
+
+        if (ImGui.dragFloat("Rotation", rot, speed, -180.0f, 180.0f)) {
+            editorRotationDeg = rot[0];
+            transform.rotation = (float) Math.toRadians(-editorRotationDeg);
+        }
+
+        if (ImGui.button("Reset rotation")) {
+            editorRotationDeg = 0.0f;
+            transform.rotation = 0.0f;
+        }
+
+        ImGui.dummy(0,20);
+
 
         Component c = this.components.get(0);
         if (c instanceof SpriteRenderer sr && sr.isColorOnly()) {
@@ -144,6 +203,30 @@ public class GameObject {
             Window.getScene().camera.setZoom(camZoom);
             Window.getScene().setActiveGameObject(this);
         }
+
+        ImGui.dummy(0,20);
+
+
+        ImVec4 oldButton = ImGui.getStyle().getColor(ImGuiCol.Button);
+        ImVec4 oldHover = ImGui.getStyle().getColor(ImGuiCol.ButtonHovered);
+        ImVec4 oldActive = ImGui.getStyle().getColor(ImGuiCol.ButtonActive);
+
+        ImGui.getStyle().setColor(ImGuiCol.Button, 0.6f, 0.2f, 0.2f, 1.0f);
+        ImGui.getStyle().setColor(ImGuiCol.ButtonHovered, 0.7f, 0.3f, 0.4f, 1.0f);
+        ImGui.getStyle().setColor(ImGuiCol.ButtonActive, 0.8f, 0.1f, 0.2f, 1.0f);
+
+        if (ImGui.button("Remove object")) {
+            Window.getScene().removeGameObject(this);
+            Window.getScene().setActiveGameObject(null);
+        }
+
+        ImGui.getStyle().setColor(ImGuiCol.Button, oldButton.x, oldButton.y, oldButton.z, oldButton.w);
+        ImGui.getStyle().setColor(ImGuiCol.ButtonHovered, oldHover.x, oldHover.y, oldHover.z, oldHover.w);
+        ImGui.getStyle().setColor(ImGuiCol.ButtonActive, oldActive.x, oldActive.y, oldActive.z, oldActive.w);
+
+
+
+        ImGui.dummy(0,20);
 
         ImGui.text("Add Script");
 
@@ -176,11 +259,42 @@ public class GameObject {
 
 
         ImGui.separator();
-        for (Component component : getAllComponents()) {
+        for (Component component : new ArrayList<>(getAllComponents())) {
             ImGui.dummy(0, 10);
             component.imgui();
         }
 
 
+
     }
+
+    private void onAssetDropped(String path) {
+        String filename = Paths.get(path).getFileName().toString();
+
+        if (path.endsWith(".png") || path.endsWith(".jpg") || path.endsWith(".jpeg")) {
+
+            SpriteRenderer sr = getComponent(SpriteRenderer.class);
+
+            if (sr == null) {
+                sr = new SpriteRenderer(new Sprite(AssetPool.getTexture(filename)));
+                addComponent(sr);
+            } else {
+                sr.setSprite(filename);
+            }
+
+            System.out.println("Texture assigned: " + path);
+        }
+
+        else if (path.endsWith(".java")) {
+            int dot = filename.lastIndexOf('.');
+
+            String className = (dot == -1)
+                    ? filename
+                    : filename.substring(0, dot);
+
+            addComponent(new ScriptComponent(className, ProjectManager.get().getScriptPath(className)));
+            System.out.println("Script added: " + className);
+        }
+    }
+
 }

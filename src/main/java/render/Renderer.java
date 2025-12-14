@@ -67,4 +67,11 @@ public class Renderer {
     public static void endLines() {
         glEnd();
     }
+
+    public void remove(GameObject go) {
+        for (RenderBatch batch : renderBatches) {
+            batch.removeSprite(go.getComponent(SpriteRenderer.class));
+        }
+    }
+
 }

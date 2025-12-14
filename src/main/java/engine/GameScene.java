@@ -60,9 +60,7 @@ public class GameScene extends Scene {
 
     @Override
     public void imgui() {
-        ImGui.begin("Scene");
-        ImGui.text("Game Scene");
-        ImGui.end();
+
 
     }
 }

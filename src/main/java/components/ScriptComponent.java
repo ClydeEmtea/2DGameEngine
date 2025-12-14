@@ -11,7 +11,9 @@ import scripts.ScriptCompiler;
 import scripts.ScriptLoader;
 import scripts.ScriptUtils;
 
-import java.nio.file.Path;
+import java.nio.file.*;
+
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
 public class ScriptComponent extends Component {
 
@@ -19,11 +21,57 @@ public class ScriptComponent extends Component {
     private Script scriptInstance;
     public boolean started = false;
     private final Path filePath;
+    private WatchService watchService;
 
     public ScriptComponent(String className, Path filePath) {
         this.className = className;
         this.filePath = filePath;
         load();
+        watchFileChanges();
+    }
+
+    private void watchFileChanges() {
+        try {
+            watchService = FileSystems.getDefault().newWatchService();
+            filePath.getParent().register(watchService, ENTRY_MODIFY);
+
+            Thread watcherThread = new Thread(() -> {
+                while (true) {
+                    try {
+                        WatchKey key = watchService.take();
+                        for (WatchEvent<?> event : key.pollEvents()) {
+                            Path changed = (Path) event.context();
+                            if (changed.equals(filePath.getFileName())) {
+                                System.out.println("Script changed: " + filePath);
+                                reloadScript();
+                            }
+                        }
+                        key.reset();
+                    } catch (InterruptedException e) {
+                        return;
+                    }
+                }
+            });
+            watcherThread.setDaemon(true);
+            watcherThread.start();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void reloadScript() {
+        // 1. Compile
+        ScriptCompiler.compile(filePath);
+
+        // 2. Reload
+        Script newScript = ScriptLoader.loadScript(filePath.getParent(), className);
+        if (newScript != null) {
+            // 3. Copy environment a instance
+            newScript.setEnvironment(this.gameObject, Window.get(), MouseListener.get(), KeyListener.get());
+            this.scriptInstance = newScript;
+            System.out.println("Script reloaded: " + className);
+        }
     }
 
     public String getClassName() {
@@ -78,6 +126,10 @@ public class ScriptComponent extends Component {
             System.out.println(this.filePath);
             ProjectManager.get().openInVSCode(this.filePath);
         }
+        ImGui.sameLine();
+        if (ImGui.button("Remove")) {
+            this.gameObject.removeComponent(this);
+        }
 
 //        if (ImGui.button("init")) {
 //            scriptInstance.init();
@@ -88,8 +140,10 @@ public class ScriptComponent extends Component {
             return;
         }
 
-        for (var field : ScriptUtils.getExposedFields(scriptInstance)) {
+        var fields = ScriptUtils.getExposedFields(scriptInstance);
+        for (var field : fields) {
             try {
+                field.setAccessible(true);
                 String type = field.getType().getSimpleName();
                 String name = field.getName();
                 Object value = field.get(scriptInstance);

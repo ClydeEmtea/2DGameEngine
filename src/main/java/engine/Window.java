@@ -37,8 +37,14 @@ public class Window {
 
     public static void setCurrentScene(int scene) {
         switch (scene) {
-            case 0 -> currentScene = new EditorScene();
-            case 1 -> currentScene = new GameScene();
+            case 0 -> {
+                currentScene = new EditorScene();
+                ImGuiLayer.showLayers();
+            }
+            case 1 -> {
+                currentScene = new GameScene();
+                ImGuiLayer.hideLayers();
+            }
             default -> throw new IllegalArgumentException("Invalid scene index: " + scene);
         }
         currentScene.init();
