@@ -78,6 +78,9 @@ public class RenderBatch implements Comparable<RenderBatch> {
 
         glVertexAttribPointer(3, TEX_ID_SIZE, GL_FLOAT, false, VERTEX_SIZE_BYTES, TEX_ID_OFFSET);
         glEnableVertexAttribArray(3);
+
+        glVertexAttribPointer(4, ROUNDNESS_SIZE, GL_FLOAT, false, VERTEX_SIZE_BYTES, ROUNDNESS_OFFSET);
+        glEnableVertexAttribArray(4);
     }
 
     public void render() {
@@ -227,6 +230,9 @@ public class RenderBatch implements Comparable<RenderBatch> {
 
             // tex id
             vertexArray[offset + 8] = texID;
+
+            // roundness
+            vertexArray[offset + 9] = t.roundness;
 
             offset += VERTEX_SIZE;
         }

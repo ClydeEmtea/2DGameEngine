@@ -155,6 +155,11 @@ public class GameObject {
             transform.position.y = oldCenter.y - transform.scale.y * 0.5f;
         }
 
+        float[] roundness = { transform.roundness };
+        if (ImGui.dragFloat("Roundness", roundness, 0.005f, 0.0f, 0.5f)) {
+            transform.roundness = roundness[0];
+        }
+
         if (editorRotationDeg == null) {
             editorRotationDeg = (float) Math.toDegrees(transform.rotation);
         }

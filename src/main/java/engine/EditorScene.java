@@ -43,8 +43,11 @@ public class EditorScene extends Scene {
         if (sceneObjects != null) {
             for (GameObject go : sceneObjects) {
                 this.addGameObjectToScene(go);
+                go.addComponent(new ShapeRenderer());
             }
         }
+
+
 
     }
 
