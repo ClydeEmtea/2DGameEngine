@@ -91,6 +91,15 @@ public class EditorView extends View {
             renderHitboxes();
         }
 
+        keyboardHandles();
+
+        movement();
+
+        selectionHandles();
+
+    }
+
+    private static void keyboardHandles() {
         if (KeyListener.isKeyTyped(GLFW_KEY_TAB)) {
             Window.setCurrentView(1);
         }
@@ -101,8 +110,9 @@ public class EditorView extends View {
                 System.out.println("Project saved!");
             }
         }
+    }
 
-
+    private void movement() {
         if (MouseListener.isDragging() && MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_2)) {
             Vector2f delta = MouseListener.getDelta();
             float zoom = this.camera.getZoom();
@@ -134,7 +144,9 @@ public class EditorView extends View {
             camera.position.x += (cxBefore - cxAfter);
             camera.position.y += (cyBefore - cyAfter);
         }
+    }
 
+    private void selectionHandles() {
         if (MouseListener.mouseButtonClicked(GLFW_MOUSE_BUTTON_1)) {
             if (ImGui.isAnyItemHovered() || ImGui.isAnyItemActive() ||
                     ImGui.isWindowHovered(ImGuiHoveredFlags.AnyWindow)) {
@@ -182,8 +194,6 @@ public class EditorView extends View {
                 RightSidebar.syncSelectionWithActive(this);
             }
         }
-
-
 
 
         if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_1)
@@ -253,14 +263,8 @@ public class EditorView extends View {
         if (!MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_1) && selectionDragging) {
             selectionDragging = false;
 
-            Vector2f min = new Vector2f(
-                    Math.min(selectionStart.x, selectionEnd.x),
-                    Math.min(selectionStart.y, selectionEnd.y)
-            );
-            Vector2f max = new Vector2f(
-                    Math.max(selectionStart.x, selectionEnd.x),
-                    Math.max(selectionStart.y, selectionEnd.y)
-            );
+            Vector2f start = new Vector2f(selectionStart);
+            Vector2f end = new Vector2f(selectionEnd);
 
             boolean ctrl = KeyListener.isKeyPressed(GLFW_KEY_LEFT_CONTROL);
 
@@ -268,15 +272,80 @@ public class EditorView extends View {
                 RightSidebar.selectedObjects.clear();
             }
 
-            for (GameObject go : gameObjects) {
-                Vector2f pos = go.transform.position;
-                Vector2f size = go.transform.scale;
+            // rohy výběru
+            Vector2f[] selectionCorners = new Vector2f[]{
+                    new Vector2f(start.x, start.y),
+                    new Vector2f(end.x, start.y),
+                    new Vector2f(end.x, end.y),
+                    new Vector2f(start.x, end.y)
+            };
 
-                if (pos.x + size.x > min.x && pos.x < max.x &&
-                        pos.y + size.y > min.y && pos.y < max.y) {
-                    if (!RightSidebar.selectedObjects.contains(go)) {
-                        RightSidebar.selectedObjects.add(go);
+            for (GameObject go : gameObjects) {
+                Transform t = go.transform;
+                Vector2f pos = t.position;
+                Vector2f size = t.scale;
+                float rotation = t.rotation;
+
+                Vector2f[] corners = new Vector2f[]{
+                        new Vector2f(-size.x/2, -size.y/2),
+                        new Vector2f(size.x/2, -size.y/2),
+                        new Vector2f(size.x/2, size.y/2),
+                        new Vector2f(-size.x/2, size.y/2)
+                };
+
+                float cx = pos.x + size.x * 0.5f;
+                float cy = pos.y + size.y * 0.5f;
+                float cos = (float)Math.cos(rotation);
+                float sin = (float)Math.sin(rotation);
+
+                // transformace rohu do světových souřadnic
+                for (int i = 0; i < corners.length; i++) {
+                    float rx = corners[i].x * cos - corners[i].y * sin + cx;
+                    float ry = corners[i].x * sin + corners[i].y * cos + cy;
+                    corners[i].set(rx, ry);
+                }
+
+                boolean intersects = false;
+
+                // 1) Test: nějaký roh objektu uvnitř výběru
+                for (Vector2f corner : corners) {
+                    if (pointInPolygon(corner, selectionCorners)) {
+                        intersects = true;
+                        break;
                     }
+                }
+
+                // 2) Test: nějaký roh výběru uvnitř objektu
+                if (!intersects) {
+                    for (Vector2f sc : selectionCorners) {
+                        if (pointInPolygon(sc, corners)) {
+                            intersects = true;
+                            break;
+                        }
+                    }
+                }
+
+                // 3) Test: hrany se protínají
+                if (!intersects) {
+                    for (int i = 0; i < corners.length; i++) {
+                        Vector2f a1 = corners[i];
+                        Vector2f a2 = corners[(i + 1) % corners.length];
+
+                        for (int j = 0; j < selectionCorners.length; j++) {
+                            Vector2f b1 = selectionCorners[j];
+                            Vector2f b2 = selectionCorners[(j + 1) % selectionCorners.length];
+
+                            if (linesIntersect(a1, a2, b1, b2)) {
+                                intersects = true;
+                                break;
+                            }
+                        }
+                        if (intersects) break;
+                    }
+                }
+
+                if (intersects && !RightSidebar.selectedObjects.contains(go)) {
+                    RightSidebar.selectedObjects.add(go);
                 }
             }
 
@@ -305,10 +374,18 @@ public class EditorView extends View {
             Renderer.drawLine(min.x, max.y, min.x, min.y);
             Renderer.endLines();
         }
+    }
 
+    private boolean linesIntersect(Vector2f p1, Vector2f p2, Vector2f q1, Vector2f q2) {
+        float s1x = p2.x - p1.x;
+        float s1y = p2.y - p1.y;
+        float s2x = q2.x - q1.x;
+        float s2y = q2.y - q1.y;
 
+        float s = (-s1y * (p1.x - q1.x) + s1x * (p1.y - q1.y)) / (-s2x * s1y + s1x * s2y);
+        float t = ( s2x * (p1.y - q1.y) - s2y * (p1.x - q1.x)) / (-s2x * s1y + s1x * s2y);
 
-
+        return s >= 0 && s <= 1 && t >= 0 && t <= 1;
     }
 
     private void renderHitboxes() {
