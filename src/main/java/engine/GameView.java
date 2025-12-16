@@ -1,17 +1,17 @@
 package engine;
 
-import imgui.ImGui;
 import org.joml.Vector2f;
 import project.ProjectManager;
 import util.AssetPool;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_TAB;
 
-public class GameScene extends Scene {
+public class GameView extends View {
 
-    public GameScene() {
+    public GameView() {
         // Initialize the game scene
         System.out.println("Game Scene Initialized");
     }
@@ -23,7 +23,7 @@ public class GameScene extends Scene {
         List<GameObject> sceneObjects = ProjectManager.get().loadSceneObjects("MainScene");
         if (sceneObjects != null) {
             for (GameObject go : sceneObjects) {
-                this.addGameObjectToScene(go);
+                this.addGameObjectToView(go);
             }
         }
 
@@ -43,23 +43,29 @@ public class GameScene extends Scene {
     @Override
     public void update(float dt) {
 
-        for (GameObject go : this.gameObjects) {
+        for (GameObject go : new ArrayList<>(this.gameObjects)) {
             go.update(dt);
             for (Component c : go.getAllScripts()) {
-                c.updateScript(dt);
+                try {
+                    c.updateScript(dt);
+                } catch (Exception e) {
+                    System.err.println("Script error in " + c.getClass() + ": " + e);
+                    e.printStackTrace();
+                }
             }
         }
+
 
         this.renderer.render();
 
 
         if (KeyListener.isKeyTyped(GLFW_KEY_TAB)) {
-            Window.setCurrentScene(0);
+            Window.setCurrentView(0);
         }
     }
 
     @Override
-    public void imgui() {
+    public void imgui(float dt) {
 
 
     }

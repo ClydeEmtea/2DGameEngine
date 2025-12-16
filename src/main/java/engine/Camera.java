@@ -34,7 +34,7 @@ public class Camera {
         Vector3f cameraFront = new Vector3f(0.0f, 0.0f, -1.0f);
         Vector3f cameraUp = new Vector3f(0.0f, 1.0f, 0.0f);
         this.viewMatrix.identity();
-        viewMatrix.lookAt(new Vector3f(position.x, position.y, 20.0f), cameraFront.add(position.x, position.y, 0.0f), cameraUp);
+        viewMatrix.lookAt(new Vector3f(position.x, position.y, 100.0f), cameraFront.add(position.x, position.y, 0.0f), cameraUp);
         return this.viewMatrix;
     }
 
@@ -54,10 +54,9 @@ public class Camera {
 
     public Vector2f screenToWorld(float screenX, float screenY) {
         float worldX = screenX / zoom + position.x;
-        float worldY = (Constants.HEIGHT - screenY) / zoom + position.y;
+        float worldY = (Window.get().getHeight() - screenY) / zoom + position.y;
         return new Vector2f(worldX, worldY);
     }
-
 
 
 }

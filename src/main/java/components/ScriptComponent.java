@@ -93,13 +93,21 @@ public class ScriptComponent extends Component {
 
     @Override
     public void initScript() {
-        scriptInstance.init();
+        reloadScript();
         scriptInstance.setEnvironment(this.gameObject, Window.get(), MouseListener.get(), KeyListener.get());
+        scriptInstance.init();
     }
 
     @Override
     public void updateScript(float dt) {
-        scriptInstance.update(dt);
+        if (scriptInstance == null) return;
+
+        try {
+            scriptInstance.update(dt);
+        } catch (Exception e) {
+            System.err.println("Error during script update: " + className);
+            e.printStackTrace();
+        }
     }
 
     public void load() {

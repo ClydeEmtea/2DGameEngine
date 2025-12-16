@@ -1,18 +1,19 @@
 package project;
 
-import engine.Scene;
+import engine.View;
+
 import java.nio.file.Path;
 import java.util.List;
 
 public class Project {
     private String name;
     private final Path projectPath;      // Kořenová složka projektu
-    private List<Scene> scenes;
+    private List<View> views;
 
-    protected Project(String name, Path projectPath, List<Scene> scenes) {
+    protected Project(String name, Path projectPath, List<View> views) {
         this.name = name;
         this.projectPath = projectPath;
-        this.scenes = scenes;
+        this.views = views;
     }
 
     protected Project(String name, Path projectPath) {
@@ -53,8 +54,8 @@ public class Project {
         return projectPath.resolve("project.json");
     }
 
-    public List<Scene> getScenes() {
-        return scenes;
+    public List<View> getScenes() {
+        return views;
     }
 
     public String getName() {
@@ -65,7 +66,7 @@ public class Project {
         this.name = name;
     }
 
-    public void addScene(Scene scene) {
-        this.scenes.add(scene);
+    public void addScene(View view) {
+        this.views.add(view);
     }
 }

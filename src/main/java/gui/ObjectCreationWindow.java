@@ -1,9 +1,11 @@
 package gui;
 
+import components.ShapeRenderer;
 import components.Sprite;
 import components.SpriteRenderer;
 import engine.GameObject;
 import engine.Transform;
+import engine.View;
 import imgui.ImGui;
 import imgui.flag.ImGuiInputTextFlags;
 import imgui.type.ImString;
@@ -28,7 +30,7 @@ public class ObjectCreationWindow {
 
     private static String selectedFileName = "";
 
-    public static boolean imgui(engine.Scene scene) {
+    public static boolean imgui(View view) {
         boolean created = false;
         ImGui.setNextWindowSize(400, 200);
         ImGui.begin("Create Object");
@@ -106,7 +108,7 @@ public class ObjectCreationWindow {
             String finalName = baseName;
             Set<String> existingNames = new HashSet<>();
 
-            for (GameObject go : scene.getGameObjects()) {
+            for (GameObject go : view.getGameObjects()) {
                 existingNames.add(go.getName());
             }
 
@@ -143,8 +145,9 @@ public class ObjectCreationWindow {
                         new Vector4f(color[0], color[1], color[2], color[3])
                 ));
             }
+            go.addComponent(new ShapeRenderer());
 
-            scene.addGameObjectToScene(go);
+            view.addGameObjectToView(go);
 
             // Reset
             name.set("New Game Object");

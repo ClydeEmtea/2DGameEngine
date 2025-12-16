@@ -1,8 +1,5 @@
 #version 330 core
 
-// uniform float uTime;
-// uniform sampler2D TEX_SAMPLER;
-
 in vec4 fColor;
 in vec2 fTexCoords;
 in float fTexID;
@@ -14,39 +11,31 @@ out vec4 color;
 
 void main()
 {
-    // ---- base color/texture ----
+    // ---- Base color / texture ----
     vec4 baseColor;
-
-    if (fTexID > 0) {
+    if (fTexID > 0.0) {
         baseColor = fColor * texture(uTextures[int(fTexID)], fTexCoords);
     } else {
         baseColor = fColor;
     }
 
-    // ---- ROUNDING ----
+    // ---- Rounded rectangle / circle ----
     float r = clamp(fRoundness, 0.0, 0.5);
+    vec2 uv = fTexCoords - vec2(0.5); // center UV
+    float alpha = 1.0;
 
     if (r > 0.0) {
+        // Standard SDF for rounded rectangle
+        vec2 q = abs(uv) - vec2(0.5 - r);
+        float dist = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
 
-        vec2 uv = fTexCoords;
+        // smoothstep pro plynulé okraje
+        alpha = smoothstep(0.0, 0.01, -dist);
 
-        // posuneme UV do rozsahu -0.5 .. 0.5
-        vec2 p = uv - vec2(0.5);
-
-        // velikost obdélníku
-        vec2 halfSize = vec2(0.5) - r;
-
-        // vzdálenost od zaobleného obdélníku (SDF)
-        vec2 d = abs(p) - halfSize;
-        float dist = length(max(d, 0.0)) - r;
-
-        float alpha = smoothstep(0.01, 0.0, dist);
-        baseColor.a *= alpha;
-
-        if (baseColor.a <= 0.0)
-        discard;
+        // discard úplně průhledné pixely
+        if (alpha <= 0.0) discard;
     }
 
-
+    baseColor.a *= alpha;
     color = baseColor;
 }

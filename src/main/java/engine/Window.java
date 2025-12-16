@@ -1,6 +1,5 @@
 package engine;
 
-import components.GridRenderer;
 import gui.ImGuiLayer;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -23,7 +22,7 @@ public class Window {
 
     private static Window window = null;
 
-    private static Scene currentScene = null;
+    private static View currentView = null;
 
     private ImGuiLayer imGuiLayer;
 
@@ -35,20 +34,20 @@ public class Window {
         this.title = Constants.TITLE + " - " + projectName;
     }
 
-    public static void setCurrentScene(int scene) {
+    public static void setCurrentView(int scene) {
         switch (scene) {
             case 0 -> {
-                currentScene = new EditorScene();
+                currentView = new EditorView();
                 ImGuiLayer.showLayers();
             }
             case 1 -> {
-                currentScene = new GameScene();
+                currentView = new GameView();
                 ImGuiLayer.hideLayers();
             }
             default -> throw new IllegalArgumentException("Invalid scene index: " + scene);
         }
-        currentScene.init();
-        currentScene.start();
+        currentView.init();
+        currentView.start();
     }
 
     public static Window get() {
@@ -58,9 +57,13 @@ public class Window {
         return Window.window;
     }
 
-    public static Scene getScene() {
+    public static View getView() {
         get();
-        return currentScene;
+        return currentView;
+    }
+
+    public long getGlfwWindow() {
+        return glfwWindow;
     }
 
     public int getWidth() {
@@ -133,8 +136,8 @@ public class Window {
 
             glViewport(0, 0, w, h);
 
-            if (Window.getScene() != null && Window.getScene().camera != null) {
-                Window.getScene().camera.adjustProjection();
+            if (Window.getView() != null && Window.getView().camera != null) {
+                Window.getView().camera.adjustProjection();
             }
         });
 
@@ -156,9 +159,16 @@ public class Window {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         // glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
+        // Aktualizace reálné velikosti okna a framebufferu
+        int[] fbWidth = new int[1];
+        int[] fbHeight = new int[1];
+        glfwGetFramebufferSize(glfwWindow, fbWidth, fbHeight);
+        this.width = fbWidth[0];
+        this.height = fbHeight[0];
+
         ProjectManager.get().openProject("C:/Users/EmTea/Desktop/jrbu/project.json");
 
-        Window.setCurrentScene(0);
+        Window.setCurrentView(0);
 
         imGuiLayer = new ImGuiLayer();
         imGuiLayer.init();
@@ -178,9 +188,9 @@ public class Window {
             glClearColor(Constants.BACKGROUND_COLOR[0], Constants.BACKGROUND_COLOR[1], Constants.BACKGROUND_COLOR[2], Constants.BACKGROUND_COLOR[3]);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            currentScene.update(deltaTime);
+            currentView.update(deltaTime);
 
-            imGuiLayer.update(deltaTime, currentScene);
+            imGuiLayer.update(deltaTime, currentView);
 
             // Swap the color buffers
             glfwSwapBuffers(glfwWindow);

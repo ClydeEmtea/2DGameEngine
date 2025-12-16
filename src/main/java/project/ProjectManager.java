@@ -3,10 +3,7 @@ package project;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import components.*;
-import engine.GameObject;
-import engine.Scene;
-import engine.Transform;
-import engine.Window;
+import engine.*;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.Texture;
@@ -106,7 +103,7 @@ public class ProjectManager {
         }
     }
 
-    public List<GameObject> loadSceneObjects(String scene) {
+    public List<GameObject> loadSceneObjectsasdf(String scene) {
         if (currentProject == null) {
             return null;
         }
@@ -194,64 +191,126 @@ public class ProjectManager {
         return null;
     }
 
+    public List<GameObject> loadSceneObjects(String scene) {
+        if (currentProject == null) return null;
+
+        Path file = scenesDir().resolve(scene + ".json");
+        if (!Files.exists(file)) return null;
+        Group root = Window.getView().getRoot();
+
+        try {
+            String json = Files.readString(file);
+            SceneData sceneData = gson.fromJson(json, SceneData.class);
+
+            root.getObjects().clear();
+            root.getGroups().clear();
+
+            if (sceneData == null) return null;
+
+            // Root-level objekty
+            if (sceneData.objects != null) {
+                for (GameObjectData god : sceneData.objects) {
+                    root.add(dataToGameObject(god));
+                }
+            }
+
+            // Root-level groups
+            if (sceneData.groups != null) {
+                for (GroupData gd : sceneData.groups) {
+                    root.addGroup(dataToGroup(gd));
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return root.getAllObjectsRecursive();
+    }
+
+    private GameObject dataToGameObject(GameObjectData god) {
+        GameObject go = new GameObject(
+                god.name,
+                new Transform(
+                        new Vector2f(god.posX, god.posY),
+                        new Vector2f(god.scaleX, god.scaleY),
+                        god.rotation,
+                        god.roundness
+                ),
+                god.zIndex
+        );
+
+        // SpriteRenderer
+        if (god.colorOnly) {
+            go.addComponent(new SpriteRenderer(new Vector4f(god.r, god.g, god.b, god.a)));
+        } else if (god.texturePath != null) {
+            Texture tex = AssetPool.getTexture(new File(god.texturePath).getName());
+            go.addComponent(new SpriteRenderer(new Sprite(tex)));
+        }
+
+        // ShapeRenderer
+        if (god.shapeType != null) {
+            ShapeRenderer shape = new ShapeRenderer();
+            shape.setShapeType(ShapeType.valueOf(god.shapeType));
+
+            if (god.shapePoints != null && !god.shapePoints.isEmpty()) {
+                List<Vector2f> points = new ArrayList<>();
+                for (float[] arr : god.shapePoints) {
+                    points.add(new Vector2f(arr[0], arr[1]));
+                }
+                shape.setPoints(points);
+            }
+            go.addComponent(shape);
+        }
+
+        // Scripts
+        if (god.scripts != null) {
+            for (String scriptClass : god.scripts) {
+                Path p = getScriptPath(scriptClass);
+                if (p != null) {
+                    go.addComponent(new ScriptComponent(scriptClass, p));
+                }
+            }
+        }
+
+        return go;
+    }
+
+    private Group dataToGroup(GroupData gd) {
+        Group group = new Group(gd.name);
+
+        // Přidáme všechny objekty
+        for (GameObjectData god : gd.objects) {
+            group.add(dataToGameObject(god));
+        }
+
+        // Rekurzivně přidáme všechny podskupiny
+        for (GroupData sub : gd.groups) {
+            group.addGroup(dataToGroup(sub));
+        }
+
+        return group;
+    }
+
+
     public void saveProject() {
         if (currentProject == null) {
             return;
         }
 
         Path file = scenesDir().resolve("MainScene.json");
-        Scene scene = Window.getScene();
-        List<GameObject> gameObjects = scene.getGameObjects();
+        View view = Window.getView();
+        Group root = view.getRoot();
 
         SceneData sceneData = new SceneData();
         sceneData.objects = new ArrayList<>();
+        sceneData.groups = new ArrayList<>();
 
-        for (GameObject go : gameObjects) {
-            GameObjectData god = new GameObjectData();
-            god.name = go.getName();
-            god.posX = go.transform.position.x;
-            god.posY = go.transform.position.y;
-            god.scaleX = go.transform.scale.x;
-            god.scaleY = go.transform.scale.y;
-            god.rotation = go.transform.rotation;
-            god.roundness = go.transform.roundness;
-            god.zIndex = go.getZIndex();
-            god.shapeType = String.valueOf(go.getShapeType());
+        for (GameObject go : root.getObjects()) {
+            sceneData.objects.add(gameObjectToData(go));
+        }
 
-            SpriteRenderer spriteRenderer = go.getComponent(SpriteRenderer.class);
-            if (spriteRenderer != null) {
-
-                if (spriteRenderer.getTexture() != null) {
-                    god.texturePath = spriteRenderer.getTexture().getFilePath();
-                    god.colorOnly = false;
-                } else {
-                    god.texturePath = null;
-                    god.colorOnly = true;
-
-                    Vector4f color = spriteRenderer.getColor();
-                    god.r = color.x;
-                    god.g = color.y;
-                    god.b = color.z;
-                    god.a = color.w;
-
-                }
-            }
-            god.scripts = new ArrayList<>();
-            ScriptComponent sc = go.getComponent(ScriptComponent.class);
-            if (sc != null) {
-                god.scripts.add(sc.getClassName());
-            }
-            ShapeRenderer shapeRenderer = go.getComponent(ShapeRenderer.class);
-            if (shapeRenderer != null) {
-                god.shapeType = shapeRenderer.getShapeType().name();
-                god.shapePoints = new ArrayList<>();
-                for (Vector2f p : shapeRenderer.getPoints()) {
-                    god.shapePoints.add(new float[]{p.x, p.y});
-                }
-            }
-
-
-            sceneData.objects.add(god);
+        for (Group g : root.getGroups()) {
+            sceneData.groups.add(groupToData(g));
         }
 
         try {
@@ -262,10 +321,77 @@ public class ProjectManager {
         }
     }
 
+    private GameObjectData gameObjectToData(GameObject go) {
+        GameObjectData god = new GameObjectData();
+        god.name = go.getName();
+        god.posX = go.transform.position.x;
+        god.posY = go.transform.position.y;
+        god.scaleX = go.transform.scale.x;
+        god.scaleY = go.transform.scale.y;
+        god.rotation = go.transform.rotation;
+        god.roundness = go.transform.roundness;
+        god.zIndex = go.getZIndex();
+        god.shapeType = String.valueOf(go.getShapeType());
+
+        SpriteRenderer spriteRenderer = go.getComponent(SpriteRenderer.class);
+        if (spriteRenderer != null) {
+            if (spriteRenderer.getTexture() != null) {
+                god.texturePath = spriteRenderer.getTexture().getFilePath();
+                god.colorOnly = false;
+            } else {
+                god.texturePath = null;
+                god.colorOnly = true;
+                Vector4f color = spriteRenderer.getColor();
+                god.r = color.x;
+                god.g = color.y;
+                god.b = color.z;
+                god.a = color.w;
+            }
+        }
+
+        god.scripts = new ArrayList<>();
+        ScriptComponent sc = go.getComponent(ScriptComponent.class);
+        if (sc != null) {
+            god.scripts.add(sc.getClassName());
+        }
+
+        ShapeRenderer shapeRenderer = go.getComponent(ShapeRenderer.class);
+        if (shapeRenderer != null) {
+            god.shapeType = shapeRenderer.getShapeType().name();
+            god.shapePoints = new ArrayList<>();
+            for (Vector2f p : shapeRenderer.getPoints()) {
+                god.shapePoints.add(new float[]{p.x, p.y});
+            }
+        }
+
+        return god;
+    }
+
+    private GroupData groupToData(Group g) {
+        GroupData gd = new GroupData();
+        gd.name = g.getName();
+
+        // Uložíme všechny objekty v group
+        for (GameObject go : g.getObjects()) {
+            gd.objects.add(gameObjectToData(go));
+        }
+
+        // Rekurzivně uložíme všechny podskupiny
+        for (Group sub : g.getGroups()) {
+            gd.groups.add(groupToData(sub));
+        }
+
+        return gd;
+    }
+
+
     private static final String SCRIPT_TEMPLATE = """
 import scripts.Script;
 import scripts.Exposed;
 import engine.*;
+import components.*;
+import render.*;
+import java.util.*;
 import static org.lwjgl.glfw.GLFW.*;
 
 public class %s implements Script {
@@ -274,6 +400,8 @@ public class %s implements Script {
     private Window window;
     private MouseListener mouseListener;
     private KeyListener keyListener;
+    private Camera camera;
+    private View view;
     // ------------
     
     // Add variables here
@@ -298,6 +426,8 @@ public class %s implements Script {
         this.window = window;
         this.mouseListener = mouseListener;
         this.keyListener = keyListener;
+        this.camera = this.window.getView().camera();
+        this.view = this.window.getView();
     }
 }
 """;
@@ -359,11 +489,11 @@ public class %s implements Script {
     }
 
 
-
 }
 
 class SceneData {
     List<GameObjectData> objects;
+    List<GroupData> groups;
 }
 
 class GameObjectData {
@@ -382,3 +512,10 @@ class GameObjectData {
     float r, g, b, a; // color fallback
     ArrayList<String> scripts;
 }
+
+class GroupData {
+    String name;
+    List<GameObjectData> objects = new ArrayList<>();
+    List<GroupData> groups = new ArrayList<>();
+}
+

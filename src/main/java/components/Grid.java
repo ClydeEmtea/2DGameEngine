@@ -1,12 +1,11 @@
 package components;
 
 import engine.GameObject;
-import engine.Scene;
+import engine.View;
 import engine.Transform;
 import engine.Window;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
-import util.Constants;
 
 import java.util.List;
 
@@ -19,7 +18,7 @@ public class Grid {
     private static int centerY;
     private static int changing = 2;
 
-    public static void initialize(Scene scene) {
+    public static void initialize(View view) {
         float width = Window.get().getWidth();
         float height = Window.get().getHeight();
         System.out.println("Initializing grid with width: " + width + " height: " + height);
@@ -28,41 +27,41 @@ public class Grid {
 
         for (float x = 0; x <= width * 2; x += CELL_SIZE) {
             GameObject line = makeLine(new Vector2f(x, -height), new Vector2f(2, height*2));
-            scene.addLine(line);
+            view.addLine(line);
             xCoords.add((int) x);
 
         }
 
         for (float y = 0; y <= height * 2; y += CELL_SIZE) {
             GameObject line = makeLine(new Vector2f(0 - width, y), new Vector2f(width*2, 2));
-            scene.addLine(line);
+            view.addLine(line);
             yCoords.add((int) y);
         }
     }
 
-    public static void render(Scene scene) {
-        int cameraX = (int) scene.camera().position.x;
-        int cameraY = (int) scene.camera().position.y;
+    public static void render(View view) {
+        int cameraX = (int) view.camera().position.x;
+        int cameraY = (int) view.camera().position.y;
 
         if (cameraX + CELL_SIZE * changing> centerX) {
             centerX += CELL_SIZE * changing;
-            for (GameObject line : scene.getGridLines()) {
+            for (GameObject line : view.getGridLines()) {
                 line.transform.position.x += CELL_SIZE * changing;
             }
         } else if (cameraX - CELL_SIZE * changing < centerX) {
             centerX -= CELL_SIZE * changing;
-            for (GameObject line : scene.getGridLines()) {
+            for (GameObject line : view.getGridLines()) {
                 line.transform.position.x -= CELL_SIZE * changing;
             }
         }
         if (cameraY + CELL_SIZE * changing > centerY) {
             centerY += CELL_SIZE * changing;
-            for (GameObject line : scene.getGridLines()) {
+            for (GameObject line : view.getGridLines()) {
                 line.transform.position.y += CELL_SIZE * changing;
             }
         } else if (cameraY - CELL_SIZE * changing < centerY) {
             centerY -= CELL_SIZE * changing;
-            for (GameObject line : scene.getGridLines()) {
+            for (GameObject line : view.getGridLines()) {
                 line.transform.position.y -= CELL_SIZE * changing;
             }
         }

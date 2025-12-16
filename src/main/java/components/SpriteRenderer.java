@@ -6,7 +6,6 @@ import engine.Window;
 import imgui.ImGui;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
-import project.ProjectManager;
 import render.Texture;
 import util.AssetPool;
 
@@ -61,12 +60,12 @@ public class SpriteRenderer extends Component {
     }
 
     public void setSprite(String filename) {
-        Window.getScene().renderer.remove(this.gameObject);
+        Window.getView().renderer.remove(this.gameObject);
         this.color = WHITE;
         this.sprite = new Sprite(AssetPool.getTexture(filename));
         this.setDirty();
         this.isColorOnly = false;
-        Window.getScene().renderer.add(this.gameObject);
+        Window.getView().renderer.add(this.gameObject);
     }
 
     public void removeSprite() {

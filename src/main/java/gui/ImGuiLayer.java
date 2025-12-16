@@ -1,8 +1,6 @@
 package gui;
 
-import engine.Component;
-import engine.GameObject;
-import engine.Scene;
+import engine.View;
 import engine.Window;
 import imgui.ImGui;
 import imgui.ImGuiIO;
@@ -102,7 +100,7 @@ public class ImGuiLayer {
 
     }
 
-    public void update(float dt, Scene currentScene) {
+    public void update(float dt, View currentView) {
         imGuiGlfw.newFrame();
         ImGui.newFrame();
 
@@ -110,36 +108,7 @@ public class ImGuiLayer {
 
 
         if (rightSidebarOpen) {
-            ImGui.begin("Right sidebar");
-            if (ImGui.treeNodeEx("Engine Info", ImGuiTreeNodeFlags.DefaultOpen)) {
-                ImGui.text("FPS: " + (int) (1f / dt));
-                ImGui.text("Frame Time: " + (dt * 1000) + " ms");
-                if (ImGui.button("Exit")) {
-                    glfwSetWindowShouldClose(glfwGetCurrentContext(), true);
-                }
-                ImGui.treePop();
-            }
-
-            if (ImGui.treeNodeEx("Scene objects", ImGuiTreeNodeFlags.DefaultOpen)) {
-                for (int i = 0; i < currentScene.getGameObjects().size(); i++) {
-                    if (ImGui.selectable(currentScene.getGameObjects().get(i).getName(), currentScene.getGameObjects().get(i) == currentScene.getActiveGameObject())) {
-                        currentScene.setActiveGameObject(currentScene.getGameObjects().get(i));
-                    }
-                }
-                ImGui.treePop();
-            }
-            RightSidebar.render();
-
-            GameObject activeGameObject = currentScene.getActiveGameObject();
-            if (activeGameObject != null) {
-                ImGui.dummy(0, 50);
-                ImGui.separator();
-                ImGui.text(activeGameObject.getName());
-                activeGameObject.imgui();
-
-            }
-
-            ImGui.end();
+            RightSidebar.render(currentView);
 
         }
 
@@ -197,8 +166,8 @@ public class ImGuiLayer {
 
                         Window.get().updateTitle();
 
-                        Window.getScene().resetGameObjects();
-                        Window.setCurrentScene(0);
+                        Window.getView().resetGameObjects();
+                        Window.setCurrentView(0);
                     } else {
                         System.out.println("Directory selection cancelled.");
                     }
@@ -221,8 +190,8 @@ public class ImGuiLayer {
 
                         // Aktualizace okna a scény
                         Window.get().updateTitle();
-                        Window.getScene().resetGameObjects();
-                        Window.setCurrentScene(0);
+                        Window.getView().resetGameObjects();
+                        Window.setCurrentView(0);
                         System.out.println("Project opened: " + selectedFile);
                     } else {
                         System.out.println("Open project cancelled.");
@@ -296,7 +265,7 @@ public class ImGuiLayer {
             ImGui.endMainMenuBar();
         }
 
-        currentScene.sceneImgui();
+        currentView.viewImgui(dt);
 
         // Example window
         if (showDemoWindow) {

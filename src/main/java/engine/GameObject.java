@@ -8,9 +8,7 @@ import imgui.type.ImString;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import project.ProjectManager;
-import render.Texture;
 import util.AssetPool;
-import util.Constants;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -24,10 +22,12 @@ public class GameObject {
     private int zIndex;
     private String newScriptName = "";
     private Float editorRotationDeg = null;
+    private ImString imName;
 
 
     public GameObject(String name) {
         this.name = name;
+        this.imName = new ImString(name, 50);
         this.zIndex = 0;
         this.components = new ArrayList<>();
         this.transform = new Transform();
@@ -35,6 +35,7 @@ public class GameObject {
 
     public GameObject(String name, Transform transform, int zIndex) {
         this.name = name;
+        this.imName = new ImString(name, 50);
         this.zIndex = zIndex;
         this.components = new ArrayList<>();
         this.transform = transform;
@@ -42,6 +43,10 @@ public class GameObject {
 
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public <T extends Component> T getComponent(Class<T> componentClass) {
@@ -125,7 +130,16 @@ public class GameObject {
         this.zIndex = zIndex;
     }
 
+    public float getRotation() {
+        return transform.rotation;
+    }
+
     public void imgui() {
+        ImGui.inputText("##Name", imName);
+        ImGui.sameLine();
+        if (ImGui.button("Submit")) {
+            if (imName.isNotEmpty()) setName(String.valueOf(imName));
+        }
 
         ImGui.beginGroup();
 
@@ -221,12 +235,12 @@ public class GameObject {
         }
         if (ImGui.button("Apply Z Index Change")) {
             ProjectManager.get().saveProject();
-            Vector2f camPos = Window.getScene().camera.position;
-            float camZoom = Window.getScene().camera.getZoom();
-            Window.setCurrentScene(0);
-            Window.getScene().camera.position = camPos;
-            Window.getScene().camera.setZoom(camZoom);
-            Window.getScene().setActiveGameObject(this);
+            Vector2f camPos = Window.getView().camera.position;
+            float camZoom = Window.getView().camera.getZoom();
+            Window.setCurrentView(0);
+            Window.getView().camera.position = camPos;
+            Window.getView().camera.setZoom(camZoom);
+            Window.getView().setActiveGameObject(this);
         }
 
         ImGui.dummy(0,20);
@@ -241,8 +255,8 @@ public class GameObject {
         ImGui.getStyle().setColor(ImGuiCol.ButtonActive, 0.8f, 0.1f, 0.2f, 1.0f);
 
         if (ImGui.button("Remove object")) {
-            Window.getScene().removeGameObject(this);
-            Window.getScene().setActiveGameObject(null);
+            Window.getView().removeGameObject(this);
+            Window.getView().setActiveGameObject(null);
         }
 
         ImGui.getStyle().setColor(ImGuiCol.Button, oldButton.x, oldButton.y, oldButton.z, oldButton.w);

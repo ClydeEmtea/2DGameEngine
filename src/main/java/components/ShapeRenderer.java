@@ -9,6 +9,8 @@ import util.Constants;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.lwjgl.opengl.GL11.*;
+
 public class ShapeRenderer extends Component {
 
     private ShapeType shapeType = ShapeType.DEFAULT; // Default = standardní quad
@@ -234,5 +236,36 @@ public class ShapeRenderer extends Component {
         }
 
     }
+
+
+    public List<Vector2f> getWorldPoints() {
+        Transform t = gameObject.transform;
+        List<Vector2f> world = new ArrayList<>();
+
+        float cx = t.scale.x * 0.5f;
+        float cy = t.scale.y * 0.5f;
+
+        float cos = (float) Math.cos(t.rotation);
+        float sin = (float) Math.sin(t.rotation);
+
+        for (Vector2f lp : points) {
+            float x = lp.x * t.scale.x;
+            float y = lp.y * t.scale.y;
+
+            float dx = x - cx;
+            float dy = y - cy;
+
+            float rx = dx * cos - dy * sin;
+            float ry = dx * sin + dy * cos;
+
+            world.add(new Vector2f(
+                    rx + cx + t.position.x,
+                    ry + cy + t.position.y
+            ));
+        }
+
+        return world;
+    }
+
 
 }

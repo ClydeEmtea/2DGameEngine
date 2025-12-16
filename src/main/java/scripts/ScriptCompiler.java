@@ -6,24 +6,31 @@ import java.nio.file.Path;
 
 public class ScriptCompiler {
 
-    public static void compile(Path javaFile) {
+    /**
+     * Pokusí se zkompilovat java soubor.
+     * @param javaFile cesta ke skriptu
+     * @return true pokud kompilace proběhla v pořádku, false pokud nastala chyba
+     */
+    public static boolean compile(Path javaFile) {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
         if (compiler == null) {
-            throw new RuntimeException(
-                    "No Java compiler found. Are you running a JRE instead of a JDK?"
-            );
+            System.err.println("No Java compiler found. Are you running a JRE instead of a JDK?");
+            return false;
         }
 
         int result = compiler.run(
-                null,
-                null,
-                null,
+                null, // System.in
+                System.out, // System.out - výstup kompilátoru
+                System.err, // System.err - chyby kompilátoru
                 javaFile.toAbsolutePath().toString()
         );
 
         if (result != 0) {
-            throw new RuntimeException("Script compilation failed");
+            System.err.println("Script compilation failed: " + javaFile.getFileName());
+            return false;
         }
+
+        return true;
     }
 }

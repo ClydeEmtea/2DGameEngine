@@ -78,8 +78,8 @@ public class RenderBatch implements Comparable<RenderBatch> {
         }
 
         shader.use();
-        shader.uploadMat4f("uProjection", Window.getScene().camera().getProjectionMatrix());
-        shader.uploadMat4f("uView", Window.getScene().camera().getViewMatrix());
+        shader.uploadMat4f("uProjection", Window.getView().camera().getProjectionMatrix());
+        shader.uploadMat4f("uView", Window.getView().camera().getViewMatrix());
 
         for (int i = 0; i < textures.size(); i++) {
             glActiveTexture(GL_TEXTURE0 + i + 1);
