@@ -11,28 +11,32 @@ out vec4 color;
 
 void main()
 {
-    // ---- Base color / texture ----
     vec4 baseColor;
+
     if (fTexID > 0.0) {
-        baseColor = fColor * texture(uTextures[int(fTexID)], fTexCoords);
+        // Clamp UVs na [0,1] a posun na střed texelu
+        vec2 uv = clamp(fTexCoords, 0.0, 1.0);
+
+        // Pokud je texture NEAREST, můžeme přidat poloviční offset texelu:
+         vec2 texSize = textureSize(uTextures[int(fTexID)], 0);
+         uv = uv * (texSize - 1.0) / texSize + 0.5 / texSize;
+
+        baseColor = fColor * texture(uTextures[int(fTexID)], uv);
     } else {
         baseColor = fColor;
     }
 
     // ---- Rounded rectangle / circle ----
     float r = clamp(fRoundness, 0.0, 0.5);
-    vec2 uv = fTexCoords - vec2(0.5); // center UV
+    vec2 uvCentered = fTexCoords - vec2(0.5); // center UV
     float alpha = 1.0;
 
     if (r > 0.0) {
-        // Standard SDF for rounded rectangle
-        vec2 q = abs(uv) - vec2(0.5 - r);
+        vec2 q = abs(uvCentered) - vec2(0.5 - r);
         float dist = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
 
-        // smoothstep pro plynulé okraje
         alpha = smoothstep(0.0, 0.01, -dist);
 
-        // discard úplně průhledné pixely
         if (alpha <= 0.0) discard;
     }
 
