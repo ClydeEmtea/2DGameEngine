@@ -43,7 +43,6 @@ public class EditorScene extends Scene {
         if (sceneObjects != null) {
             for (GameObject go : sceneObjects) {
                 this.addGameObjectToScene(go);
-                go.addComponent(new ShapeRenderer());
             }
         }
 
@@ -140,11 +139,20 @@ public class EditorScene extends Scene {
                 if (sr == null) continue;
 
                 Transform t = go.transform;
-
-                if (pointInRotatedRect(mouseWorld, t.position, t.scale, t.rotation)) {
-                    setActiveGameObject(go);
-                    found = true;
-                    break;
+                ShapeType shape = go.getShapeType();
+                if (shape == ShapeType.DEFAULT) {
+                    if (pointInRotatedRect(mouseWorld, t.position, t.scale, t.rotation)) {
+                        setActiveGameObject(go);
+                        found = true;
+                        break;
+                    }
+                } else {
+                    ShapeRenderer shapeRenderer = go.getShaperenderer();
+                    if (shapeRenderer.containsPoint(mouseWorld)) {
+                        setActiveGameObject(go);
+                        found = true;
+                        break;
+                    }
                 }
             }
 
@@ -168,14 +176,27 @@ public class EditorScene extends Scene {
             );
 
             Transform t = getActiveGameObject().transform;
+            ShapeType shape = getActiveGameObject().getShapeType();
+
 
             if (!dragging) {
-                if (pointInRotatedRect(mouseWorld, t.position, t.scale, t.rotation)) {
-                    dragging = true;
-                    dragOffset.set(
-                            mouseWorld.x - t.position.x,
-                            mouseWorld.y - t.position.y
-                    );
+                if (shape == ShapeType.DEFAULT) {
+                    if (pointInRotatedRect(mouseWorld, t.position, t.scale, t.rotation)) {
+                        dragging = true;
+                        dragOffset.set(
+                                mouseWorld.x - t.position.x,
+                                mouseWorld.y - t.position.y
+                        );
+                    }
+                } else {
+                    ShapeRenderer shapeRenderer = getActiveGameObject().getShaperenderer();
+                    if (shapeRenderer.containsPoint(mouseWorld)) {
+                        dragging = true;
+                        dragOffset.set(
+                                mouseWorld.x - t.position.x,
+                                mouseWorld.y - t.position.y
+                        );
+                    }
                 }
             }
 
@@ -238,24 +259,28 @@ public class EditorScene extends Scene {
             Vector2f size,
             float rotation
     ) {
+        // center
         float cx = pos.x + size.x * 0.5f;
         float cy = pos.y + size.y * 0.5f;
 
+        // world -> center space
         float dx = point.x - cx;
-        float dy = cy - point.y;
+        float dy = point.y - cy;
 
-        float cos = (float) Math.cos(rotation);
-        float sin = (float) Math.sin(rotation);
+        // inverse rotation
+        float cos = (float) Math.cos(-rotation);
+        float sin = (float) Math.sin(-rotation);
 
-        float localX =  dx * cos - dy * sin;
-        float localY =  dx * sin + dy * cos;
+        float localX = dx * cos - dy * sin;
+        float localY = dx * sin + dy * cos;
 
         float halfX = size.x * 0.5f;
         float halfY = size.y * 0.5f;
 
-        return localX >= -halfX && localX <= halfX &&
-                localY >= -halfY && localY <= halfY;
+        return Math.abs(localX) <= halfX &&
+                Math.abs(localY) <= halfY;
     }
+
 
 
 

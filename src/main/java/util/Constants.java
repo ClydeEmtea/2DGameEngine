@@ -15,6 +15,7 @@ public interface Constants {
     int TEXCOORD_SIZE = 2;
     int TEX_ID_SIZE = 1;
     int ROUNDNESS_SIZE = 1;
+    int MAX_VERTS_PER_SPRITE = 6;
 
     int VERTEX_SIZE = POSITION_SIZE + COLOR_SIZE + TEXCOORD_SIZE + TEX_ID_SIZE + ROUNDNESS_SIZE;
     int VERTEX_SIZE_BYTES = VERTEX_SIZE * Float.BYTES;

@@ -11,9 +11,9 @@ public class Sprite {
     public Sprite(Texture texture) {
         this.texture = texture;
         this.texCoords = new Vector2f[]{
-                new Vector2f(1.0f, 0.0f),
-                new Vector2f(1.0f, 1.0f),
                 new Vector2f(0.0f, 1.0f),
+                new Vector2f(1.0f, 1.0f),
+                new Vector2f(1.0f, 0.0f),
                 new Vector2f(0.0f, 0.0f),
         };
 

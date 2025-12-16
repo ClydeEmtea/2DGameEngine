@@ -1,7 +1,7 @@
 package components;
 
 public enum ShapeType {
-    QUAD,
+    DEFAULT,
     TRIANGLE,
-    POLYGON
+    QUAD
 }

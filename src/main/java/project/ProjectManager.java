@@ -2,9 +2,7 @@ package project;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import components.ScriptComponent;
-import components.Sprite;
-import components.SpriteRenderer;
+import components.*;
 import engine.GameObject;
 import engine.Scene;
 import engine.Transform;
@@ -136,25 +134,45 @@ public class ProjectManager {
                 float roundness = god.roundness;
                 int zIndex = god.zIndex;
 
-                SpriteRenderer sr = null;
+                go = new GameObject(god.name, new Transform(new Vector2f(x, y), new Vector2f(scaleX, scaleY), rotation, roundness), zIndex);
 
+                // SpriteRenderer
+                SpriteRenderer sr = null;
                 if (god.colorOnly) {
                     sr = new SpriteRenderer(new Vector4f(god.r, god.g, god.b, god.a));
-                } else {
-                    if (god.texturePath != null) {
-                        String fileName = new File(god.texturePath).getName();
-                        System.out.println("Loading texture: " + fileName);
-                        Texture tex = AssetPool.getTexture(fileName);
-                        sr = new SpriteRenderer(new Sprite(tex));
-                    }
+                } else if (god.texturePath != null) {
+                    String fileName = new File(god.texturePath).getName();
+                    Texture tex = AssetPool.getTexture(fileName);
+                    sr = new SpriteRenderer(new Sprite(tex));
                 }
-                go = new GameObject(god.name, new Transform(new Vector2f(x, y), new Vector2f(scaleX, scaleY), rotation, roundness), zIndex);
-                go.addComponent(sr);
+                if (sr != null) go.addComponent(sr);
 
+                // ShapeRenderer
+                ShapeRenderer shape = null;
+                if (god.shapeType != null) {
+                    ShapeType type = ShapeType.valueOf(god.shapeType);
+                    shape = new ShapeRenderer();
+                    shape.setShapeType(type);
+
+                    if (god.shapePoints != null && !god.shapePoints.isEmpty()) {
+                        List<Vector2f> points = new ArrayList<>();
+                        for (float[] arr : god.shapePoints) {
+                            points.add(new Vector2f(arr[0], arr[1]));
+                        }
+                        shape.setPoints(points);
+                        for (Vector2f poi : points) {
+                            System.out.println(poi);
+                        }
+                    }
+
+                    go.addComponent(shape);
+                }
+
+
+                // Scripts
                 if (god.scripts != null) {
                     for (String scriptClass : god.scripts) {
                         Path p = getScriptPath(scriptClass);
-
                         if (p != null) {
                             ScriptComponent sc = new ScriptComponent(scriptClass, p);
                             go.addComponent(sc);
@@ -164,6 +182,7 @@ public class ProjectManager {
 
                 gameObjects.add(go);
             }
+
 
             return gameObjects;
 
@@ -197,6 +216,7 @@ public class ProjectManager {
             god.rotation = go.transform.rotation;
             god.roundness = go.transform.roundness;
             god.zIndex = go.getZIndex();
+            god.shapeType = String.valueOf(go.getShapeType());
 
             SpriteRenderer spriteRenderer = go.getComponent(SpriteRenderer.class);
             if (spriteRenderer != null) {
@@ -221,6 +241,15 @@ public class ProjectManager {
             if (sc != null) {
                 god.scripts.add(sc.getClassName());
             }
+            ShapeRenderer shapeRenderer = go.getComponent(ShapeRenderer.class);
+            if (shapeRenderer != null) {
+                god.shapeType = shapeRenderer.getShapeType().name();
+                god.shapePoints = new ArrayList<>();
+                for (Vector2f p : shapeRenderer.getPoints()) {
+                    god.shapePoints.add(new float[]{p.x, p.y});
+                }
+            }
+
 
             sceneData.objects.add(god);
         }
@@ -347,6 +376,8 @@ class GameObjectData {
 
     boolean colorOnly;
     String texturePath;  // null pokud není sprite
+    String shapeType;
+    List<float[]> shapePoints;
 
     float r, g, b, a; // color fallback
     ArrayList<String> scripts;

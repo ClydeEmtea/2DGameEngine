@@ -1,8 +1,6 @@
 package engine;
 
-import components.ScriptComponent;
-import components.Sprite;
-import components.SpriteRenderer;
+import components.*;
 import imgui.ImGui;
 import imgui.ImVec4;
 import imgui.flag.ImGuiCol;
@@ -111,6 +109,14 @@ public class GameObject {
         }
     }
 
+    public ShapeType getShapeType() {
+        return getComponent(ShapeRenderer.class).getShapeType();
+    }
+
+    public ShapeRenderer getShaperenderer() {
+        return getComponent(ShapeRenderer.class);
+    }
+
     public int getZIndex() {
         return zIndex;
     }
@@ -143,17 +149,31 @@ public class GameObject {
 
         float[] scale = { transform.scale.x, transform.scale.y };
         if (ImGui.dragFloat2("Scale", scale, 0.5f)) {
+
             Vector2f oldCenter = new Vector2f(
                     transform.position.x + transform.scale.x * 0.5f,
                     transform.position.y + transform.scale.y * 0.5f
             );
 
+            boolean keepAspect = ImGui.getIO().getKeyCtrl();
+
+            if (keepAspect) {
+                float ratio = transform.scale.x / transform.scale.y;
+                if (Math.abs(scale[0] - transform.scale.x) > Math.abs(scale[1] - transform.scale.y)) {
+                    scale[1] = scale[0] / ratio;
+                } else {
+                    scale[0] = scale[1] * ratio;
+                }
+            }
+
             transform.scale.x = scale[0];
             transform.scale.y = scale[1];
 
+            // zachování středu
             transform.position.x = oldCenter.x - transform.scale.x * 0.5f;
             transform.position.y = oldCenter.y - transform.scale.y * 0.5f;
         }
+
 
         float[] roundness = { transform.roundness };
         if (ImGui.dragFloat("Roundness", roundness, 0.005f, 0.0f, 0.5f)) {
@@ -264,10 +284,28 @@ public class GameObject {
 
 
         ImGui.separator();
-        for (Component component : new ArrayList<>(getAllComponents())) {
-            ImGui.dummy(0, 10);
-            component.imgui();
+
+        for (Component component : getAllComponents()) {
+            if (component instanceof SpriteRenderer) {
+                ImGui.dummy(0, 10);
+                component.imgui();
+            }
         }
+
+        for (Component component : getAllComponents()) {
+            if (component instanceof ScriptComponent) {
+                ImGui.dummy(0, 10);
+                component.imgui();
+            }
+        }
+
+        for (Component component : getAllComponents()) {
+            if (component instanceof ShapeRenderer) {
+                ImGui.dummy(0, 10);
+                component.imgui();
+            }
+        }
+
 
 
 

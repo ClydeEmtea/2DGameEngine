@@ -20,6 +20,8 @@ public class SpriteRenderer extends Component {
     private Transform lastTransform;
     private boolean isDirty = true;
 
+    private Vector2f[] customVertices = null;
+
     public SpriteRenderer(Vector4f color) {
         this.color = color;
         this.sprite = new Sprite(null);
@@ -41,7 +43,7 @@ public class SpriteRenderer extends Component {
     public void update(float dt) {
         if (!this.lastTransform.equals(this.gameObject.transform)) {
             this.gameObject.transform.copy(this.lastTransform);
-            isDirty = true;
+            setDirty();
         }
 
     }
@@ -62,7 +64,7 @@ public class SpriteRenderer extends Component {
         Window.getScene().renderer.remove(this.gameObject);
         this.color = WHITE;
         this.sprite = new Sprite(AssetPool.getTexture(filename));
-        this.isDirty = true;
+        this.setDirty();
         this.isColorOnly = false;
         Window.getScene().renderer.add(this.gameObject);
     }
@@ -71,13 +73,13 @@ public class SpriteRenderer extends Component {
         this.sprite = new Sprite(null);
         this.color = WHITE;
         this.isColorOnly = true;
-        this.isDirty = true;
+        this.setDirty();
     }
 
     public void setColor(Vector4f color) {
         if (!this.color.equals(color)) {
             this.color = color;
-            this.isDirty = true;
+            this.setDirty();
         }
     }
 
@@ -88,7 +90,7 @@ public class SpriteRenderer extends Component {
         isDirty = false;
     }
     public void setDirty() {
-        isDirty = true;
+        this.isDirty = true;
     }
 
 
@@ -105,5 +107,14 @@ public class SpriteRenderer extends Component {
                 removeSprite();
             }
         }
+    }
+
+    public void setCustomVertices(Vector2f[] vertices) {
+        this.customVertices = vertices;
+        this.setDirty();
+    }
+
+    public Vector2f[] getCustomVertices() {
+        return customVertices;
     }
 }
