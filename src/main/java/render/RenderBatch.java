@@ -1,6 +1,7 @@
 package render;
 
 import components.SpriteRenderer;
+import engine.GameObject;
 import engine.Transform;
 import engine.Window;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +30,9 @@ public class RenderBatch implements Comparable<RenderBatch> {
     private List<Texture> textures;
     private int zIndex;
 
-    public RenderBatch(int maxBatchSize, int zIndex) {
+    private Renderer renderer;
+
+    public RenderBatch(int maxBatchSize, int zIndex, Renderer renderer) {
         this.zIndex = zIndex;
         shader = AssetPool.getShader("vertexDefault.glsl", "fragmentDefault.glsl");
         this.maxBatchSize = maxBatchSize;
@@ -38,6 +41,7 @@ public class RenderBatch implements Comparable<RenderBatch> {
         this.numSprites = 0;
         this.hasRoom = true;
         this.textures = new ArrayList<>();
+        this.renderer = renderer;
     }
 
     public void start() {
@@ -66,11 +70,21 @@ public class RenderBatch implements Comparable<RenderBatch> {
     public void render() {
         boolean rebuffer = false;
         for (int i = 0; i < numSprites; i++) {
+            SpriteRenderer sprite = sprites[i];
             if (sprites[i].isDirty()) {
                 loadVertexProperties(i);
                 sprites[i].setClean();
                 rebuffer = true;
             }
+            if (sprite.gameObject.getZIndex() != this.zIndex) {
+                destroyIfExists(sprite.gameObject);
+                renderer.add(sprite.gameObject);
+                sprite.gameObject.start();
+                System.out.println("Textura: " + sprite.getTexture());
+                i --;
+            }
+
+
         }
         if (rebuffer) {
             glBindBuffer(GL_ARRAY_BUFFER, vboID);
@@ -108,6 +122,7 @@ public class RenderBatch implements Comparable<RenderBatch> {
     }
 
     public void addSprite(SpriteRenderer sprite) {
+        System.out.println("Added sprite: " + sprite);
         sprites[numSprites] = sprite;
         numSprites++;
 
@@ -241,7 +256,10 @@ public class RenderBatch implements Comparable<RenderBatch> {
 
 
     public boolean hasRoom() { return hasRoom; }
-    public boolean hasTextureRoom() { return sprites.length < 8; }
+    public boolean hasTextureRoom() {
+        return textures.size() < 8;
+    }
+
     public boolean hasTexture(Texture texture) { return textures.contains(texture); }
     public int getZIndex() { return zIndex; }
 
@@ -260,5 +278,36 @@ public class RenderBatch implements Comparable<RenderBatch> {
                 break;
             }
         }
+    }
+
+    private void rebuildTextures() {
+        textures.clear();
+        for (int i = 0; i < numSprites; i++) {
+            Texture t = sprites[i].getTexture();
+            if (t != null && !textures.contains(t)) {
+                textures.add(t);
+            }
+        }
+    }
+
+
+    public boolean destroyIfExists(GameObject go) {
+        SpriteRenderer sprite = go.getComponent(SpriteRenderer.class);
+        for (int i=0; i < numSprites; i++) {
+            if (sprites[i] == sprite) {
+                for (int j=i; j < numSprites - 1; j++) {
+                    sprites[j] = sprites[j + 1];
+                    sprites[j].setDirty();
+                }
+                sprites[numSprites - 1] = null;
+                numSprites--;
+                hasRoom = true;
+                System.out.println("nicim: " + go);
+
+                return true;
+            }
+        }
+
+        return false;
     }
 }

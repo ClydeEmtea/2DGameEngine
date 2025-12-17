@@ -231,17 +231,9 @@ public class GameObject {
 
         int[] zIndexArr = { zIndex };
         if (ImGui.sliderInt("Z Index", zIndexArr, 0, 100)) {
-            zIndex = zIndexArr[0];
+            this.zIndex = zIndexArr[0];
         }
-        if (ImGui.button("Apply Z Index Change")) {
-            ProjectManager.get().saveProject();
-            Vector2f camPos = Window.getView().camera.position;
-            float camZoom = Window.getView().camera.getZoom();
-            Window.setCurrentView(0);
-            Window.getView().camera.position = camPos;
-            Window.getView().camera.setZoom(camZoom);
-            Window.getView().setActiveGameObject(this);
-        }
+
 
         ImGui.dummy(0,20);
 

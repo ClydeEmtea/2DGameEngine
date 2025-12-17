@@ -6,6 +6,7 @@ import engine.Window;
 import org.joml.Vector4f;
 import util.AssetPool;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -16,6 +17,8 @@ public class Renderer {
 
     private List<RenderBatch> renderBatches;
     private static Shader debugShader;
+    private final List<SpriteRenderer> rebatchQueue = new ArrayList<>();
+
 
 
     public Renderer() {
@@ -27,6 +30,7 @@ public class Renderer {
         SpriteRenderer spriteRenderer = go.getComponent(SpriteRenderer.class);
         if (spriteRenderer != null) {
             add(spriteRenderer);
+            System.out.println("adding " + go);
         }
     }
 
@@ -37,13 +41,15 @@ public class Renderer {
                 Texture texture = sprite.getTexture();
                 if (texture == null || (batch.hasTexture(texture) || batch.hasTextureRoom())) {
                     batch.addSprite(sprite);
+                    System.out.println("added" + sprite);
                     added = true;
                     break;
                 }
             }
         }
         if (!added) {
-            RenderBatch newBatch = new RenderBatch(MAX_BATCH_SIZE, sprite.gameObject.getZIndex());
+            System.out.println("dela se novy batch");
+            RenderBatch newBatch = new RenderBatch(MAX_BATCH_SIZE, sprite.gameObject.getZIndex(), this);
             newBatch.start();
             renderBatches.add(newBatch);
             newBatch.addSprite(sprite);
@@ -53,10 +59,13 @@ public class Renderer {
 
 
     public void render() {
-        for (RenderBatch batch : renderBatches) {
+        for (int i = 0; i < renderBatches.size(); i++) {
+            RenderBatch batch = renderBatches.get(i);
             batch.render();
         }
     }
+
+
 
     public static void beginLines(Vector4f color) {
         if (debugShader == null) {
@@ -88,5 +97,10 @@ public class Renderer {
             batch.removeSprite(go.getComponent(SpriteRenderer.class));
         }
     }
+
+    public void requestRebatch(SpriteRenderer sprite) {
+        rebatchQueue.add(sprite);
+    }
+
 
 }
