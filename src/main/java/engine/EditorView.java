@@ -55,8 +55,12 @@ public class EditorView extends View {
 
         for (GameObject go : gameObjects) {
             for (Component c : go.getAllScripts()) {
-                c.initScript();
+                c.initScriptEditor();
             }
+        }
+
+        for (Sound sound : AssetPool.getAllSounds()) {
+            sound.stop();
         }
 
 

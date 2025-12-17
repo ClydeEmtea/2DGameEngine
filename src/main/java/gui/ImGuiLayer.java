@@ -1,5 +1,6 @@
 package gui;
 
+import engine.Sound;
 import engine.View;
 import engine.Window;
 import imgui.ImGui;
@@ -70,6 +71,19 @@ public class ImGuiLayer {
                     try {
                         java.nio.file.Files.copy(source, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
                         System.out.println("Copied " + source + " to " + target);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (lower.endsWith(".mp3") || lower.endsWith(".wav") || lower.endsWith(".ogg") || lower.endsWith(".aif")) {
+                    Path audioDir = ProjectManager.get().getCurrentProject().getAudioPath();
+
+                    Path target = audioDir.resolve(source.getFileName());
+
+                    try {
+                        java.nio.file.Files.copy(source, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                        System.out.println("Copied " + source + " to " + target);
+                        AssetPool.addSound(String.valueOf(source.getFileName()), false);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -290,7 +304,7 @@ public class ImGuiLayer {
         ImGui.getStyle().setColor(ImGuiCol.TitleBgActive, GUI_TITLE_BG[0], GUI_TITLE_BG[1], GUI_TITLE_BG[2], GUI_TITLE_BG[3]);
         int[] keys = new int[]{
                 ImGuiCol.Button, ImGuiCol.FrameBg, ImGuiCol.SliderGrab, ImGuiCol.ResizeGrip, ImGuiCol.Tab,
-                ImGuiCol.ScrollbarGrab, ImGuiCol.CheckMark, ImGuiCol.Border, ImGuiCol.TabActive,
+                ImGuiCol.CheckMark, ImGuiCol.Border, ImGuiCol.TabActive,
                 ImGuiCol.TabUnfocused, ImGuiCol.TabUnfocusedActive, ImGuiCol.ScrollbarBg, ImGuiCol.ScrollbarGrabHovered,
                 ImGuiCol.ScrollbarGrabActive, ImGuiCol.ResizeGripActive, ImGuiCol.CheckMark, ImGuiCol.BorderShadow,
                 ImGuiCol.Separator, ImGuiCol.SeparatorHovered, ImGuiCol.SeparatorActive,
@@ -303,6 +317,7 @@ public class ImGuiLayer {
         int[] hoverKeys = new int[]{
                 ImGuiCol.ButtonHovered, ImGuiCol.FrameBgHovered, ImGuiCol.SliderGrabActive,
                 ImGuiCol.ResizeGripHovered, ImGuiCol.TabHovered, ImGuiCol.ScrollbarGrabActive,
+                ImGuiCol.ScrollbarGrab,
 
                 // New: section hovers
                 ImGuiCol.HeaderHovered,
@@ -374,6 +389,16 @@ public class ImGuiLayer {
                 currentDirectory = dir.toPath();
             }
         }
+
+        ImGui.dummy(0,15);
+        if (ImGui.button("Open in explorer")) {
+            try {
+                java.awt.Desktop.getDesktop().open(root.toFile());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 
     private void drawDirectoryContent(Path dir) {
@@ -386,7 +411,32 @@ public class ImGuiLayer {
         float cellSize = TILE_SIZE + TILE_PADDING;
         int columns = Math.max(1, (int)(panelWidth / cellSize));
 
+        ImGui.beginChild("DirectoryContentChild", panelWidth, TILE_SIZE + 50, false, ImGuiWindowFlags.HorizontalScrollbar);
+
         int i = 0;
+
+        // Přidat ".." pokud nejsme v rootu projektu
+        Path projectRoot = ProjectManager.get().getCurrentProject().getAssetsPath();
+        if (!dir.equals(projectRoot)) {
+            ImGui.pushID("..");
+            ImGui.beginGroup();
+
+            drawFolderPreview(); // vykreslíme ikonku složky
+
+            if (ImGui.isItemClicked()) {
+                currentDirectory = dir.getParent();
+            }
+
+            ImGui.textWrapped(".."); // název složky
+
+            ImGui.endGroup();
+            ImGui.popID();
+
+            i++;
+            if (i % columns != 0) {
+                ImGui.sameLine();
+            }
+        }
 
         for (File file : files) {
             String name = file.getName();
@@ -411,6 +461,21 @@ public class ImGuiLayer {
                         if (name.endsWith(".java")) {
                             // Open in VSCode
                             ProjectManager.get().openInVSCode(file.toPath());
+                        }
+                        if (name.endsWith(".mp3") || name.endsWith(".wav") || name.endsWith(".ogg")|| name.endsWith(".aif")) {
+                            System.out.println("kliknuto");
+                            Sound sound = AssetPool.getSound(name, false);
+                            if (sound != null) {
+                                System.out.println("neni to null");
+                                if (!sound.isPlaying()) {
+                                    sound.playOnlyOne();
+                                    System.out.println("hraju");
+                                } else {
+                                    sound.stop();
+                                    System.out.println("stojim");
+                                }
+                            }
+
                         } else {
                             // Open in system default program
                             if (java.awt.Desktop.isDesktopSupported()) {
@@ -423,7 +488,9 @@ public class ImGuiLayer {
                 }
             }
 
+            ImGui.pushTextWrapPos(ImGui.getCursorPosX() + TILE_SIZE);
             ImGui.textWrapped(name);
+            ImGui.popTextWrapPos();
             ImGui.endGroup();
             ImGui.popID();
 
@@ -432,6 +499,7 @@ public class ImGuiLayer {
                 ImGui.sameLine();
             }
         }
+        ImGui.endChild();
     }
 
 
@@ -439,8 +507,9 @@ public class ImGuiLayer {
         ImGui.button("a", TILE_SIZE, TILE_SIZE);
     }
     private void drawFilePreview(File file) {
-        Texture texture = AssetPool.getTexture(file.getName());
-        if (texture == null) return;
+        Texture texture = null;
+        if (file.getName().toLowerCase().endsWith(".png") || file.getName().toLowerCase().endsWith(".jpg") || file.getName().toLowerCase().endsWith(".jpeg"))
+            texture = AssetPool.getTexture(file.getName());
 
         ImGui.beginGroup();
 
@@ -451,29 +520,53 @@ public class ImGuiLayer {
         float x = ImGui.getItemRectMinX();
         float y = ImGui.getItemRectMinY();
 
-        // vykreslení obrázku NAD buttonem
-        ImGui.getWindowDrawList().addImage(
-                texture.getId(),
-                x, y,
-                x + TILE_SIZE, y + TILE_SIZE
-        );
+        if (texture != null) {
+            ImGui.getWindowDrawList().addImage(
+                    texture.getId(),
+                    x, y,
+                    x + TILE_SIZE, y + TILE_SIZE
+            );
+        } else {
+            ImGui.getWindowDrawList().addRectFilled(
+                    x, y,
+                    x + TILE_SIZE, y + TILE_SIZE,
+                    ImGui.getColorU32(1.0f, 1.0f, 1.0f, 1.0f) // bílá barva
+            );
+        }
 
         // === DRAG SOURCE ===
         if (ImGui.beginDragDropSource()) {
-
             ImGui.setDragDropPayload(
                     "ASSET_FILE",
                     file.getAbsolutePath()
             );
-
             ImGui.text(file.getName());
-            ImGui.image(texture.getId(), 48, 48);
-
+            if (texture != null) {
+                ImGui.image(texture.getId(), 48, 48);
+            } else {
+                System.out.println("kreslim");
+                ImGui.getWindowDrawList().addRectFilled(
+                        0, 0, 48, 48,
+                        ImGui.getColorU32(1.0f, 1.0f, 1.0f, 1.0f)
+                );
+            }
             ImGui.endDragDropSource();
         }
 
+        // Zalomit název po každých 20 znacích
+//        String name = file.getName();
+//        int wrapLength = 10;
+//        if (name.length() > wrapLength) {
+//            for (int start = 0; start < name.length(); start += wrapLength) {
+//                int end = Math.min(start + wrapLength, name.length());
+//                ImGui.text(name.substring(start, end));
+//            }
+//        }
+
+
         ImGui.endGroup();
     }
+
 
     public static void hideLayers() {
         bottomSidebarOpen = false;

@@ -94,8 +94,17 @@ public class ScriptComponent extends Component {
     @Override
     public void initScript() {
         reloadScript();
-        scriptInstance.setEnvironment(this.gameObject, Window.get(), MouseListener.get(), KeyListener.get());
-        scriptInstance.init();
+        if (scriptInstance != null) {
+            scriptInstance.setEnvironment(this.gameObject, Window.get(), MouseListener.get(), KeyListener.get());
+            scriptInstance.init();
+        }
+    }
+
+    @Override
+    public void initScriptEditor() {
+        reloadScript();
+        if (scriptInstance != null)
+            scriptInstance.setEnvironment(this.gameObject, Window.get(), MouseListener.get(), KeyListener.get());
     }
 
     @Override
@@ -113,14 +122,19 @@ public class ScriptComponent extends Component {
     public void load() {
         ScriptCompiler.compile(filePath);
 
-        scriptInstance = ScriptLoader.loadScript(
-                filePath.getParent(),
-                className
-        );
+        try {
+            scriptInstance = ScriptLoader.loadScript(
+                    filePath.getParent(),
+                    className
+            );
+        } catch (Exception e) {
+            assert false : "ahoj";
+        }
 
     }
 
     public void onAddedToGameObject() {
+        if (scriptInstance == null) return;
         scriptInstance.setEnvironment(this.gameObject, Window.get(), MouseListener.get(), KeyListener.get());
     }
 
@@ -138,10 +152,10 @@ public class ScriptComponent extends Component {
         if (ImGui.button("Remove")) {
             this.gameObject.removeComponent(this);
         }
-
-//        if (ImGui.button("init")) {
-//            scriptInstance.init();
-//        }
+        ImGui.sameLine();
+        if (ImGui.button("Reload")) {
+            reloadScript();
+        }
 
         if (scriptInstance == null) {
             ImGui.textDisabled("Script not loaded");

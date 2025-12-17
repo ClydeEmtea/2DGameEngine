@@ -27,7 +27,8 @@ public class ScriptLoader {
                     .newInstance();
 
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            assert false : "Failed to load script " + className;
         }
+        return null;
     }
 }

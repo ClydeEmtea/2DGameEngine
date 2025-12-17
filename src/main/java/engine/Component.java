@@ -21,5 +21,7 @@ public abstract class Component {
         return isColorOnly;
     }
 
+    public void initScriptEditor() {};
+
     public void updateScript(float dt) {}
 }

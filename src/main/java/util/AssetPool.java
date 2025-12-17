@@ -1,10 +1,12 @@
 package util;
 
 import components.Spritesheet;
+import engine.Sound;
 import project.ProjectManager;
 import render.Shader;
 import render.Texture;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,6 +17,7 @@ public class AssetPool {
     private static Map<String, Shader> shaders = new HashMap<>();
     private static Map<String, Texture> textures = new HashMap<>();
     private static Map<String, Spritesheet> spriteSheets = new HashMap<>();
+    private static Map<String, Sound> sounds = new HashMap<>();
 
     public static Shader getShader(String vertexName, String fragmentName) {
         String shaderKey = vertexName + fragmentName;
@@ -56,6 +59,33 @@ public class AssetPool {
             assert false : "Spritesheet with name " + name + " does not exist.";
         }
         return null;
+    }
+
+    public static Sound getSound(String fileName, boolean loops) {
+        if (AssetPool.sounds.containsKey(fileName)) {
+            System.out.println("existuje to a vracim to");
+            return AssetPool.sounds.get(fileName);
+        } else {
+            Sound sound = new Sound((ProjectManager.get().getCurrentProject().getAudioPath() + "\\" + fileName).replace("\\", "/"), loops);
+            System.out.println("ano, zvuk");
+            AssetPool.sounds.put(fileName, sound);
+            return sound;
+        }
+    }
+
+    public static Sound addSound(String fileName, boolean loops) {
+        if (AssetPool.sounds.containsKey(fileName)) {
+            return AssetPool.sounds.get(fileName);
+        } else {
+            Sound sound = new Sound((ProjectManager.get().getCurrentProject().getAudioPath() + "\\" + fileName).replace("\\", "/"), loops);
+            System.out.println("ano, zvuk");
+            AssetPool.sounds.put(fileName, sound);
+            return sound;
+        }
+    }
+
+    public static Collection<Sound> getAllSounds() {
+        return sounds.values();
     }
 
 }
