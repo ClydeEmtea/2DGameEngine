@@ -127,7 +127,6 @@ public class Sound {
 
                 if (channels == 0) channels = output.getChannelCount();
                 if (sampleRate == 0) sampleRate = output.getSampleFrequency();
-                System.out.println(sampleRate);
 
                 for (short s : samples) {
                     baos.write(s & 0xff);

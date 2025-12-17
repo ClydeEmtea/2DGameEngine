@@ -6,25 +6,26 @@ import imgui.ImGui;
 import imgui.flag.ImGuiTreeNodeFlags;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
+import physics2d.Physics2D;
 import render.Renderer;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.lwjgl.glfw.GLFW.glfwGetCurrentContext;
-import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
+import static org.lwjgl.glfw.GLFW.*;
 
-public abstract class View {
+public class View {
 
     public Renderer renderer = new Renderer();
     protected Camera camera;
     private boolean isRunning = false;
-
+    public boolean isGame = false;
 
     protected List<GameObject> gameObjects = new ArrayList<>();
     protected Group root = new Group("Root");
     protected GameObject activeGameObject = null;
     protected Group activeGroup = null;
+    protected Physics2D physics2D;
 
     public View() {
 
@@ -37,6 +38,7 @@ public abstract class View {
         for (GameObject gameObject : gameObjects) {
             gameObject.start();
             this.renderer.add(gameObject);
+            this.physics2D.add(gameObject);
         }
         isRunning = true;
     }
@@ -47,7 +49,8 @@ public abstract class View {
 
         if (isRunning) {
             go.start();
-            renderer.add(go);
+            this.renderer.add(go);
+            this.physics2D.add(go);
         }
         if (!root.containsRecursively(go))
             root.add(go);
@@ -58,7 +61,8 @@ public abstract class View {
 
     public void removeGameObject(GameObject gameObject) {
         if (this.gameObjects.remove(gameObject)) {
-            renderer.remove(gameObject);
+            this.renderer.remove(gameObject);
+            this.physics2D.destroyGameObject(gameObject);
             removeFromGroups(root, gameObject);
         }
     }
@@ -71,7 +75,7 @@ public abstract class View {
 
 
 
-    public abstract void update(float dt);
+    public void update(float dt) {};
 
     public Camera camera() {
         return this.camera;
@@ -182,6 +186,18 @@ public abstract class View {
     }
     public Group findParentGroup(Group target) {
         return root.findParentOfGroup(target);
+    }
+
+    void activeGameObjectImGui() {
+        GameObject activeGameObject = this.getActiveGameObject();
+        if (activeGameObject != null) {
+            ImGui.dummy(0, 50);
+            ImGui.separator();
+            ImGui.dummy(0,15);
+            ImGui.text(activeGameObject.getName());
+            activeGameObject.imgui();
+
+        }
     }
 
 

@@ -3,6 +3,7 @@ package gui;
 import engine.GameObject;
 import engine.Group;
 import engine.View;
+import engine.Window;
 import imgui.ImGui;
 import imgui.flag.ImGuiTreeNodeFlags;
 import imgui.flag.ImGuiWindowFlags;
@@ -25,16 +26,7 @@ public class RightSidebar {
 
     private RightSidebar() {}
 
-    static void activeGameObjectImGui(View currentView) {
-        GameObject activeGameObject = currentView.getActiveGameObject();
-        if (activeGameObject != null) {
-            ImGui.dummy(0, 50);
-            ImGui.separator();
-            ImGui.dummy(0,15);
-            ImGui.text(activeGameObject.getName());
-            activeGameObject.imgui();
-        }
-    }
+
 
     static void activeGroupImGui(View currentView) {
         Group group = currentView.getActiveGroup();
@@ -316,7 +308,7 @@ public class RightSidebar {
             callback.run();
         }
 
-        ImGui.beginChild("RightSidebarScroll", 0, 500, true, ImGuiWindowFlags.HorizontalScrollbar);
+        ImGui.beginChild("RightSidebarScroll", 0, Window.get().getHeight()- 400, true, ImGuiWindowFlags.HorizontalScrollbar);
 
         sceneObjectsImGui(currentView);
 
@@ -324,7 +316,6 @@ public class RightSidebar {
 
 
         activeGroupImGui(currentView);
-        activeGameObjectImGui(currentView);
         ImGui.end();
     }
 }

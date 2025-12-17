@@ -8,6 +8,10 @@ import imgui.flag.ImGuiHoveredFlags;
 import imgui.flag.ImGuiTreeNodeFlags;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
+import physics2d.Physics2D;
+import physics2d.components.Box2DCollider;
+import physics2d.components.CircleCollider;
+import physics2d.components.RigidBody2D;
 import project.ProjectManager;
 import render.Renderer;
 import render.Texture;
@@ -41,6 +45,7 @@ public class EditorView extends View {
     public void init() {
         loadResources();
         this.camera = new Camera(new Vector2f());
+        this.physics2D = new Physics2D();
         Grid.initialize(this);
         for (GameObject line : gridLines) {
             line.start();
@@ -148,7 +153,8 @@ public class EditorView extends View {
             if (go.getShaperenderer() != null) {
                 created.addComponent(new ShapeRenderer());
                 created.getShaperenderer().setShapeType(go.getShapeType());
-                created.getShaperenderer().setPoints(go.getShaperenderer().getPoints());
+                List<Vector2f> ps = new ArrayList<>(go.getShaperenderer().getPoints());
+                created.getShaperenderer().setPoints(ps);
             }
             SpriteRenderer goSr = go.getComponent(SpriteRenderer.class);
             if (goSr != null) {
@@ -574,6 +580,43 @@ public class EditorView extends View {
                 this.showCreationWindow = false; // zavřít po vytvoření
             }
         }
+
+        activeGameObjectImGui();
+        if (ImGui.isMouseReleased(GLFW_MOUSE_BUTTON_2) && (!MouseListener.wasDragging()) && activeGameObject != null) {
+            ImGui.openPopup("ActiveGOContextMenu");
+        }
+        if (ImGui.beginPopup("ActiveGOContextMenu")) {
+            if (ImGui.menuItem("Delete")) {
+                removeGameObject(activeGameObject);
+                setActiveGameObject(null);
+            }
+            if (ImGui.menuItem("Duplicate")) {
+                duplicateSelected();
+            }
+            ImGui.separator();
+            if (ImGui.menuItem("Add RigidBody")) {
+                if (activeGameObject.getComponent(RigidBody2D.class) == null) {
+                    activeGameObject.addComponent(new RigidBody2D());
+                }
+            }
+
+            if (ImGui.menuItem("Add Box Collider")) {
+                if (activeGameObject.getComponent(Box2DCollider.class) == null && activeGameObject.getComponent(CircleCollider.class) == null) {
+                    Box2DCollider collider = new Box2DCollider();
+                    collider.setHalfSize(new Vector2f(activeGameObject.transform.scale).mul(0.5f));
+                    collider.setOrigin(new float[] {collider.getHalfSize().x, collider.getHalfSize().y});
+                    activeGameObject.addComponent(collider);
+                }
+            }
+
+            if (ImGui.menuItem("Add Circle Collider")) {
+                if (activeGameObject.getComponent(CircleCollider.class) == null && activeGameObject.getComponent(Box2DCollider.class) == null) {
+                    activeGameObject.addComponent(new CircleCollider());
+                }
+            }
+            ImGui.endPopup();
+        }
+
 
         ImGui.end();
     }

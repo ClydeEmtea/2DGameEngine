@@ -1,6 +1,7 @@
 package engine;
 
 import org.joml.Vector2f;
+import physics2d.Physics2D;
 import project.ProjectManager;
 import util.AssetPool;
 
@@ -20,6 +21,7 @@ public class GameView extends View {
     public void init() {
         loadResources();
         this.camera = new Camera(new Vector2f());
+        this.physics2D = new Physics2D();
         List<GameObject> sceneObjects = ProjectManager.get().loadSceneObjects("MainScene");
         if (sceneObjects != null) {
             for (GameObject go : sceneObjects) {
@@ -55,6 +57,7 @@ public class GameView extends View {
             }
         }
 
+        this.physics2D.update(dt);
 
         this.renderer.render();
 

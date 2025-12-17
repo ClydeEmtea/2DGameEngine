@@ -63,7 +63,6 @@ public class AssetPool {
 
     public static Sound getSound(String fileName, boolean loops) {
         if (AssetPool.sounds.containsKey(fileName)) {
-            System.out.println("existuje to a vracim to");
             return AssetPool.sounds.get(fileName);
         } else {
             Sound sound = new Sound((ProjectManager.get().getCurrentProject().getAudioPath() + "\\" + fileName).replace("\\", "/"), loops);

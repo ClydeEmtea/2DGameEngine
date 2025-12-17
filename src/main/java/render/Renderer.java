@@ -3,6 +3,7 @@ package render;
 import components.SpriteRenderer;
 import engine.GameObject;
 import engine.Window;
+import org.joml.Vector2f;
 import org.joml.Vector4f;
 import util.AssetPool;
 
@@ -26,11 +27,11 @@ public class Renderer {
 
     }
 
+
     public void add(GameObject go) {
         SpriteRenderer spriteRenderer = go.getComponent(SpriteRenderer.class);
         if (spriteRenderer != null) {
             add(spriteRenderer);
-            System.out.println("adding " + go);
         }
     }
 
@@ -41,14 +42,12 @@ public class Renderer {
                 Texture texture = sprite.getTexture();
                 if (texture == null || (batch.hasTexture(texture) || batch.hasTextureRoom())) {
                     batch.addSprite(sprite);
-                    System.out.println("added" + sprite);
                     added = true;
                     break;
                 }
             }
         }
         if (!added) {
-            System.out.println("dela se novy batch");
             RenderBatch newBatch = new RenderBatch(MAX_BATCH_SIZE, sprite.gameObject.getZIndex(), this);
             newBatch.start();
             renderBatches.add(newBatch);
@@ -90,6 +89,12 @@ public class Renderer {
     public static void drawLine(float x1, float y1, float x2, float y2) {
         glVertex2f(x1, y1);
         glVertex2f(x2, y2);
+    }
+
+
+    public static void drawLine(Vector2f corner, Vector2f corner1) {
+        glVertex2f(corner.x, corner.y);
+        glVertex2f(corner1.x, corner1.y);
     }
 
     public void remove(GameObject go) {

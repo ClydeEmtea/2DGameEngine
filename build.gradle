@@ -64,6 +64,11 @@ dependencies {
 
     // MP3 dekodér
     implementation 'javazoom:jlayer:1.0.1'
+
+    // JBox2D
+    implementation 'org.jbox2d:jbox2d-library:2.2.1.1'
+    // pokud chceš i testbed:
+    // implementation 'org.jbox2d:jbox2d-testbed:2.2.1.1'
 }
 
 test {

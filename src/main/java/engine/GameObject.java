@@ -7,6 +7,9 @@ import imgui.flag.ImGuiCol;
 import imgui.type.ImString;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
+import physics2d.components.Box2DCollider;
+import physics2d.components.CircleCollider;
+import physics2d.components.RigidBody2D;
 import project.ProjectManager;
 import util.AssetPool;
 
@@ -300,6 +303,27 @@ public class GameObject {
 
         for (Component component : getAllComponents()) {
             if (component instanceof ScriptComponent) {
+                ImGui.dummy(0, 10);
+                component.imgui();
+            }
+        }
+
+        for (Component component : getAllComponents()) {
+            if (component instanceof RigidBody2D) {
+                ImGui.dummy(0, 10);
+                component.imgui();
+            }
+        }
+
+        for (Component component : getAllComponents()) {
+            if (component instanceof Box2DCollider) {
+                ImGui.dummy(0, 10);
+                component.imgui();
+            }
+        }
+
+        for (Component component : getAllComponents()) {
+            if (component instanceof CircleCollider) {
                 ImGui.dummy(0, 10);
                 component.imgui();
             }

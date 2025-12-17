@@ -1,6 +1,10 @@
 package engine;
 
 import gui.ImGuiLayer;
+import observers.Event;
+import observers.EventSystem;
+import observers.EventType;
+import observers.Observer;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.openal.AL;
@@ -19,7 +23,7 @@ import static org.lwjgl.openal.ALC10.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public class Window {
+public class Window implements Observer {
 
     private int width, height;
     private final String title;
@@ -40,17 +44,22 @@ public class Window {
         ProjectManager projectManager = ProjectManager.get();
         String projectName = (projectManager.getCurrentProject() != null) ? projectManager.getCurrentProject().getName() : "Unnamed Project";
         this.title = Constants.TITLE + " - " + projectName;
+        EventSystem.addObserver(this);
     }
 
     public static void setCurrentView(int scene) {
         switch (scene) {
             case 0 -> {
+                EventSystem.notify(null, new Event(EventType.StopPlay));
                 currentView = new EditorView();
                 ImGuiLayer.showLayers();
+                getView().isGame = false;
             }
             case 1 -> {
+                EventSystem.notify(null, new Event(EventType.StartPlay));
                 currentView = new GameView();
                 ImGuiLayer.hideLayers();
+                getView().isGame = true;
             }
             default -> throw new IllegalArgumentException("Invalid scene index: " + scene);
         }
@@ -228,6 +237,15 @@ public class Window {
             KeyListener.endFrame();
             MouseListener.endFrame();
 
+        }
+    }
+
+    @Override
+    public void onNotify(GameObject gameObject, Event event) {
+        if (event.type == EventType.StartPlay) {
+            ProjectManager.get().saveProject();
+        } else if (event.type == EventType.StopPlay) {
+            System.out.println("stopping");
         }
     }
 }

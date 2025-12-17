@@ -304,7 +304,7 @@ public class ImGuiLayer {
         ImGui.getStyle().setColor(ImGuiCol.TitleBgActive, GUI_TITLE_BG[0], GUI_TITLE_BG[1], GUI_TITLE_BG[2], GUI_TITLE_BG[3]);
         int[] keys = new int[]{
                 ImGuiCol.Button, ImGuiCol.FrameBg, ImGuiCol.SliderGrab, ImGuiCol.ResizeGrip, ImGuiCol.Tab,
-                ImGuiCol.CheckMark, ImGuiCol.Border, ImGuiCol.TabActive,
+                ImGuiCol.Border, ImGuiCol.TabActive,
                 ImGuiCol.TabUnfocused, ImGuiCol.TabUnfocusedActive, ImGuiCol.ScrollbarBg, ImGuiCol.ScrollbarGrabHovered,
                 ImGuiCol.ScrollbarGrabActive, ImGuiCol.ResizeGripActive, ImGuiCol.CheckMark, ImGuiCol.BorderShadow,
                 ImGuiCol.Separator, ImGuiCol.SeparatorHovered, ImGuiCol.SeparatorActive,
@@ -324,12 +324,20 @@ public class ImGuiLayer {
                 ImGuiCol.TitleBgCollapsed
         };
 
+        int[] whiteKeys = new int[]{
+                ImGuiCol.CheckMark,
+        };
+
         for (int key : keys) {
             ImGui.getStyle().setColor(key, baseColor[0], baseColor[1], baseColor[2], baseColor[3]);
         }
 
         for (int key : hoverKeys) {
             ImGui.getStyle().setColor(key, hoverColor[0], hoverColor[1], hoverColor[2], hoverColor[3]);
+        }
+
+        for (int key : whiteKeys) {
+            ImGui.getStyle().setColor(key, 1.0f, 1.0f, 1.0f, 1.0f);
         }
     }
 

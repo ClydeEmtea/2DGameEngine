@@ -13,6 +13,7 @@ public class Camera {
 
     private float zoom = 1.0f;
     public Vector2f position;
+    private Vector2f projectionSize = new Vector2f(6, 3);
 
     public Camera(Vector2f position) {
         this.position = position;

@@ -6,6 +6,9 @@ import components.*;
 import engine.*;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
+import physics2d.components.Box2DCollider;
+import physics2d.components.RigidBody2D;
+import physics2d.enums.BodyType;
 import render.Texture;
 import util.AssetPool;
 
@@ -272,8 +275,30 @@ public class ProjectManager {
             }
         }
 
+        // RigidBody2D
+        if (god.rigidBody != null) {
+            RigidBody2D rb = new RigidBody2D();
+            rb.setVelocity(new Vector2f(god.rigidBody.velocity[0], god.rigidBody.velocity[1]));
+            rb.setMass(god.rigidBody.mass);
+            rb.setAngularDamping(god.rigidBody.angularDamping);
+            rb.setLinearDamping(god.rigidBody.linearDamping);
+            rb.setFixedRotation(god.rigidBody.fixedRotation);
+            rb.setContinuousCollision(god.rigidBody.continuousCollision);
+            rb.setBodyType(BodyType.valueOf(god.rigidBody.bodyType));
+            go.addComponent(rb);
+        }
+
+        // Box2DCollider
+        if (god.boxCollider != null) {
+            Box2DCollider bc = new Box2DCollider();
+            bc.setHalfSize(new Vector2f(god.boxCollider.halfSize[0], god.boxCollider.halfSize[1]));
+            bc.setOrigin(god.boxCollider.origin);
+            go.addComponent(bc);
+        }
+
         return go;
     }
+
 
     private Group dataToGroup(GroupData gd) {
         Group group = new Group(gd.name);
@@ -362,6 +387,27 @@ public class ProjectManager {
             for (Vector2f p : shapeRenderer.getPoints()) {
                 god.shapePoints.add(new float[]{p.x, p.y});
             }
+        }
+        // RigidBody2D
+        RigidBody2D rigidBody = go.getComponent(RigidBody2D.class);
+        if (rigidBody != null) {
+            // Ukládáme všechny hodnoty kromě rawBody a bodyType
+            god.rigidBody = new RigidBodyData();
+            god.rigidBody.velocity = new float[]{rigidBody.getVelocity().x, rigidBody.getVelocity().y};
+            god.rigidBody.mass = rigidBody.getMass();
+            god.rigidBody.angularDamping = rigidBody.getAngularDamping();
+            god.rigidBody.linearDamping = rigidBody.getLinearDamping();
+            god.rigidBody.fixedRotation = rigidBody.isFixedRotation();
+            god.rigidBody.continuousCollision = rigidBody.isContinuousCollision();
+            god.rigidBody.bodyType = String.valueOf(rigidBody.getBodyType());
+        }
+
+        // Box2DCollider
+        Box2DCollider collider = go.getComponent(Box2DCollider.class);
+        if (collider != null) {
+            god.boxCollider = new BoxColliderData();
+            god.boxCollider.halfSize = new float[]{collider.getHalfSize().x, collider.getHalfSize().y};
+            god.boxCollider.origin = new float[]{collider.getOrigin().x, collider.getOrigin().y};
         }
 
         return god;
@@ -512,6 +558,9 @@ class GameObjectData {
 
     float r, g, b, a; // color fallback
     ArrayList<String> scripts;
+
+    RigidBodyData rigidBody;
+    BoxColliderData boxCollider;
 }
 
 class GroupData {
@@ -520,3 +569,17 @@ class GroupData {
     List<GroupData> groups = new ArrayList<>();
 }
 
+class RigidBodyData {
+    float[] velocity;
+    float mass;
+    float angularDamping;
+    float linearDamping;
+    boolean fixedRotation;
+    boolean continuousCollision;
+    String bodyType;
+}
+
+class BoxColliderData {
+    float[] halfSize;
+    float[] origin;
+}

@@ -122,7 +122,6 @@ public class RenderBatch implements Comparable<RenderBatch> {
     }
 
     public void addSprite(SpriteRenderer sprite) {
-        System.out.println("Added sprite: " + sprite);
         sprites[numSprites] = sprite;
         numSprites++;
 

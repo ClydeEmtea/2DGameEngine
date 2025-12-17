@@ -11,6 +11,7 @@ public class MouseListener {
     private double xPos, yPos, lastX, lastY;
     private boolean mouseButtonPressed[] = new boolean[3];
     private boolean isDragging;
+    private boolean wasDragging;
 
     private MouseListener() {
         ScrollX = 0.0;
@@ -34,6 +35,7 @@ public class MouseListener {
         get().xPos = xpos;
         get().yPos = ypos;
         get().isDragging = mouseButtonDown(0) || mouseButtonDown(1) || mouseButtonDown(2);
+        get().wasDragging = isDragging() || wasDragging();
     }
 
     public static void mouseButtonCallback(long window, int button, int action, int mods) {
@@ -41,6 +43,7 @@ public class MouseListener {
             if (button < get().mouseButtonPressed.length) {
                 get().mouseButtonPressed[button] = true;
             }
+            get().wasDragging = false;
         } else if (action == GLFW_RELEASE) {
             if (button < get().mouseButtonPressed.length) {
                 get().mouseButtonPressed[button] = false;
@@ -99,5 +102,9 @@ public class MouseListener {
 
     public static Vector2f getDelta() {
         return new Vector2f(getDx(), getDy());
+    }
+
+    public static boolean wasDragging() {
+        return get().wasDragging;
     }
 }
