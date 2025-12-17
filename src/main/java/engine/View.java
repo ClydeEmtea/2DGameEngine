@@ -177,4 +177,12 @@ public abstract class View {
     public Group getRoot() {
         return root;
     }
+    public Group findParentGroup(GameObject go) {
+        return root.findParentOf(go);
+    }
+    public Group findParentGroup(Group target) {
+        return root.findParentOfGroup(target);
+    }
+
+
 }

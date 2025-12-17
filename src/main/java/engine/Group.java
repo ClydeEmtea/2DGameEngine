@@ -161,6 +161,33 @@ public class Group {
         // Nenašli jsme
         return false;
     }
+    public Group findParentOf(GameObject go) {
+        if (objects.contains(go)) return this;
+
+        for (Group g : groups) {
+            Group found = g.findParentOf(go);
+            if (found != null) return found;
+        }
+        return null;
+    }
+    public Group findParentOfGroup(Group g) {
+        if (groups.contains(g)) return this;
+
+        for (Group sub : groups) {
+            Group found = sub.findParentOfGroup(g);
+            if (found != null) return found;
+        }
+        return null;
+    }
+    public boolean containsGroupRecursive(Group target) {
+        if (groups.contains(target)) return true;
+        for (Group g : groups) {
+            if (g.containsGroupRecursive(target)) return true;
+        }
+        return false;
+    }
+
+
 
 
 }

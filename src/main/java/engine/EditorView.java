@@ -10,6 +10,7 @@ import org.joml.Vector2f;
 import org.joml.Vector4f;
 import project.ProjectManager;
 import render.Renderer;
+import render.Texture;
 import util.AssetPool;
 
 import java.util.ArrayList;
@@ -99,7 +100,7 @@ public class EditorView extends View {
 
     }
 
-    private static void keyboardHandles() {
+    private void keyboardHandles() {
         if (KeyListener.isKeyTyped(GLFW_KEY_TAB)) {
             Window.setCurrentView(1);
         }
@@ -110,7 +111,79 @@ public class EditorView extends View {
                 System.out.println("Project saved!");
             }
         }
+
+        if (KeyListener.isKeyPressed(GLFW_KEY_LEFT_CONTROL) && KeyListener.isKeyTyped(GLFW_KEY_D)) {
+            duplicateSelected();
+        }
+
+        if (KeyListener.isKeyTyped(GLFW_KEY_DELETE)) {
+            for (GameObject go : new ArrayList<>(RightSidebar.selectedObjects)) {
+                RightSidebar.selectedObjects.remove(go);
+                removeGameObject(go);
+            }
+            for (Group g : new ArrayList<>(RightSidebar.selectedGroups)) {
+                for (GameObject go : new ArrayList<>(g.getObjects())) {
+                    g.remove(go);
+                    root.add(go);
+                }
+                for (Group group : new ArrayList<>(g.getGroups())) {
+                    g.removeGroup(group);
+                    root.addGroup(group);
+                }
+                root.removeGroup(g);
+            }
+        }
     }
+
+    private void duplicateSelected() {
+        List<GameObject> duplicates = new ArrayList<>();
+        for (GameObject go : RightSidebar.selectedObjects) {
+            String name = generateDuplicateName(go.getName());
+            GameObject created = new GameObject(name, go.transform.copy(), go.getZIndex());
+            created.transform.position.x += go.transform.scale.x;
+            if (go.getShaperenderer() != null) {
+                created.addComponent(new ShapeRenderer());
+                created.getShaperenderer().setShapeType(go.getShapeType());
+                created.getShaperenderer().setPoints(go.getShaperenderer().getPoints());
+            }
+            SpriteRenderer goSr = go.getComponent(SpriteRenderer.class);
+            if (goSr != null) {
+                if (goSr.isColorOnly) {
+                    created.addComponent(new SpriteRenderer(goSr.getColor()));
+                } else {
+                    Texture tex = goSr.getTexture();
+                    if (tex != null) {
+                        Sprite sprite = new Sprite(tex);
+                        created.addComponent(new SpriteRenderer(sprite));
+                    }
+                }
+            }
+            duplicates.add(created);
+        }
+        RightSidebar.selectedObjects.clear();
+        for (GameObject go : duplicates) {
+            addGameObjectToView(go);
+            RightSidebar.selectedObjects.add(go);
+        }
+        activeGameObject = duplicates.get(0);
+    }
+
+    private String generateDuplicateName(String originalName) {
+        String baseName = stripIndex(originalName);
+        int index = 1;
+
+        String name = baseName;
+        while (getObjectByName(name) != null) {
+            name = baseName + " (" + index + ")";
+            index++;
+        }
+        return name;
+    }
+    private String stripIndex(String name) {
+        return name.replaceAll("\\s*\\(\\d+\\)$", "");
+    }
+
+
 
     private void movement() {
         if (MouseListener.isDragging() && MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_2)) {

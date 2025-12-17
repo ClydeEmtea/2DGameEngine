@@ -15,9 +15,13 @@ public class RightSidebar {
 
     private static final List<Runnable> renderCallbacks = new ArrayList<>();
     public static List<GameObject> selectedObjects = new ArrayList<>();
-    private static final List<Group> selectedGroups = new ArrayList<>();
+    public static final List<Group> selectedGroups = new ArrayList<>();
     private static GameObject lastSelectedObject = null;
     private static Group lastSelectedGroup = null;
+
+    private static final String PAYLOAD_GAMEOBJECT = "DND_GAMEOBJECT";
+    private static final String PAYLOAD_GROUP = "DND_GROUP";
+
 
     private RightSidebar() {}
 
@@ -61,8 +65,10 @@ public class RightSidebar {
     }
 
     private static void drawGroup(Group group, View view, boolean isRoot) {
+
+
         String displayName = isRoot ? "Scene" : group.getName();
-        boolean groupSelected = selectedGroups.contains(group);
+        boolean groupSelected = !isRoot && selectedGroups.contains(group);
 
         // Zvýrazníme group pokud je vybraná
         int flags = ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.OpenOnArrow;
@@ -72,8 +78,67 @@ public class RightSidebar {
 
         boolean open = ImGui.treeNodeEx(String.valueOf(group), flags, displayName);
 
+        if (isRoot && ImGui.beginDragDropTarget()) {
+
+            Object payloadGO = ImGui.acceptDragDropPayload(PAYLOAD_GAMEOBJECT);
+            if (payloadGO instanceof GameObject go) {
+
+                Group old = view.findParentGroup(go);
+                if (old != null) old.remove(go);
+
+                view.getRoot().add(go);
+            }
+
+            Object payloadGroup = ImGui.acceptDragDropPayload(PAYLOAD_GROUP);
+            if (payloadGroup instanceof Group g) {
+                // group můžeš přesunout na root
+                Group old = view.findParentGroup(g);
+                if (old != null) old.removeGroup(g);
+
+                view.getRoot().addGroup(g);
+            }
+
+            ImGui.endDragDropTarget();
+        }
+
+        // Drag source – GROUP
+        if (!isRoot && ImGui.beginDragDropSource()) {
+            ImGui.setDragDropPayload(PAYLOAD_GROUP, group);
+            ImGui.text(group.getName());
+            ImGui.endDragDropSource();
+        }
+        // Drop target – GROUP
+        if (!isRoot && ImGui.beginDragDropTarget()) {
+
+            Object payloadGO = ImGui.acceptDragDropPayload(PAYLOAD_GAMEOBJECT);
+            if (payloadGO instanceof GameObject go) {
+
+                // Odeber GO ze staré group
+                Group old = view.findParentGroup(go);
+                if (old != null) old.remove(go);
+
+                group.add(go);
+            }
+
+            Object payloadGroup = ImGui.acceptDragDropPayload(PAYLOAD_GROUP);
+            if (payloadGroup instanceof Group draggedGroup) {
+
+                if (draggedGroup != group && !draggedGroup.containsGroupRecursive(group)) {
+
+                    Group oldParent = view.findParentGroup(draggedGroup);
+                    if (oldParent != null) oldParent.removeGroup(draggedGroup);
+
+                    group.addGroup(draggedGroup);
+                }
+            }
+
+            ImGui.endDragDropTarget();
+        }
+
+
+
         // Klik na group mimo expand arrow
-        if (ImGui.isItemClicked()) {
+        if (!isRoot && ImGui.isItemClicked()) {
             boolean shift = ImGui.getIO().getKeyShift();
             boolean ctrl = ImGui.getIO().getKeyCtrl();
 
@@ -164,6 +229,11 @@ public class RightSidebar {
                 } else {
                     view.setActiveGameObject(null);
                 }
+            }
+            if (ImGui.beginDragDropSource()) {
+                ImGui.setDragDropPayload(PAYLOAD_GAMEOBJECT, go);
+                ImGui.text(go.getName());
+                ImGui.endDragDropSource();
             }
 
         }
