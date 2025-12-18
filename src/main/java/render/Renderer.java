@@ -97,9 +97,64 @@ public class Renderer {
         glVertex2f(corner1.x, corner1.y);
     }
 
+    // ==================================================
+    // Add Box2D methods
+    // ==================================================
+    public static void addBox2D(Vector2f center, Vector2f dimensions, float rotation) {
+        // TODO: ADD CONSTANTS FOR COMMON COLORS
+        addBox2D(center, dimensions, rotation, new Vector4f(0, 1, 0, 1), 1);
+    }
+
+    public static void addBox2D(Vector2f center, Vector2f dimensions, float rotation, Vector4f color) {
+        addBox2D(center, dimensions, rotation, color, 1);
+    }
+
+    public static void addBox2D(Vector2f center, Vector2f dimensions, float rotation,
+                                Vector4f color, int lifetime) {
+        Vector2f min = new Vector2f(center).sub(new Vector2f(dimensions).mul(0.5f));
+        Vector2f max = new Vector2f(center).add(new Vector2f(dimensions).mul(0.5f));
+
+        Vector2f[] vertices = {
+                new Vector2f(min.x, min.y), new Vector2f(min.x, max.y),
+                new Vector2f(max.x, max.y), new Vector2f(max.x, min.y)
+        };
+
+        if (rotation != 0.0f) {
+            for (Vector2f vert : vertices) {
+                rotate(vert, rotation, center);
+            }
+        }
+
+        beginLines(color);
+
+        drawLine(vertices[0], vertices[1]);
+        drawLine(vertices[0], vertices[3]);
+        drawLine(vertices[1], vertices[2]);
+        drawLine(vertices[2], vertices[3]);
+
+        endLines();
+    }
+
+    public static void rotate(Vector2f vec, float angleDeg, Vector2f origin) {
+        float x = vec.x - origin.x;
+        float y = vec.y - origin.y;
+
+        float cos = (float)Math.cos((angleDeg));
+        float sin = (float)Math.sin((angleDeg));
+
+        float xPrime = (x * cos) - (y * sin);
+        float yPrime = (x * sin) + (y * cos);
+
+        xPrime += origin.x;
+        yPrime += origin.y;
+
+        vec.x = xPrime;
+        vec.y = yPrime;
+    }
+
     public void remove(GameObject go) {
         for (RenderBatch batch : renderBatches) {
-            batch.removeSprite(go.getComponent(SpriteRenderer.class));
+            batch.destroyIfExists(go);
         }
     }
 

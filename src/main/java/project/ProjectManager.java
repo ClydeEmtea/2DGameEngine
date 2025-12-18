@@ -247,7 +247,9 @@ public class ProjectManager {
             go.addComponent(new SpriteRenderer(new Vector4f(god.r, god.g, god.b, god.a)));
         } else if (god.texturePath != null) {
             Texture tex = AssetPool.getTexture(new File(god.texturePath).getName());
-            go.addComponent(new SpriteRenderer(new Sprite(tex)));
+            SpriteRenderer sr = new SpriteRenderer(new Sprite(tex));
+            sr.setColor(new Vector4f(god.r, god.g, god.b, god.a));
+            go.addComponent(sr);
         }
 
         // ShapeRenderer
@@ -366,12 +368,13 @@ public class ProjectManager {
             } else {
                 god.texturePath = null;
                 god.colorOnly = true;
+            }
                 Vector4f color = spriteRenderer.getColor();
                 god.r = color.x;
                 god.g = color.y;
                 god.b = color.z;
                 god.a = color.w;
-            }
+
         }
 
         god.scripts = new ArrayList<>();
@@ -438,8 +441,12 @@ import engine.*;
 import components.*;
 import render.*;
 import util.*;
+import physics2d.*;
+import physics2d.components.*;
 import java.util.*;
 import static org.lwjgl.glfw.GLFW.*;
+import org.joml.Vector2f;
+import org.jbox2d.common.Vec2;
 
 public class %s implements Script {
     // Environment - DO NOT EDIT

@@ -22,6 +22,8 @@ import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
+import static util.Constants.DEFAULT_FRAGMENT_SHADER;
+import static util.Constants.DEFAULT_VERTEX_SHADER;
 
 public class EditorView extends View {
 
@@ -46,7 +48,7 @@ public class EditorView extends View {
         loadResources();
         this.camera = new Camera(new Vector2f());
         this.physics2D = new Physics2D();
-        Grid.initialize(this);
+//        Grid.initialize(this);
         for (GameObject line : gridLines) {
             line.start();
             this.renderer.add(line);
@@ -73,7 +75,7 @@ public class EditorView extends View {
     }
 
     private void loadResources() {
-        AssetPool.getShader("vertexDefault.glsl", "fragmentDefault.glsl");
+        AssetPool.getShader(DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER);
 
     }
 
@@ -91,11 +93,12 @@ public class EditorView extends View {
             line.update(dt);
         }
 
+        this.renderer.render();
+
         for (GameObject go : this.gameObjects) {
             go.update(dt);
         }
 
-        this.renderer.render();
 
         if (showHitboxes) {
             renderHitboxes();
@@ -163,11 +166,42 @@ public class EditorView extends View {
                 } else {
                     Texture tex = goSr.getTexture();
                     if (tex != null) {
-                        Sprite sprite = new Sprite(tex);
-                        created.addComponent(new SpriteRenderer(sprite));
+                        SpriteRenderer createdSr = new SpriteRenderer(new Sprite(tex));
+                        createdSr.setColor(goSr.getColor());
+                        created.addComponent(createdSr);
                     }
                 }
             }
+
+            for (Component c : go.getAllComponents()) {
+                if (c instanceof ScriptComponent) {
+                    created.addComponent(c);
+                }
+            }
+
+            // RigidBody2D
+            RigidBody2D rb = go.getComponent(RigidBody2D.class);
+            if (rb != null) {
+                RigidBody2D newRb = new RigidBody2D();
+                // přenést další relevantní hodnoty jako velocity, acceleration atd.
+                newRb.setVelocity(rb.getVelocity());
+                newRb.setMass(rb.getMass());
+                newRb.setBodyType(rb.getBodyType());
+                newRb.setAngularDamping(rb.getAngularDamping());
+                newRb.setContinuousCollision(rb.isContinuousCollision());
+                newRb.setFixedRotation(rb.isFixedRotation());
+                newRb.setLinearDamping(rb.getLinearDamping());
+                created.addComponent(newRb);
+            }
+
+            // Box2DCollider
+            Box2DCollider bc = go.getComponent(Box2DCollider.class);
+            if (bc != null) {
+                Box2DCollider newBc = new Box2DCollider();
+                newBc.setHalfSize(bc.getHalfSize());
+                created.addComponent(newBc);
+            }
+
             duplicates.add(created);
         }
         RightSidebar.selectedObjects.clear();
@@ -196,12 +230,21 @@ public class EditorView extends View {
 
 
     private void movement() {
-        if (MouseListener.isDragging() && MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_2)) {
+        if (MouseListener.isDragging() &&
+                MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_2)) {
+
             Vector2f delta = MouseListener.getDelta();
-            float zoom = this.camera.getZoom();
-            delta.mul(1.0f / zoom);
-            this.camera.position.x += delta.x;
-            this.camera.position.y -= delta.y;
+
+            float unitsPerPixelX =
+                    camera.getProjectionSize().x * camera.getZoom()
+                            / Window.get().getWidth();
+
+            float unitsPerPixelY =
+                    camera.getProjectionSize().y * camera.getZoom()
+                            / Window.get().getHeight();
+
+            camera.position.x += delta.x * unitsPerPixelX;
+            camera.position.y -= delta.y * unitsPerPixelY;
         }
 
         if (MouseListener.getScrollY() != 0) {
@@ -211,21 +254,25 @@ public class EditorView extends View {
                 return;
             }
 
-            float oldZoom = this.camera.getZoom();
-            float newZoom = oldZoom + MouseListener.getScrollY() * 0.1f;
+            float zoomFactor = 1.1f;
+            float scroll = MouseListener.getScrollY();
 
-            newZoom = Math.max(0.1f, Math.min(newZoom, 10f));
+            Vector2f mouseWorldBefore =
+                    camera.screenToWorld(MouseListener.getX(), MouseListener.getY());
 
-            float cxBefore = camera.screenToWorld(Window.get().getWidth()/ 4f,Window.get().getHeight() / 4f).x;
-            float cyBefore = camera.screenToWorld(Window.get().getWidth()/ 4f, Window.get().getHeight() / 4f).y;
+            if (scroll > 0) {
+                camera.setZoom(camera.getZoom() / zoomFactor);
+            } else {
+                camera.setZoom(camera.getZoom() * zoomFactor);
+            }
 
-            camera.setZoom(newZoom);
+            Vector2f mouseWorldAfter =
+                    camera.screenToWorld(MouseListener.getX(), MouseListener.getY());
 
-            float cxAfter = camera.screenToWorld(Window.get().getWidth()/ 4f,Window.get().getHeight() / 4f).x;
-            float cyAfter = camera.screenToWorld(Window.get().getWidth()/ 4f, Window.get().getHeight() / 4f).y;
-
-            camera.position.x += (cxBefore - cxAfter);
-            camera.position.y += (cyBefore - cyAfter);
+            camera.position.add(
+                    mouseWorldBefore.x - mouseWorldAfter.x,
+                    mouseWorldBefore.y - mouseWorldAfter.y
+            );
         }
     }
 
@@ -376,8 +423,9 @@ public class EditorView extends View {
                         new Vector2f(-size.x/2, size.y/2)
                 };
 
-                float cx = pos.x + size.x * 0.5f;
-                float cy = pos.y + size.y * 0.5f;
+                float cx = pos.x;
+                float cy = pos.y;
+
                 float cos = (float)Math.cos(rotation);
                 float sin = (float)Math.sin(rotation);
 
@@ -505,8 +553,8 @@ public class EditorView extends View {
     }
 
     private void drawRotatedRect(Vector2f pos, Vector2f size, float rotation) {
-        float cx = pos.x + size.x * 0.5f;
-        float cy = pos.y + size.y * 0.5f;
+        float cx = pos.x;
+        float cy = pos.y;
 
         Vector2f[] corners = {
                 new Vector2f(-size.x/2, -size.y/2),
@@ -603,8 +651,8 @@ public class EditorView extends View {
             if (ImGui.menuItem("Add Box Collider")) {
                 if (activeGameObject.getComponent(Box2DCollider.class) == null && activeGameObject.getComponent(CircleCollider.class) == null) {
                     Box2DCollider collider = new Box2DCollider();
-                    collider.setHalfSize(new Vector2f(activeGameObject.transform.scale).mul(0.5f));
-                    collider.setOrigin(new float[] {collider.getHalfSize().x, collider.getHalfSize().y});
+                    collider.setHalfSize(new Vector2f(activeGameObject.transform.scale));
+//                    collider.setOrigin(new float[] {collider.getHalfSize().x, collider.getHalfSize().y});
                     activeGameObject.addComponent(collider);
                 }
             }
@@ -622,8 +670,8 @@ public class EditorView extends View {
     }
 
     private boolean pointInRotatedRect(Vector2f point, Vector2f pos, Vector2f size, float rotation) {
-        float cx = pos.x + size.x * 0.5f;
-        float cy = pos.y + size.y * 0.5f;
+        float cx = pos.x;
+        float cy = pos.y;
 
         Vector2f[] corners = {
                 new Vector2f(-size.x/2, -size.y/2),

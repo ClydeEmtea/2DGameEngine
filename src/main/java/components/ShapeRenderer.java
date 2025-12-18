@@ -34,19 +34,21 @@ public class ShapeRenderer extends Component {
             case TRIANGLE -> {
                 if (points.size() != 3) {
                     points.clear();
-                    points.add(new Vector2f(0, 0));
-                    points.add(new Vector2f(1, 0));
-                    points.add(new Vector2f(0.5f, 1));
+                    points.add(new Vector2f(-0.5f, -0.5f));
+                    points.add(new Vector2f( 0.5f, -0.5f));
+                    points.add(new Vector2f( 0.0f,  0.5f));
+
                 }
                 spriteRenderer.setCustomVertices(points.toArray(new Vector2f[0]));
             }
             case QUAD -> {
                 if (points.size() != 4) {
                     points.clear();
-                    points.add(new Vector2f(0, 0)); // 0
-                    points.add(new Vector2f(1, 0)); // 1
-                    points.add(new Vector2f(1, 1)); // 2
-                    points.add(new Vector2f(0, 1)); // 3
+                    points.add(new Vector2f(-0.5f, -0.5f));
+                    points.add(new Vector2f( 0.5f, -0.5f));
+                    points.add(new Vector2f( 0.5f,  0.5f));
+                    points.add(new Vector2f(-0.5f,  0.5f));
+
                 }
 
                 Vector2f[] quadVerts = new Vector2f[] {
@@ -87,55 +89,35 @@ public class ShapeRenderer extends Component {
     public boolean containsPoint(Vector2f worldPoint) {
         Transform t = gameObject.transform;
 
-        // transform all local points to world space
-        List<Vector2f> worldPoints = new ArrayList<>();
+        // world → local
+        Vector2f p = new Vector2f(worldPoint).sub(t.position);
 
-        for (Vector2f lp : points) {
-            // local (0..1) -> object space
-            float x = lp.x * t.scale.x;
-            float y = lp.y * t.scale.y;
+        float cos = (float) Math.cos(-t.rotation);
+        float sin = (float) Math.sin(-t.rotation);
 
-            // rotate around center
-            float cx = t.scale.x * 0.5f;
-            float cy = t.scale.y * 0.5f;
+        float lx = p.x * cos - p.y * sin;
+        float ly = p.x * sin + p.y * cos;
 
-            float dx = x - cx;
-            float dy = y - cy;
+        // scale
+        lx /= t.scale.x;
+        ly /= t.scale.y;
 
-            float cos = (float) Math.cos(t.rotation);
-            float sin = (float) Math.sin(t.rotation);
-
-            float rx = dx * cos - dy * sin;
-            float ry = dx * sin + dy * cos;
-
-            // back to world
-            worldPoints.add(new Vector2f(
-                    rx + cx + t.position.x,
-                    ry + cy + t.position.y
-            ));
-        }
-
-        if (shapeType == ShapeType.TRIANGLE) {
-            return pointInTriangle(
-                    worldPoint,
-                    worldPoints.get(0),
-                    worldPoints.get(1),
-                    worldPoints.get(2)
-            );
-        }
-
-        if (shapeType == ShapeType.QUAD) {
-            return pointInQuad(
-                    worldPoint,
-                    worldPoints.get(0),
-                    worldPoints.get(1),
-                    worldPoints.get(2),
-                    worldPoints.get(3)
-            );
-        }
-
-        return false;
+        return pointInPolygon(new Vector2f(lx, ly), points);
     }
+
+    private boolean pointInPolygon(Vector2f p, List<Vector2f> poly) {
+        boolean inside = false;
+        for (int i = 0, j = poly.size() - 1; i < poly.size(); j = i++) {
+            if ((poly.get(i).y > p.y) != (poly.get(j).y > p.y) &&
+                    p.x < (poly.get(j).x - poly.get(i).x) *
+                            (p.y - poly.get(i).y) /
+                            (poly.get(j).y - poly.get(i).y) + poly.get(i).x) {
+                inside = !inside;
+            }
+        }
+        return inside;
+    }
+
 
 
     public static boolean pointInTriangle(
@@ -242,9 +224,6 @@ public class ShapeRenderer extends Component {
         Transform t = gameObject.transform;
         List<Vector2f> world = new ArrayList<>();
 
-        float cx = t.scale.x * 0.5f;
-        float cy = t.scale.y * 0.5f;
-
         float cos = (float) Math.cos(t.rotation);
         float sin = (float) Math.sin(t.rotation);
 
@@ -252,20 +231,17 @@ public class ShapeRenderer extends Component {
             float x = lp.x * t.scale.x;
             float y = lp.y * t.scale.y;
 
-            float dx = x - cx;
-            float dy = y - cy;
-
-            float rx = dx * cos - dy * sin;
-            float ry = dx * sin + dy * cos;
+            float rx = x * cos - y * sin;
+            float ry = x * sin + y * cos;
 
             world.add(new Vector2f(
-                    rx + cx + t.position.x,
-                    ry + cy + t.position.y
+                    rx + t.position.x,
+                    ry + t.position.y
             ));
         }
-
         return world;
     }
+
 
 
 }

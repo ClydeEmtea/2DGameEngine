@@ -14,13 +14,13 @@ import physics2d.components.CircleCollider;
 import physics2d.components.RigidBody2D;
 
 public class Physics2D {
-    private Vec2 gravity = new Vec2(0, -10000);
+    private Vec2 gravity = new Vec2(0, -10.0f);
     private World world = new World(gravity);
 
     private float physicsTime = 0.0f;
     private float physicsTimeStep = 1.0f / 100.0f;
-    private int velocityIterations = 8;
-    private int positionIterations = 3;
+    private int velocityIterations = 16;
+    private int positionIterations = 6;
 
     public void add(GameObject go) {
         RigidBody2D rb = go.getComponent(RigidBody2D.class);
@@ -28,7 +28,7 @@ public class Physics2D {
             Transform transform = go.transform;
 
             BodyDef bodyDef = new BodyDef();
-            bodyDef.angle = (float) Math.toRadians(transform.rotation);
+            bodyDef.angle = transform.rotation;
             bodyDef.position.set(transform.position.x, transform.position.y);
             bodyDef.angularDamping = rb.getAngularDamping();
             bodyDef.linearDamping = rb.getLinearDamping();
@@ -48,12 +48,10 @@ public class Physics2D {
             if ((circleCollider = go.getComponent(CircleCollider.class)) != null) {
                 shape.setRadius(circleCollider.getRadius());
             } else if ((boxCollider = go.getComponent(Box2DCollider.class)) != null) {
-//                Vector2f halfSize = new Vector2f(boxCollider.getHalfSize().mul(0.5f));
-                Vector2f halfSize = new Vector2f(boxCollider.getHalfSize());
-                System.out.println("halfSize: " + halfSize);
+                Vector2f halfSize = new Vector2f(boxCollider.getHalfSize()).mul(0.5f);
                 Vector2f offset = boxCollider.getOffset();
                 Vector2f origin = new Vector2f(boxCollider.getOrigin());
-                shape.setAsBox(halfSize.x, halfSize.y, new Vec2(origin.x, origin.y), 0);
+                shape.setAsBox(halfSize.x, halfSize.y, new Vec2(offset.x, offset.y), 0);
 
                 Vec2 pos = bodyDef.position;
                 float xPos = pos.x + offset.x;
@@ -69,7 +67,7 @@ public class Physics2D {
 
     public void update(float dt) {
         physicsTime += dt;
-        if (physicsTime >= physicsTimeStep) {
+        if (physicsTime >= 0) {
             physicsTime -= physicsTimeStep;
             world.step(physicsTimeStep, velocityIterations, positionIterations);
         }

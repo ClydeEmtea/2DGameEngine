@@ -28,7 +28,7 @@ public class RigidBody2D extends Component {
             this.gameObject.transform.position.set(
                     rawBody.getPosition().x, rawBody.getPosition().y
             );
-            this.gameObject.transform.rotation = (float)Math.toDegrees(rawBody.getAngle());
+            this.gameObject.transform.rotation = rawBody.getAngle();
         }
     }
 

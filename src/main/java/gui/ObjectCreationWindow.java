@@ -22,6 +22,8 @@ import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 
+import static util.Constants.EDITOR_SCALE;
+
 public class ObjectCreationWindow {
 
     private static ImString name = new ImString("New Game Object", 128);
@@ -125,11 +127,13 @@ public class ObjectCreationWindow {
                 System.out.println("Loading texture: " + selectedFileName);
                 Texture tex = AssetPool.getTexture(selectedFileName); // -> assets/images/<name>
 
-                int width = tex.getWidth();
-                int height = tex.getHeight();
+                float ratio = (float) tex.getWidth() / (float) tex.getHeight();
+                float height = 0.5f;
+                float width = height * ratio;
+
 
                 go = new GameObject(finalName,
-                        new Transform(new Vector2f(400, 300), new Vector2f(width, height)), 0);
+                        new Transform(new Vector2f(3, 1), new Vector2f(width, height)), 0);
 
                 System.out.println("Creating object with sprite: " + selectedFileName +
                         " (" + width + "x" + height + ")");
@@ -139,7 +143,7 @@ public class ObjectCreationWindow {
 
             } else {
                 go = new GameObject(finalName,
-                        new Transform(new Vector2f(400, 300), new Vector2f(128, 128)), 0);
+                        new Transform(new Vector2f(3, 1), new Vector2f(0.5f, 0.5f)), 0);
 
                 go.addComponent(new SpriteRenderer(
                         new Vector4f(color[0], color[1], color[2], color[3])

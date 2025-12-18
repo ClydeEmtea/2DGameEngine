@@ -25,8 +25,10 @@ public interface Constants {
     int ROUNDNESS_OFFSET = TEX_ID_OFFSET + TEX_ID_SIZE * Float.BYTES;
 
     String SHADER_PATH = "assets/shaders/";
-    String DEFAULT_VERTEX_SHADER = SHADER_PATH + "vertexDefault.glsl";
-    String DEFAULT_FRAGMENT_SHADER = SHADER_PATH + "fragmentDefault.glsl";
+    String DEFAULT_VERTEX_SHADER = "vertexDefault.glsl";
+    String DEFAULT_FRAGMENT_SHADER = "fragmentDefault.glsl";
+
+    final float EDITOR_SCALE = 100.0f;
 
     String TEXTURE_PATH = "assets/images/";
 

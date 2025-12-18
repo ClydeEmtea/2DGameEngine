@@ -17,6 +17,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import static util.Constants.EDITOR_SCALE;
+
 public class GameObject {
 
     private String name;
@@ -157,38 +159,41 @@ public class GameObject {
         }
 
         ImGui.endGroup();
-        float[] pos = { transform.position.x, transform.position.y };
+        float[] pos = {
+                transform.position.x * EDITOR_SCALE,
+                transform.position.y * EDITOR_SCALE
+        };
 
-        if (ImGui.dragFloat2("Position", pos, 0.5f)) {
-            transform.position.x = pos[0];
-            transform.position.y = pos[1];
+        if (ImGui.dragFloat2("Position", pos, 1.0f)) {
+            transform.position.x = pos[0] / EDITOR_SCALE;
+            transform.position.y = pos[1] / EDITOR_SCALE;
         }
 
-        float[] scale = { transform.scale.x, transform.scale.y };
-        if (ImGui.dragFloat2("Scale", scale, 0.5f)) {
+        // =========================
+        // SCALE (editor units)
+        // =========================
+        float[] scale = {
+                transform.scale.x * EDITOR_SCALE,
+                transform.scale.y * EDITOR_SCALE
+        };
 
-            Vector2f oldCenter = new Vector2f(
-                    transform.position.x + transform.scale.x * 0.5f,
-                    transform.position.y + transform.scale.y * 0.5f
-            );
+        if (ImGui.dragFloat2("Scale", scale, 1.0f)) {
 
             boolean keepAspect = ImGui.getIO().getKeyCtrl();
 
             if (keepAspect) {
                 float ratio = transform.scale.x / transform.scale.y;
-                if (Math.abs(scale[0] - transform.scale.x) > Math.abs(scale[1] - transform.scale.y)) {
+                if (Math.abs(scale[0] - transform.scale.x * EDITOR_SCALE)
+                        > Math.abs(scale[1] - transform.scale.y * EDITOR_SCALE)) {
                     scale[1] = scale[0] / ratio;
                 } else {
                     scale[0] = scale[1] * ratio;
                 }
             }
 
-            transform.scale.x = scale[0];
-            transform.scale.y = scale[1];
+            transform.scale.x = scale[0] / EDITOR_SCALE;
+            transform.scale.y = scale[1] / EDITOR_SCALE;
 
-            // zachování středu
-            transform.position.x = oldCenter.x - transform.scale.x * 0.5f;
-            transform.position.y = oldCenter.y - transform.scale.y * 0.5f;
         }
 
 
@@ -218,18 +223,16 @@ public class GameObject {
         ImGui.dummy(0,20);
 
 
-        Component c = this.components.get(0);
-        if (c instanceof SpriteRenderer sr && sr.isColorOnly()) {
-            float[] color = {
-                    sr.getColor().x,
-                    sr.getColor().y,
-                    sr.getColor().z,
-                    sr.getColor().w
-            };
+        SpriteRenderer sr = getComponent(SpriteRenderer.class);
+        float[] color = {
+                sr.getColor().x,
+                sr.getColor().y,
+                sr.getColor().z,
+                sr.getColor().w
+        };
 
-            if (ImGui.colorEdit4("Color", color)) {
-                sr.setColor(new Vector4f(color[0], color[1], color[2], color[3]));
-            }
+        if (ImGui.colorEdit4("Color", color)) {
+            sr.setColor(new Vector4f(color[0], color[1], color[2], color[3]));
         }
 
         int[] zIndexArr = { zIndex };
@@ -294,47 +297,59 @@ public class GameObject {
 
         ImGui.separator();
 
-        for (Component component : getAllComponents()) {
+        List<Component> componentsSnapshot = new ArrayList<>(getAllComponents());
+
+        for (Component component : componentsSnapshot) {
             if (component instanceof SpriteRenderer) {
                 ImGui.dummy(0, 10);
                 component.imgui();
             }
         }
 
-        for (Component component : getAllComponents()) {
+        for (Component component : componentsSnapshot) {
             if (component instanceof ScriptComponent) {
                 ImGui.dummy(0, 10);
                 component.imgui();
             }
         }
 
-        for (Component component : getAllComponents()) {
+        for (Component component : componentsSnapshot) {
             if (component instanceof RigidBody2D) {
                 ImGui.dummy(0, 10);
                 component.imgui();
+                                if (ImGui.button("Remove rigid body")) {
+                    this.removeComponent(component);
+                }
             }
         }
 
-        for (Component component : getAllComponents()) {
+        for (Component component : componentsSnapshot) {
             if (component instanceof Box2DCollider) {
                 ImGui.dummy(0, 10);
                 component.imgui();
+                if (ImGui.button("Remove box collider")) {
+                    this.removeComponent(component);
+                }
             }
         }
 
-        for (Component component : getAllComponents()) {
+        for (Component component : componentsSnapshot) {
             if (component instanceof CircleCollider) {
                 ImGui.dummy(0, 10);
                 component.imgui();
+                if (ImGui.button("Remove circle collider")) {
+                    this.removeComponent(component);
+                }
             }
         }
 
-        for (Component component : getAllComponents()) {
+        for (Component component : componentsSnapshot) {
             if (component instanceof ShapeRenderer) {
                 ImGui.dummy(0, 10);
                 component.imgui();
             }
         }
+
 
 
 

@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_TAB;
+import static util.Constants.DEFAULT_FRAGMENT_SHADER;
+import static util.Constants.DEFAULT_VERTEX_SHADER;
 
 public class GameView extends View {
 
@@ -38,7 +40,7 @@ public class GameView extends View {
     }
 
     private void loadResources() {
-        AssetPool.getShader("vertexDefault.glsl", "fragmentDefault.glsl");
+        AssetPool.getShader(DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER);
 
     }
 
@@ -57,7 +59,12 @@ public class GameView extends View {
             }
         }
 
-        this.physics2D.update(dt);
+
+        try {
+            this.physics2D.update(dt);
+        } catch (Exception e) {
+            assert false : "Physics update failed";
+        }
 
         this.renderer.render();
 

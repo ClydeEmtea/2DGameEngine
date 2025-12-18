@@ -34,7 +34,7 @@ public class RenderBatch implements Comparable<RenderBatch> {
 
     public RenderBatch(int maxBatchSize, int zIndex, Renderer renderer) {
         this.zIndex = zIndex;
-        shader = AssetPool.getShader("vertexDefault.glsl", "fragmentDefault.glsl");
+        shader = AssetPool.getShader(DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER);
         this.maxBatchSize = maxBatchSize;
         this.sprites = new SpriteRenderer[maxBatchSize];
         this.vertexArray = new float[maxBatchSize * MAX_VERTS_PER_SPRITE * VERTEX_SIZE];
@@ -141,12 +141,13 @@ public class RenderBatch implements Comparable<RenderBatch> {
         Vector2f[] verts = sprite.getCustomVertices();
         if (verts == null || verts.length == 0) {
             verts = new Vector2f[]{
-                    new Vector2f(0, 0),
-                    new Vector2f(1, 0),
-                    new Vector2f(1, 1),
-                    new Vector2f(0, 1)
+                    new Vector2f(-0.5f, -0.5f),
+                    new Vector2f( 0.5f, -0.5f),
+                    new Vector2f( 0.5f,  0.5f),
+                    new Vector2f(-0.5f,  0.5f)
             };
         }
+
 
         int offset = 0;
         for (int i = 0; i < index; i++) {
@@ -188,8 +189,8 @@ public class RenderBatch implements Comparable<RenderBatch> {
         }
 
 
-        float cx = t.position.x + t.scale.x * 0.5f;
-        float cy = t.position.y + t.scale.y * 0.5f;
+        float cx = t.position.x;
+        float cy = t.position.y;
         float cos = (float) Math.cos(t.rotation);
         float sin = (float) Math.sin(t.rotation);
 
@@ -197,13 +198,12 @@ public class RenderBatch implements Comparable<RenderBatch> {
             float localX = verts[i].x * t.scale.x;
             float localY = verts[i].y * t.scale.y;
 
-            float dx = localX - t.scale.x * 0.5f;
-            float dy = localY - t.scale.y * 0.5f;
 
-            float rx = dx * cos - dy * sin;
-            float ry = dx * sin + dy * cos;
+            // rotace kolem středu (0,0)
+            float rx = localX * cos - localY * sin;
+            float ry = localX * sin + localY * cos;
 
-            vertexArray[offset] = rx + cx;
+            vertexArray[offset]     = rx + cx;
             vertexArray[offset + 1] = ry + cy;
             vertexArray[offset + 2] = color.x;
             vertexArray[offset + 3] = color.y;
@@ -216,6 +216,7 @@ public class RenderBatch implements Comparable<RenderBatch> {
 
             offset += VERTEX_SIZE;
         }
+
     }
 
 

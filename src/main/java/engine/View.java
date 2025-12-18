@@ -116,7 +116,7 @@ public class View {
         }
 
         // Vytvoření transformace
-        Transform transform = new Transform(new Vector2f(0, 0), new Vector2f(10, 10), 50);
+        Transform transform = new Transform(new Vector2f(0, 0), new Vector2f(0.1f, 0.1f), 0);
 
         // Vytvoření GameObjectu
         GameObject go = new GameObject(name, transform, 50);
