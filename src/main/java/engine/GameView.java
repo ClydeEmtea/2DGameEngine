@@ -24,9 +24,14 @@ public class GameView extends View {
         loadResources();
         this.camera = new Camera(new Vector2f());
         this.physics2D = new Physics2D();
-        List<GameObject> sceneObjects = ProjectManager.get().loadSceneObjects("MainScene");
-        if (sceneObjects != null) {
-            for (GameObject go : sceneObjects) {
+        List<GameObject> viewObjects;
+        if (currentScene != null) {
+            viewObjects = ProjectManager.get().loadSceneObjects(currentScene.getName());
+        } else {
+            viewObjects = ProjectManager.get().loadSceneObjects("MainScene");
+        }
+        if (viewObjects != null) {
+            for (GameObject go : viewObjects) {
                 this.addGameObjectToView(go);
             }
         }

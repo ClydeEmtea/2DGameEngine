@@ -7,6 +7,7 @@ import imgui.flag.ImGuiTreeNodeFlags;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import physics2d.Physics2D;
+import project.ProjectManager;
 import render.Renderer;
 
 import java.util.ArrayList;
@@ -27,6 +28,9 @@ public class View {
     protected Group activeGroup = null;
     protected Physics2D physics2D;
 
+    public List<Scene> scenes = new ArrayList<>();
+    public Scene currentScene = null;
+
     public View() {
 
     }
@@ -35,6 +39,7 @@ public class View {
 
     }
     public void start() {
+
         for (GameObject gameObject : gameObjects) {
             gameObject.start();
             this.renderer.add(gameObject);
@@ -167,8 +172,6 @@ public class View {
     public Group getActiveGroup() {
         return activeGroup;
     }
-
-    public List<GameObject> getGridLines() {return null;}
 
     public void setActiveGameObject(GameObject activeGameObject) {
         this.activeGroup = null;

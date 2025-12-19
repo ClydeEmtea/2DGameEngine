@@ -28,7 +28,6 @@ import static util.Constants.DEFAULT_VERTEX_SHADER;
 public class EditorView extends View {
 
     public boolean showCreationWindow = false;
-    protected List<GameObject> gridLines = new ArrayList<>();
 
     private boolean dragging = false;
     private Vector2f dragOffset = new Vector2f();
@@ -48,12 +47,18 @@ public class EditorView extends View {
         loadResources();
         this.camera = new Camera(new Vector2f());
         this.physics2D = new Physics2D();
-//        Grid.initialize(this);
-        for (GameObject line : gridLines) {
-            line.start();
-            this.renderer.add(line);
+        this.gameObjects = new ArrayList<>();
+        this.renderer = new Renderer();
+        this.activeGameObject = null;
+        this.activeGroup = null;
+
+        List<GameObject> viewObjects;
+        if (currentScene != null) {
+            viewObjects = ProjectManager.get().loadSceneObjects(currentScene.getName());
+            System.out.println("aosdhfiuahgashfoshfhsaf" + currentScene.getName());
+        } else {
+            viewObjects = ProjectManager.get().loadSceneObjects("MainScene");
         }
-        List<GameObject> viewObjects = ProjectManager.get().loadSceneObjects("MainScene");
         if (viewObjects != null) {
             for (GameObject go : viewObjects) {
                 this.addGameObjectToView(go);
@@ -89,9 +94,7 @@ public class EditorView extends View {
         }
 
         Grid.render(this);
-        for (GameObject line : gridLines) {
-            line.update(dt);
-        }
+
 
         this.renderer.render();
 
@@ -585,28 +588,7 @@ public class EditorView extends View {
     }
 
 
-    @Override
-    public void addLine(GameObject line) {
-         gridLines.add(line);
-         line.start();
-         this.renderer.add(line);
-    }
 
-    public void removeLine(GameObject line) {
-        gridLines.remove(line);
-        this.renderer = new Renderer(); // TODO: Optimize this
-        for (GameObject go : gameObjects) {
-            this.renderer.add(go);
-        }
-        for (GameObject go : gridLines) {
-            this.renderer.add(go);
-        }
-    }
-
-    @Override
-    public List<GameObject> getGridLines() {
-        return this.gridLines;
-    }
 
     @Override
     public void imgui(float dt) {

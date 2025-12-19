@@ -48,6 +48,8 @@ public class Window implements Observer {
     }
 
     public static void setCurrentView(int scene) {
+        Scene curScene = null;
+        if (currentView != null && currentView.currentScene != null) curScene = currentView.currentScene;
         switch (scene) {
             case 0 -> {
                 EventSystem.notify(null, new Event(EventType.StopPlay));
@@ -63,8 +65,41 @@ public class Window implements Observer {
             }
             default -> throw new IllegalArgumentException("Invalid scene index: " + scene);
         }
+        for (String name : ProjectManager.get().getScenes()) {
+            Scene s = new Scene(name);
+            if (curScene != null && s.getName().equals(curScene.getName())) {
+                currentView.currentScene = s;
+                System.out.println("i just did that");
+            }
+            if (curScene == null && s.getName().equals("MainScene")) {
+                currentView.currentScene = s;
+                System.out.println("i just did that");
+            }
+            currentView.scenes.add(s);
+        }
         currentView.init();
         currentView.start();
+    }
+
+    public static void setScene(Scene scene) {
+        if (currentView.currentScene.getName().equals(scene.getName())) return;
+        ProjectManager.get().saveProject();
+        if (currentView.isGame) currentView = new GameView();
+        else currentView = new EditorView();
+        for (String name : ProjectManager.get().getScenes()) {
+            Scene s = new Scene(name);
+            currentView.scenes.add(s);
+        }
+        currentView.currentScene = scene;
+        currentView.init();
+        currentView.start();
+    }
+
+    public static Scene createNewScene(String name) {
+        Scene s = new Scene(name);
+        currentView.scenes.add(s);
+        setScene(s);
+        return s;
     }
 
     public static Window get() {

@@ -1,5 +1,6 @@
 package gui;
 
+import engine.Scene;
 import engine.Sound;
 import engine.View;
 import engine.Window;
@@ -9,6 +10,7 @@ import imgui.flag.*;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 import imgui.type.ImBoolean;
+import imgui.type.ImString;
 import org.lwjgl.glfw.GLFWDropCallback;
 import project.ProjectManager;
 import render.Texture;
@@ -128,6 +130,8 @@ public class ImGuiLayer {
 
         if (bottomSidebarOpen) {
             ImGui.begin("Asset Pool");
+
+            drawSceneTabs();
 
             ImGui.columns(2, "asset_browser",true);
             ImGui.setColumnWidth(0, 200);
@@ -291,6 +295,52 @@ public class ImGuiLayer {
         imGuiGl3.renderDrawData(ImGui.getDrawData());
     }
 
+    private final ImString newSceneName = new ImString(64);
+
+    private void drawSceneTabs() {
+        if (!ImGui.beginTabBar("ScenesTabBar", ImGuiTabBarFlags.Reorderable)) return;
+
+        View view = Window.getView();
+
+        for (Scene scene : view.scenes) {
+            boolean open = ImGui.beginTabItem(scene.getName());
+            if (open) {
+                if (!view.currentScene.getName().equals(scene.getName())) {
+                    Window.setScene(scene);
+                }
+                ImGui.endTabItem();
+            }
+        }
+
+        if (ImGui.tabItemButton("+", ImGuiTabItemFlags.Trailing)) {
+            ImGui.openPopup("CreateScenePopup");
+        }
+
+        if (ImGui.beginPopupModal("CreateScenePopup", ImGuiWindowFlags.AlwaysAutoResize)) {
+            ImGui.inputText("Scene name", newSceneName);
+
+            if (ImGui.button("Create")) {
+                if (!newSceneName.get().isBlank()) {
+                    Window.createNewScene(newSceneName.get());
+                    newSceneName.set("");
+                    ImGui.closeCurrentPopup();
+                }
+            }
+
+            ImGui.sameLine();
+            if (ImGui.button("Cancel")) {
+                newSceneName.set("");
+                ImGui.closeCurrentPopup();
+            }
+
+            ImGui.endPopup();
+        }
+
+        ImGui.endTabBar();
+    }
+
+
+
     public void destroy() {
         imGuiGl3.dispose();
         imGuiGlfw.dispose();
@@ -304,8 +354,8 @@ public class ImGuiLayer {
         ImGui.getStyle().setColor(ImGuiCol.TitleBgActive, GUI_TITLE_BG[0], GUI_TITLE_BG[1], GUI_TITLE_BG[2], GUI_TITLE_BG[3]);
         int[] keys = new int[]{
                 ImGuiCol.Button, ImGuiCol.FrameBg, ImGuiCol.SliderGrab, ImGuiCol.ResizeGrip, ImGuiCol.Tab,
-                ImGuiCol.Border, ImGuiCol.TabActive,
-                ImGuiCol.TabUnfocused, ImGuiCol.TabUnfocusedActive, ImGuiCol.ScrollbarBg, ImGuiCol.ScrollbarGrabHovered,
+                ImGuiCol.Border,
+                ImGuiCol.TabUnfocused, ImGuiCol.ScrollbarBg, ImGuiCol.ScrollbarGrabHovered,
                 ImGuiCol.ScrollbarGrabActive, ImGuiCol.ResizeGripActive, ImGuiCol.CheckMark, ImGuiCol.BorderShadow,
                 ImGuiCol.Separator, ImGuiCol.SeparatorHovered, ImGuiCol.SeparatorActive,
 
@@ -317,7 +367,7 @@ public class ImGuiLayer {
         int[] hoverKeys = new int[]{
                 ImGuiCol.ButtonHovered, ImGuiCol.FrameBgHovered, ImGuiCol.SliderGrabActive,
                 ImGuiCol.ResizeGripHovered, ImGuiCol.TabHovered, ImGuiCol.ScrollbarGrabActive,
-                ImGuiCol.ScrollbarGrab,
+                ImGuiCol.ScrollbarGrab,ImGuiCol.TabUnfocusedActive, ImGuiCol.TabActive,
 
                 // New: section hovers
                 ImGuiCol.HeaderHovered,

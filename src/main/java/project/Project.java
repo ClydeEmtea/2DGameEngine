@@ -54,7 +54,7 @@ public class Project {
         return projectPath.resolve("project.json");
     }
 
-    public List<View> getScenes() {
+    public List<View> getViews() {
         return views;
     }
 

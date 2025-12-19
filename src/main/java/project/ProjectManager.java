@@ -95,6 +95,71 @@ public class ProjectManager {
         // Implement project creation with default scenes logic here
     }
 
+    public void createNewScene(String name) {
+        if (currentProject == null) return;
+
+        Path sceneFile = scenesDir().resolve(name + ".json");
+
+        try {
+            if (!Files.exists(sceneFile)) {
+                Files.createFile(sceneFile);
+            }
+
+            ProjectConfig cfg;
+            if (Files.exists(config())) {
+                String json = Files.readString(config());
+                cfg = gson.fromJson(json, ProjectConfig.class);
+            } else {
+                cfg = new ProjectConfig();
+                cfg.projectName = currentProject.getName();
+                cfg.projectPath = currentProject.getProjectPath().toString();
+                cfg.scenes = new ArrayList<>();
+            }
+
+            if (cfg.scenes == null) {
+                cfg.scenes = new ArrayList<>();
+            } else {
+                cfg.scenes = new ArrayList<>(cfg.scenes);
+            }
+
+            if (!cfg.scenes.contains(name)) {
+                cfg.scenes.add(name);
+            }
+
+            Files.writeString(config(), gson.toJson(cfg));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public List<String> getScenes() {
+        if (currentProject == null) {
+            return List.of();
+        }
+
+        try {
+            if (!Files.exists(config())) {
+                return List.of();
+            }
+
+            String json = Files.readString(config());
+            ProjectConfig cfg = gson.fromJson(json, ProjectConfig.class);
+
+            if (cfg == null || cfg.scenes == null) {
+                return List.of();
+            }
+
+            return cfg.scenes;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return List.of();
+        }
+    }
+
+
     public void openProject(String path) {
         try {
             String json = Files.readString(Path.of(path));
@@ -198,6 +263,7 @@ public class ProjectManager {
         if (currentProject == null) return null;
 
         Path file = scenesDir().resolve(scene + ".json");
+        System.out.println("Loading scene " + file.toAbsolutePath());
         if (!Files.exists(file)) return null;
         Group root = Window.getView().getRoot();
 
@@ -318,13 +384,12 @@ public class ProjectManager {
         return group;
     }
 
-
-    public void saveProject() {
+    public void saveScene(String scene) {
         if (currentProject == null) {
             return;
         }
 
-        Path file = scenesDir().resolve("MainScene.json");
+        Path file = scenesDir().resolve(scene + ".json");
         View view = Window.getView();
         Group root = view.getRoot();
 
@@ -369,11 +434,11 @@ public class ProjectManager {
                 god.texturePath = null;
                 god.colorOnly = true;
             }
-                Vector4f color = spriteRenderer.getColor();
-                god.r = color.x;
-                god.g = color.y;
-                god.b = color.z;
-                god.a = color.w;
+            Vector4f color = spriteRenderer.getColor();
+            god.r = color.x;
+            god.g = color.y;
+            god.b = color.z;
+            god.a = color.w;
 
         }
 
@@ -414,6 +479,11 @@ public class ProjectManager {
         }
 
         return god;
+    }
+
+
+    public void saveProject() {
+        saveScene(Window.getView().currentScene.getName());
     }
 
     private GroupData groupToData(Group g) {
