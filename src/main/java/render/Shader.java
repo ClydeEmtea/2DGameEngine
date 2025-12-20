@@ -1,5 +1,9 @@
 package render;
 
+import engine.Window;
+import observers.Event;
+import observers.EventSystem;
+import observers.EventType;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
 import org.lwjgl.BufferUtils;
@@ -31,6 +35,8 @@ public class Shader {
             vertexSource = new String(Files.readAllBytes(Paths.get(fileVertex)));
             fragmentSource = new String(Files.readAllBytes(Paths.get(fileFragment)));
         } catch (IOException e) {
+            Window.addError(e.getMessage());
+            EventSystem.notify(null, new Event(EventType.ErrorEvent));
             e.printStackTrace();
             assert false : "Error: Could not read shader file";
         }

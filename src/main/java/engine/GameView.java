@@ -1,5 +1,8 @@
 package engine;
 
+import observers.Event;
+import observers.EventSystem;
+import observers.EventType;
 import org.joml.Vector2f;
 import physics2d.Physics2D;
 import project.ProjectManager;
@@ -58,6 +61,8 @@ public class GameView extends View {
                 try {
                     c.updateScript(dt);
                 } catch (Exception e) {
+                    Window.addError(e.getMessage());
+                    EventSystem.notify(null, new Event(EventType.ErrorEvent));
                     System.err.println("Script error in " + c.getClass() + ": " + e);
                     e.printStackTrace();
                 }
@@ -68,6 +73,8 @@ public class GameView extends View {
         try {
             this.physics2D.update(dt);
         } catch (Exception e) {
+            Window.addError(e.getMessage());
+            EventSystem.notify(null, new Event(EventType.ErrorEvent));
             assert false : "Physics update failed";
         }
 

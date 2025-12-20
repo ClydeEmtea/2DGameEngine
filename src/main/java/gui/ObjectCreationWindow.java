@@ -6,9 +6,13 @@ import components.SpriteRenderer;
 import engine.GameObject;
 import engine.Transform;
 import engine.View;
+import engine.Window;
 import imgui.ImGui;
 import imgui.flag.ImGuiInputTextFlags;
 import imgui.type.ImString;
+import observers.Event;
+import observers.EventSystem;
+import observers.EventType;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import project.ProjectManager;
@@ -84,6 +88,8 @@ public class ObjectCreationWindow {
                             );
                         } catch (IOException e) {
                             e.printStackTrace();
+                            Window.addError(e.getMessage());
+                            EventSystem.notify(null, new Event(EventType.ErrorEvent));
                         }
 
                         // !!! Ukládáme pouze název souboru, NE celou cestu

@@ -1,36 +1,66 @@
 package scripts;
 
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
+import engine.Window;
+import observers.Event;
+import observers.EventSystem;
+import observers.EventType;
+
+import javax.tools.*;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 public class ScriptCompiler {
 
-    /**
-     * Pokusí se zkompilovat java soubor.
-     * @param javaFile cesta ke skriptu
-     * @return true pokud kompilace proběhla v pořádku, false pokud nastala chyba
-     */
     public static boolean compile(Path javaFile) {
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) {
-            System.err.println("No Java compiler found. Are you running a JRE instead of a JDK?");
+            Window.addError("No Java compiler found (JDK required)");
+            EventSystem.notify(null, new Event(EventType.ErrorEvent));
             return false;
         }
 
-        int result = compiler.run(
-                null, // System.in
-                System.out, // System.out - výstup kompilátoru
-                System.err, // System.err - chyby kompilátoru
-                javaFile.toAbsolutePath().toString()
+        DiagnosticCollector<JavaFileObject> diagnostics =
+                new DiagnosticCollector<>();
+
+        StandardJavaFileManager fileManager =
+                compiler.getStandardFileManager(diagnostics, null, null);
+
+        Iterable<? extends JavaFileObject> compilationUnits =
+                fileManager.getJavaFileObjectsFromFiles(
+                        Arrays.asList(javaFile.toFile())
+                );
+
+        JavaCompiler.CompilationTask task = compiler.getTask(
+                null,
+                fileManager,
+                diagnostics,
+                null,
+                null,
+                compilationUnits
         );
 
-        if (result != 0) {
-            System.err.println("Script compilation failed: " + javaFile.getFileName());
-            return false;
+        boolean success = task.call();
+
+        if (!success) {
+            for (Diagnostic<? extends JavaFileObject> d : diagnostics.getDiagnostics()) {
+
+                String msg =
+                        d.getSource().getName() +
+                                ":" + d.getLineNumber() +
+                                ": " + d.getKind() +
+                                ": " + d.getMessage(null);
+
+                Window.addError(msg);
+            }
+
+            EventSystem.notify(null, new Event(EventType.ErrorEvent));
         }
 
-        return true;
+        try {
+            fileManager.close();
+        } catch (Exception ignored) {}
+
+        return success;
     }
 }

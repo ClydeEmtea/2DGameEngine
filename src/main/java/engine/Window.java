@@ -15,6 +15,8 @@ import org.lwjgl.opengl.GL;
 import project.ProjectManager;
 import util.Constants;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
@@ -37,6 +39,8 @@ public class Window implements Observer {
 
     private long audioContext;
     private long audioDevice;
+
+    private static List<String> errors = new ArrayList<>();
 
     private Window() {
         this.width = Constants.WIDTH;
@@ -112,6 +116,18 @@ public class Window implements Observer {
     public static View getView() {
         get();
         return currentView;
+    }
+
+    public static List<String> getErrors() {
+        return errors;
+    }
+
+    public static void addError(String error) {
+        errors.add(error);
+    }
+
+    public static void clearErrors() {
+        errors = new ArrayList<>();
     }
 
     public long getGlfwWindow() {

@@ -4,6 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import components.*;
 import engine.*;
+import observers.Event;
+import observers.EventSystem;
+import observers.EventType;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import physics2d.components.Box2DCollider;
@@ -443,9 +446,10 @@ public class ProjectManager {
         }
 
         god.scripts = new ArrayList<>();
-        ScriptComponent sc = go.getComponent(ScriptComponent.class);
-        if (sc != null) {
-            god.scripts.add(sc.getClassName());
+        for (Component c : go.getAllScripts()) {
+            if (c instanceof ScriptComponent sc) {
+                god.scripts.add(sc.getClassName());
+            }
         }
 
         ShapeRenderer shapeRenderer = go.getComponent(ShapeRenderer.class);
@@ -579,8 +583,11 @@ public class %s implements Script {
             Files.writeString(scriptPath, content);
             return scriptPath;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            Window.addError(e.getMessage());
+            EventSystem.notify(null, new Event(EventType.ErrorEvent));
+            assert false : e.getMessage();
         }
+        return null;
     }
 
     public Path getScriptPath(String scriptName) {

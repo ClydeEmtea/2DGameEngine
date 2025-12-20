@@ -1,6 +1,9 @@
 package engine;
 
 import javazoom.jl.decoder.*;
+import observers.Event;
+import observers.EventSystem;
+import observers.EventType;
 import org.lwjgl.system.MemoryUtil;
 
 import javax.sound.sampled.*;
@@ -103,8 +106,11 @@ public class Sound {
             return new AudioData(buffer, format, (int) decoded.getSampleRate());
 
         } catch (Exception e) {
-            throw new RuntimeException("Failed to decode audio: " + path, e);
+            Window.addError(e.getMessage());
+            EventSystem.notify(null, new Event(EventType.ErrorEvent));
+            assert false : e.getMessage();
         }
+        return null;
     }
 
     // ======================================================
@@ -145,8 +151,11 @@ public class Sound {
             return new AudioData(buffer, format, sampleRate);
 
         } catch (Exception e) {
-            throw new RuntimeException("Failed to decode MP3: " + path, e);
+            Window.addError(e.getMessage());
+            EventSystem.notify(null, new Event(EventType.ErrorEvent));
+            assert false : e.getMessage();
         }
+        return null;
     }
 
     // ======================================================

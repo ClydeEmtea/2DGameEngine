@@ -46,15 +46,15 @@ public class AssetPool {
 
     public static void addSpritesheet(String name, Spritesheet spritesheet) {
 
-        if (spriteSheets.containsKey(name)) {
+        if (AssetPool.spriteSheets.containsKey(name)) {
             assert false: "Spritesheet with name " + name + " already exists.";
         }
-        spriteSheets.put(name, spritesheet);
+        AssetPool.spriteSheets.put(name, spritesheet);
     }
 
     public static Spritesheet getSpritesheet(String name) {
-        if (spriteSheets.containsKey(name)) {
-            return spriteSheets.get(name);
+        if (AssetPool.spriteSheets.containsKey(name)) {
+            return AssetPool.spriteSheets.get(name);
         } else {
             assert false : "Spritesheet with name " + name + " does not exist.";
         }

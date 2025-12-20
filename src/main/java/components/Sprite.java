@@ -31,4 +31,8 @@ public class Sprite {
     public Vector2f[] getTexCoords() {
         return this.texCoords;
     }
+
+    public void setTexCoords(Vector2f[] coords) {
+        this.texCoords = coords;
+    }
 }

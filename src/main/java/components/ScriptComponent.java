@@ -5,6 +5,9 @@ import engine.KeyListener;
 import engine.MouseListener;
 import engine.Window;
 import imgui.ImGui;
+import observers.Event;
+import observers.EventSystem;
+import observers.EventType;
 import project.ProjectManager;
 import scripts.Script;
 import scripts.ScriptCompiler;
@@ -48,6 +51,8 @@ public class ScriptComponent extends Component {
                         }
                         key.reset();
                     } catch (InterruptedException e) {
+                        Window.addError(e.getMessage());
+                        EventSystem.notify(null, new Event(EventType.ErrorEvent));
                         return;
                     }
                 }
@@ -56,6 +61,8 @@ public class ScriptComponent extends Component {
             watcherThread.start();
 
         } catch (Exception e) {
+            Window.addError(e.getMessage());
+            EventSystem.notify(null, new Event(EventType.ErrorEvent));
             e.printStackTrace();
         }
     }
@@ -114,6 +121,8 @@ public class ScriptComponent extends Component {
         try {
             scriptInstance.update(dt);
         } catch (Exception e) {
+            Window.addError(e.getMessage());
+            EventSystem.notify(null, new Event(EventType.ErrorEvent));
             System.err.println("Error during script update: " + className);
             e.printStackTrace();
         }
@@ -128,6 +137,8 @@ public class ScriptComponent extends Component {
                     className
             );
         } catch (Exception e) {
+            Window.addError(e.getMessage());
+            EventSystem.notify(null, new Event(EventType.ErrorEvent));
             assert false : "ahoj";
         }
 
@@ -141,6 +152,7 @@ public class ScriptComponent extends Component {
 
     @Override
     public void imgui() {
+        ImGui.pushID(this.toString());
         super.imgui();
         ImGui.sameLine();
         ImGui.text(": " + this.className);
@@ -174,9 +186,12 @@ public class ScriptComponent extends Component {
                 ImGui.text(text);
 
             } catch (IllegalAccessException e) {
+                Window.addError(e.getMessage());
+                EventSystem.notify(null, new Event(EventType.ErrorEvent));
                 ImGui.textColored(1, 0, 0, 1, "Error reading field");
             }
         }
+        ImGui.popID();
 
     }
 

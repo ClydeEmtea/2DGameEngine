@@ -15,6 +15,11 @@ import physics2d.components.RigidBody2D;
 
 public class Physics2D {
     private Vec2 gravity = new Vec2(0, -10.0f);
+
+    public World getWorld() {
+        return world;
+    }
+
     private World world = new World(gravity);
 
     private float physicsTime = 0.0f;

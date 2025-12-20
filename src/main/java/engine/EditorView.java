@@ -38,6 +38,12 @@ public class EditorView extends View {
     private Vector2f selectionEnd = new Vector2f();
 
 
+    private GameObject animovany;
+    private Spritesheet spritesheet;
+    private int spriteFlipTimeLeft = 100;
+    private int spriteFlipTime = 100;
+    private int spriteIndex = 0;
+
     public EditorView() {
         System.out.println("Editor Scene Initialized");
     }
@@ -65,6 +71,30 @@ public class EditorView extends View {
             }
         }
 
+//        AssetPool.addSpritesheet("spritesheet.png",
+//                new Spritesheet(AssetPool.getTexture("spritesheet.png"), 15, 15, 26, 0));
+//
+//        this.spritesheet = AssetPool.getSpritesheet("spritesheet.png");
+//
+//
+//
+//        // Vytvoření transformace
+//        Transform transform = new Transform(new Vector2f(0, 0), new Vector2f(0.2f, 0.2f), 0);
+//
+//        // Vytvoření GameObjectu
+//        animovany = new GameObject("animovany", transform, 50);
+//        animovany.addComponent(new SpriteRenderer(
+//                spritesheet.getSprite(0)
+//        ));
+//
+//        animovany.addComponent(new ShapeRenderer());
+//
+//        // Přidání do seznamu a root
+//        addGameObjectToView(animovany);
+
+
+
+
         for (GameObject go : gameObjects) {
             for (Component c : go.getAllScripts()) {
                 c.initScriptEditor();
@@ -87,6 +117,16 @@ public class EditorView extends View {
 
     @Override
     public void update(float dt) {
+
+//        spriteFlipTimeLeft -= dt;
+//        if (spriteFlipTimeLeft <= 0) {
+//            spriteFlipTimeLeft = spriteFlipTime;
+//            spriteIndex++;
+//            if (spriteIndex > 3) {
+//                spriteIndex = 1;
+//            }
+//            animovany.getComponent(SpriteRenderer.class).setSprite(spritesheet.getSprite(spriteIndex));
+//        }
 
         if (ProjectManager.get().getCurrentProject() != null && false) {
             System.out.println(ProjectManager.get().getCurrentProject().getProjectPath());
@@ -313,6 +353,11 @@ public class EditorView extends View {
                         if (!RightSidebar.selectedObjects.contains(go)) {
                             RightSidebar.selectedObjects.add(go);
                         }
+                    } else if (KeyListener.isKeyPressed(GLFW_KEY_LEFT_ALT)) {
+                        RightSidebar.selectedObjects.remove(go);
+                        if (activeGameObject.equals(go)) {
+                            activeGameObject = null;
+                        }
                     } else {
                         // Normální klik = jen tento objekt
                         RightSidebar.syncSelectionWithActive(this);
@@ -400,8 +445,10 @@ public class EditorView extends View {
             Vector2f end = new Vector2f(selectionEnd);
 
             boolean ctrl = KeyListener.isKeyPressed(GLFW_KEY_LEFT_CONTROL);
+            boolean alt = KeyListener.isKeyPressed(GLFW_KEY_LEFT_ALT);
 
-            if (!ctrl) {
+
+            if (!ctrl && !alt) {
                 RightSidebar.selectedObjects.clear();
             }
 
@@ -479,7 +526,9 @@ public class EditorView extends View {
                 }
 
                 if (intersects && !RightSidebar.selectedObjects.contains(go)) {
-                    RightSidebar.selectedObjects.add(go);
+                    if (!alt)
+                        RightSidebar.selectedObjects.add(go);
+                    else RightSidebar.selectedObjects.remove(go);
                 }
             }
 
@@ -692,31 +741,4 @@ public class EditorView extends View {
 }
 
 
-//this.spritesheet = AssetPool.getSpritesheet("C:\\Users\\EmTea\\IdeaProjects\\2DGameEngine\\assets\\images\\spritesheet.png");
-//
-//        obj1.addComponent(new SpriteRenderer(new Sprite(AssetPool.getTexture("C:\\Users\\EmTea\\IdeaProjects\\2DGameEngine\\assets\\images\\texture.png"))));
-//        this.addGameObjectToScene(obj1);
-//
-//
-//        obj2.addComponent(new SpriteRenderer(spritesheet.getSprite(0)));
-//        this.addGameObjectToScene(obj2);
-//
-//        GameObject obj3 = new GameObject("nikdo", new Transform(new Vector2f(150,100), new Vector2f(258,200)), 3);
-//        obj3.addComponent(new SpriteRenderer(new Sprite(AssetPool.getTexture("C:\\Users\\EmTea\\IdeaProjects\\2DGameEngine\\assets\\images\\blendImage2.png"))));
-//        this.addGameObjectToScene(obj3);
-//
-//        GameObject obj4 = new GameObject("White", new Transform(new Vector2f(400,100), new Vector2f(258,200)), 4);
-//        obj4.addComponent(new SpriteRenderer(new Vector4f(1,1,1,1)));
-//        this.addGameObjectToScene(obj4);
 
-//        spriteFlipTimeLeft -= dt;
-//        if (spriteFlipTimeLeft <= 0) {
-//            spriteFlipTimeLeft = spriteFlipTime;
-//            spriteIndex++;
-//            if (spriteIndex > 3) {
-//                spriteIndex = 1;
-//            }
-//            obj2.getComponent(SpriteRenderer.class).setSprite(spritesheet.getSprite(spriteIndex));
-//        }
-//
-//        obj2.transform.position.x += 100 * dt;

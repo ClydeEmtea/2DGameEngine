@@ -4,6 +4,7 @@ import engine.Component;
 import engine.Transform;
 import engine.Window;
 import imgui.ImGui;
+import imgui.type.ImBoolean;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import render.Texture;
@@ -18,6 +19,10 @@ public class SpriteRenderer extends Component {
 
     private Transform lastTransform;
     private boolean isDirty = true;
+
+    private boolean flipX = false;
+    private boolean flipY = false;
+
 
     private Vector2f[] customVertices = null;
 
@@ -68,6 +73,11 @@ public class SpriteRenderer extends Component {
         Window.getView().renderer.add(this.gameObject);
     }
 
+    public void setSprite(Sprite sprite) {
+        this.sprite = sprite;
+        this.isDirty = true;
+    }
+
     public void removeSprite() {
         this.sprite = new Sprite(null);
         this.color = WHITE;
@@ -106,6 +116,15 @@ public class SpriteRenderer extends Component {
                 removeSprite();
             }
         }
+
+        if (ImGui.button("Flip horizontally")) {
+            flip(true, false);
+        }
+        if (ImGui.button("Flip vertically")) {
+            flip(false, true);
+        }
+
+
     }
 
     public void setCustomVertices(Vector2f[] vertices) {
@@ -116,4 +135,33 @@ public class SpriteRenderer extends Component {
     public Vector2f[] getCustomVertices() {
         return customVertices;
     }
+
+    public void flip(boolean horizontal, boolean vertical) {
+        this.flipX = horizontal;
+        this.flipY = vertical;
+
+        if (sprite == null) return;
+
+        Vector2f[] original = sprite.getTexCoords();
+        if (original == null) return;
+
+        Vector2f[] flipped = new Vector2f[original.length];
+        for (int i = 0; i < original.length; i++) {
+            float u = original[i].x;
+            float v = original[i].y;
+
+            if (flipX) u = 1 - u;
+            if (flipY) v = 1 - v;
+
+            flipped[i] = new Vector2f(u, v);
+        }
+
+        sprite.setTexCoords(flipped);
+        setDirty();
+    }
+
+
+    // Můžeš přidat i rychlé getter funkce:
+    public boolean isFlippedX() { return flipX; }
+    public boolean isFlippedY() { return flipY; }
 }

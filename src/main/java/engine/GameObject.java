@@ -5,6 +5,9 @@ import imgui.ImGui;
 import imgui.ImVec4;
 import imgui.flag.ImGuiCol;
 import imgui.type.ImString;
+import observers.Event;
+import observers.EventSystem;
+import observers.EventType;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import physics2d.components.Box2DCollider;
@@ -60,6 +63,8 @@ public class GameObject {
                 try {
                     return componentClass.cast(c);
                 } catch (ClassCastException e) {
+                    Window.addError(e.getMessage());
+                    EventSystem.notify(null, new Event(EventType.ErrorEvent));
                     e.printStackTrace();
                     assert false : "Error: Class cast exception in getComponent";
                 }

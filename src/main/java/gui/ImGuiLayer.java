@@ -1,9 +1,6 @@
 package gui;
 
-import engine.Scene;
-import engine.Sound;
-import engine.View;
-import engine.Window;
+import engine.*;
 import imgui.ImGui;
 import imgui.ImGuiIO;
 import imgui.flag.*;
@@ -11,6 +8,10 @@ import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 import imgui.type.ImBoolean;
 import imgui.type.ImString;
+import observers.Event;
+import observers.EventSystem;
+import observers.EventType;
+import observers.Observer;
 import org.lwjgl.glfw.GLFWDropCallback;
 import project.ProjectManager;
 import render.Texture;
@@ -23,7 +24,7 @@ import java.nio.file.Path;
 import static org.lwjgl.glfw.GLFW.*;
 import static util.Constants.*;
 
-public class ImGuiLayer {
+public class ImGuiLayer implements Observer {
 
     private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
     private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
@@ -31,6 +32,7 @@ public class ImGuiLayer {
     private boolean showDemoWindow = false;
     private static boolean rightSidebarOpen = true;
     private static boolean bottomSidebarOpen = true;
+    private boolean showErrorWindow = false;
 
     private Path currentDirectory;
     private static final float TILE_SIZE = 96f;
@@ -113,6 +115,8 @@ public class ImGuiLayer {
         currentDirectory = ProjectManager.get()
                 .getCurrentProject()
                 .getImagesPath();
+
+        EventSystem.addObserver(this);
 
     }
 
@@ -290,10 +294,56 @@ public class ImGuiLayer {
             ImGui.showDemoWindow();
         }
 
+        if (showErrorWindow) {
+            showErrorWindow();
+        }
+
 
         ImGui.render();
         imGuiGl3.renderDrawData(ImGui.getDrawData());
     }
+
+    private void showErrorWindow() {
+        ImGui.setNextWindowSize(600, 300, ImGuiCond.Once);
+
+        ImGui.begin("Error Log");
+
+        ImGui.text("Errors:");
+        ImGui.separator();
+
+        // Child okno se scrollbarem
+        ImGui.beginChild(
+                "ErrorScrollRegion",   // unikátní ID
+                0,                     // šířka = fill parent
+                200,                   // výška (klidně uprav)
+                true                   // border
+        );
+
+        for (String error : Window.getErrors()) {
+            ImGui.textWrapped(error);
+        }
+
+        // automaticky scrollne dolů (volitelné)
+        if (ImGui.getScrollY() >= ImGui.getScrollMaxY()) {
+            ImGui.setScrollHereY(1.0f);
+        }
+
+        ImGui.endChild();
+
+        ImGui.spacing();
+
+        if (ImGui.button("Close")) {
+            this.showErrorWindow = false;
+        }
+
+        if (ImGui.button("Clear")) {
+            Window.clearErrors();
+        }
+
+
+        ImGui.end();
+    }
+
 
     private final ImString newSceneName = new ImString(64);
 
@@ -638,6 +688,12 @@ public class ImGuiLayer {
     }
 
 
+    @Override
+    public void onNotify(GameObject gameObject, Event event) {
+        if (event.type == EventType.ErrorEvent) {
+            this.showErrorWindow = true;
+            System.out.println("Ted mam mit ty errory!!");
+        }
 
-
+    }
 }
