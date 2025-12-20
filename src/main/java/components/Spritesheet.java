@@ -9,6 +9,7 @@ import java.util.List;
 public class Spritesheet {
 
     private Texture texture;
+
     private List<Sprite> sprites;
 
     public Spritesheet(Texture texture, int spriteWidth, int spriteHeight, int numSprites, int spacing) {
@@ -47,5 +48,21 @@ public class Spritesheet {
             throw new IndexOutOfBoundsException("Index out of bounds for spritesheet");
         }
         return sprites.get(index);
+    }
+
+    public Texture getTexture() {
+        return texture;
+    }
+
+    public void setTexture(Texture texture) {
+        this.texture = texture;
+    }
+
+    public List<Sprite> getSprites() {
+        return sprites;
+    }
+
+    public void setSprites(List<Sprite> sprites) {
+        this.sprites = sprites;
     }
 }

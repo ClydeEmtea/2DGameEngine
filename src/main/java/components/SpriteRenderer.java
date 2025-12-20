@@ -15,14 +15,15 @@ import static util.Constants.WHITE;
 public class SpriteRenderer extends Component {
 
     private Vector4f color;
+
     private Sprite sprite;
 
     private Transform lastTransform;
+
     private boolean isDirty = true;
-
     private boolean flipX = false;
-    private boolean flipY = false;
 
+    private boolean flipY = false;
 
     private Vector2f[] customVertices = null;
 
@@ -95,13 +96,13 @@ public class SpriteRenderer extends Component {
     public boolean isDirty() {
         return isDirty;
     }
+
     public void setClean() {
         isDirty = false;
     }
     public void setDirty() {
         this.isDirty = true;
     }
-
 
     @Override
     public void imgui() {
@@ -162,6 +163,10 @@ public class SpriteRenderer extends Component {
 
 
     // Můžeš přidat i rychlé getter funkce:
+
     public boolean isFlippedX() { return flipX; }
     public boolean isFlippedY() { return flipY; }
+    public Sprite getSprite() {
+        return sprite;
+    }
 }

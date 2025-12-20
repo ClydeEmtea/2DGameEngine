@@ -317,6 +317,12 @@ public class GameObject {
                 component.imgui();
             }
         }
+        for (Component component : componentsSnapshot) {
+            if (component instanceof Animation) {
+                ImGui.dummy(0, 10);
+                component.imgui();
+            }
+        }
 
         for (Component component : componentsSnapshot) {
             if (component instanceof RigidBody2D) {

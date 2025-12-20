@@ -673,6 +673,10 @@ public class EditorView extends View {
                 duplicateSelected();
             }
             ImGui.separator();
+            if (ImGui.menuItem("Add Animation")) {
+                activeGameObject.addComponent(new Animation());
+            }
+            ImGui.separator();
             if (ImGui.menuItem("Add RigidBody")) {
                 if (activeGameObject.getComponent(RigidBody2D.class) == null) {
                     activeGameObject.addComponent(new RigidBody2D());
