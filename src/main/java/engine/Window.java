@@ -252,7 +252,9 @@ public class Window implements Observer {
         this.width = fbWidth[0];
         this.height = fbHeight[0];
 
-        ProjectManager.get().openProject("C:/Users/EmTea/Desktop/jrbu/project.json");
+        ProjectManager.get().openProject("C:\\Users\\milda\\Desktop\\TestovaciProjekt\\project.json");
+//        ProjectManager.get().openProject("C:/Users/EmTea/Desktop/jrbu/project.json");
+
 
         Window.setCurrentView(0);
 

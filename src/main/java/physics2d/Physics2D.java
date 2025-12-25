@@ -23,7 +23,8 @@ public class Physics2D {
     private World world = new World(gravity);
 
     private float physicsTime = 0.0f;
-    private float physicsTimeStep = 1.0f / 100.0f;
+    private float physicsTimeStep = 1.0f / 60.0f;
+//    private float physicsTimeStep = 1.0f / 100.0f;
     private int velocityIterations = 16;
     private int positionIterations = 6;
 
@@ -55,13 +56,12 @@ public class Physics2D {
             } else if ((boxCollider = go.getComponent(Box2DCollider.class)) != null) {
                 Vector2f halfSize = new Vector2f(boxCollider.getHalfSize()).mul(0.5f);
                 Vector2f offset = boxCollider.getOffset();
-                Vector2f origin = new Vector2f(boxCollider.getOrigin());
                 shape.setAsBox(halfSize.x, halfSize.y, new Vec2(offset.x, offset.y), 0);
 
-                Vec2 pos = bodyDef.position;
-                float xPos = pos.x + offset.x;
-                float yPos = pos.y + offset.y;
-                bodyDef.position.set(xPos, yPos);
+//                Vec2 pos = bodyDef.position;
+//                float xPos = pos.x + offset.x;
+//                float yPos = pos.y + offset.y;
+//                bodyDef.position.set(xPos, yPos);
             }
 
             Body body = this.world.createBody(bodyDef);

@@ -242,6 +242,7 @@ public class EditorView extends View {
             if (bc != null) {
                 Box2DCollider newBc = new Box2DCollider();
                 newBc.setHalfSize(bc.getHalfSize());
+                newBc.setOffset(bc.getOffset());
                 created.addComponent(newBc);
             }
 
@@ -273,6 +274,66 @@ public class EditorView extends View {
 
 
     private void movement() {
+        float camSpeed = 0.04f * camera.getZoom();
+        if (KeyListener.isKeyPressed(GLFW_KEY_W)) {
+            if (ImGui.isAnyItemActive()) {
+                return;
+            }
+            camera.position.y += camSpeed;
+        }
+        if (KeyListener.isKeyPressed(GLFW_KEY_S)) {
+            if (ImGui.isAnyItemActive()) {
+                return;
+            }
+            camera.position.y -= camSpeed;
+        }
+        if (KeyListener.isKeyPressed(GLFW_KEY_A)) {
+            if (ImGui.isAnyItemActive()) {
+                return;
+            }
+            camera.position.x -= camSpeed;
+        }
+        if (KeyListener.isKeyPressed(GLFW_KEY_D)) {
+            if (ImGui.isAnyItemActive()) {
+                return;
+            }
+            camera.position.x += camSpeed;
+        }
+
+        float itemSpeed = 0.005f * camera.getZoom();
+        if (KeyListener.isKeyPressed(GLFW_KEY_UP)) {
+            if (ImGui.isAnyItemActive() || (activeGroup == null && activeGameObject == null)) {
+                return;
+            }
+            for (GameObject go : RightSidebar.selectedObjects) {
+                go.transform.position.y += itemSpeed;
+            }
+        }
+        if (KeyListener.isKeyPressed(GLFW_KEY_DOWN)) {
+            if (ImGui.isAnyItemActive() || (activeGroup == null && activeGameObject == null)) {
+                return;
+            }
+            for (GameObject go : RightSidebar.selectedObjects) {
+                go.transform.position.y -= itemSpeed;
+            }
+        }
+        if (KeyListener.isKeyPressed(GLFW_KEY_LEFT)) {
+            if (ImGui.isAnyItemActive() || (activeGroup == null && activeGameObject == null)) {
+                return;
+            }
+            for (GameObject go : RightSidebar.selectedObjects) {
+                go.transform.position.x -= itemSpeed;
+            }
+        }
+        if (KeyListener.isKeyPressed(GLFW_KEY_RIGHT)) {
+            if (ImGui.isAnyItemActive() || (activeGroup == null && activeGameObject == null)) {
+                return;
+            }
+            for (GameObject go : RightSidebar.selectedObjects) {
+                go.transform.position.x += itemSpeed;
+            }
+        }
+
         if (MouseListener.isDragging() &&
                 MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_2)) {
 

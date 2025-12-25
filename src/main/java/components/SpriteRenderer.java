@@ -75,8 +75,12 @@ public class SpriteRenderer extends Component {
     }
 
     public void setSprite(Sprite sprite) {
+        Window.getView().renderer.remove(this.gameObject);
+        this.color = WHITE;
         this.sprite = sprite;
-        this.isDirty = true;
+        this.setDirty();
+        this.isColorOnly = false;
+        Window.getView().renderer.add(this.gameObject);
     }
 
     public void removeSprite() {

@@ -363,7 +363,7 @@ public class ProjectManager {
         if (god.boxCollider != null) {
             Box2DCollider bc = new Box2DCollider();
             bc.setHalfSize(new Vector2f(god.boxCollider.halfSize[0], god.boxCollider.halfSize[1]));
-            bc.setOrigin(god.boxCollider.origin);
+            bc.setOffset(new Vector2f(god.boxCollider.offset[0],god.boxCollider.offset[1]));
             go.addComponent(bc);
         }
 
@@ -479,7 +479,7 @@ public class ProjectManager {
         if (collider != null) {
             god.boxCollider = new BoxColliderData();
             god.boxCollider.halfSize = new float[]{collider.getHalfSize().x, collider.getHalfSize().y};
-            god.boxCollider.origin = new float[]{collider.getOrigin().x, collider.getOrigin().y};
+            god.boxCollider.offset = new float[]{collider.getOffset().x, collider.getOffset().y};
         }
 
         return god;
@@ -665,5 +665,5 @@ class RigidBodyData {
 
 class BoxColliderData {
     float[] halfSize;
-    float[] origin;
+    float[] offset;
 }

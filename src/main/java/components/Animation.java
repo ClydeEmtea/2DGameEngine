@@ -3,12 +3,14 @@ package components;
 import engine.Component;
 import imgui.ImGui;
 import imgui.flag.ImGuiCond;
+import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 import imgui.type.ImInt;
 import imgui.type.ImString;
 import render.Texture;
 import util.AssetPool;
 
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -91,20 +93,21 @@ public class Animation extends Component {
     public void play(boolean loops) {
         originalSprite = gameObject.getComponent(SpriteRenderer.class).getSprite();
         this.isPlaying = true;
-        this.timeToNext = interval;
-        this.currentFrame = 0;
+        this.timeToNext = 0;
+        this.currentFrame = -1;
         this.loop = loops;
     }
 
     public void play() {
         originalSprite = gameObject.getComponent(SpriteRenderer.class).getSprite();
         this.isPlaying = true;
-        this.timeToNext = interval;
-        this.currentFrame = 0;
+        this.timeToNext = 0;
+        this.currentFrame = -1;
     }
 
     public void stop() {
         this.isPlaying = false;
+        gameObject.getComponent(SpriteRenderer.class).setSprite(originalSprite);
     }
 
     @Override
@@ -175,7 +178,6 @@ public class Animation extends Component {
         if (showFrames.get()) {
             drawFramesWindow();
         }
-        System.out.println(sprites.size());
 
         ImGui.popID();
     }
@@ -193,41 +195,45 @@ public class Animation extends Component {
         // =====================
         // Sprites list
         // =====================
-        for (int i = 0; i < sprites.size(); i++) {
-            ImGui.pushID(i);
+        if (showFrames.get() && sprites.size() > 0) {
+            for (int i = 0; i < sprites.size(); i++) {
+                ImGui.pushID(i);
 
-            Sprite s = sprites.get(i);
+                Sprite s = sprites.get(i);
 
-            ImGui.text("Frame " + i);
-
-            // Drag source
-            if (ImGui.beginDragDropSource()) {
-                ImGui.setDragDropPayload("ANIM_FRAME", new int[]{i});
                 ImGui.text("Frame " + i);
-                ImGui.endDragDropSource();
-            }
 
-            // Drop target
-            if (ImGui.beginDragDropTarget()) {
-                int[] payload = ImGui.acceptDragDropPayload("ANIM_FRAME");
-                if (payload != null) {
-                    int from = payload[0];
-                    if (from != i) {
-                        Sprite tmp = sprites.remove(from);
-                        sprites.add(i, tmp);
+                if (ImGui.selectable("Frame " + i)) {
+                    if (ImGui.beginDragDropSource()) {
+                        ImGui.setDragDropPayload("ANIM_FRAME", new int[]{i});
+                        ImGui.text("Frame " + i);
+                        ImGui.endDragDropSource();
                     }
                 }
-                ImGui.endDragDropTarget();
-            }
 
-            ImGui.sameLine();
-            if (ImGui.button("Delete")) {
-                sprites.remove(i);
+
+                // Drop target
+                if (ImGui.beginDragDropTarget()) {
+                    int[] payload = ImGui.acceptDragDropPayload("ANIM_FRAME");
+                    if (payload != null) {
+                        int from = payload[0];
+                        if (from != i) {
+                            Sprite tmp = sprites.remove(from);
+                            sprites.add(i, tmp);
+                        }
+                    }
+                    ImGui.endDragDropTarget();
+                }
+
+                ImGui.sameLine();
+                if (ImGui.button("Delete")) {
+                    sprites.remove(i);
+                    ImGui.popID();
+                    break;
+                }
+
                 ImGui.popID();
-                break;
             }
-
-            ImGui.popID();
         }
 
         ImGui.separator();
@@ -243,9 +249,10 @@ public class Animation extends Component {
             Object payload = ImGui.acceptDragDropPayload("ASSET_FILE");
             if (payload != null) {
                 String path = (String) payload;
-                if (path.endsWith(".png") || path.endsWith(".jpg")) {
+                String filename = Paths.get(path).getFileName().toString();
+                if (filename.endsWith(".png") || filename.endsWith(".jpg")) {
                     sprites.add(new Sprite(
-                            AssetPool.getTexture(path)
+                            AssetPool.getTexture(filename)
                     ));
                 }
             }
@@ -267,9 +274,9 @@ public class Animation extends Component {
     }
 
     private void drawSpritesheetPopup() {
-        ImGui.openPopup("Add Spritesheet");
-
-        if (ImGui.beginPopupModal("Add Spritesheet")) {
+        // místo openPopup/modal použij beginChild/okno bez modalu
+        ImGui.setNextWindowSize(300, 200, ImGuiCond.Once);
+        if (ImGui.begin("Add Spritesheet", ImGuiWindowFlags.NoCollapse)) {
 
             ImGui.inputInt("Sprite Width", imSpriteW);
             ImGui.inputInt("Sprite Height", imSpriteH);
@@ -277,41 +284,29 @@ public class Animation extends Component {
             ImGui.inputInt("Spacing", imSpacing);
 
             ImGui.text("Drop texture below");
-
             ImGui.invisibleButton("##SS_DROP", 300, 60);
 
             if (ImGui.beginDragDropTarget()) {
                 Object payload = ImGui.acceptDragDropPayload("ASSET_FILE");
                 if (payload != null) {
                     String path = (String) payload;
-                    if (path.endsWith(".png")) {
-                        Texture tex = AssetPool
-                                .getTexture(path);
-
-                        Spritesheet ss = new Spritesheet(
-                                tex,
-                                ssSpriteW,
-                                ssSpriteH,
-                                ssCount,
-                                ssSpacing
-                        );
-
+                    String filename = Paths.get(path).getFileName().toString();
+                    if (filename.endsWith(".png") || filename.endsWith(".jpg")) {
+                        Texture tex = AssetPool.getTexture(filename);
+                        Spritesheet ss = new Spritesheet(tex, ssSpriteW, ssSpriteH, ssCount, ssSpacing);
                         sprites.addAll(ss.getSprites());
                         showAddSpritesheet = false;
-                        ImGui.closeCurrentPopup();
                     }
                 }
                 ImGui.endDragDropTarget();
             }
 
-            if (ImGui.button("Cancel")) {
-                showAddSpritesheet = false;
-                ImGui.closeCurrentPopup();
-            }
+            if (ImGui.button("Cancel")) showAddSpritesheet = false;
 
-            ImGui.endPopup();
+            ImGui.end();
         }
     }
+
 
 
 

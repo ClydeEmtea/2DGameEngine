@@ -112,7 +112,8 @@ public class ImGuiLayer implements Observer {
 
         io.setIniFilename(null);
 
-        currentDirectory = ProjectManager.get()
+        if (ProjectManager.get().getCurrentProject() != null)
+            currentDirectory = ProjectManager.get()
                 .getCurrentProject()
                 .getImagesPath();
 
@@ -140,7 +141,8 @@ public class ImGuiLayer implements Observer {
             ImGui.columns(2, "asset_browser",true);
             ImGui.setColumnWidth(0, 200);
 
-            drawDirectoryList(ProjectManager.get().getCurrentProject().getAssetsPath());
+            if (ProjectManager.get().getCurrentProject() != null)
+                drawDirectoryList(ProjectManager.get().getCurrentProject().getAssetsPath());
 
             ImGui.nextColumn();
 

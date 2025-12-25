@@ -9,19 +9,6 @@ import render.Renderer;
 public class Box2DCollider extends Collider {
     private Vector2f halfSize = new Vector2f();
 
-    public void setOrigin(float[] origin) {
-        this.origin.x = origin[0];
-        this.origin.y = origin[1];
-    }
-
-    private Vector2f origin = new Vector2f();
-
-
-    public Vector2f getOrigin() {
-        return this.origin;
-    }
-
-
     public Vector2f getHalfSize() {
         return halfSize;
     }
@@ -44,7 +31,6 @@ public class Box2DCollider extends Collider {
 
         final float EDITOR_SCALE = 100.0f;
 
-// Half Size (editor units)
         float[] half = {
                 halfSize.x * EDITOR_SCALE,
                 halfSize.y * EDITOR_SCALE
@@ -62,15 +48,12 @@ public class Box2DCollider extends Collider {
         }
 
 
-        // Origin
-//        float[] orig = { origin.x, origin.y };
-//        if (ImGui.dragFloat2("Origin", orig, 0.1f)) {
-//            origin.set(orig[0], orig[1]);
-//        }
-//
-//        float[] offset = {getOffset().x, getOffset().y};
-//        if (ImGui.dragFloat2("Offset", offset, 0.01f)) {
-//            setOffset(new Vector2f(offset[0], offset[1]));
-//        }
+        float[] offset = {getOffset().x, getOffset().y};
+        if (ImGui.dragFloat2("Offset", offset, 0.01f)) {
+            setOffset(new Vector2f(offset[0], offset[1]));
+        }
+        if (ImGui.button("Reset offset")) {
+            setOffset(new Vector2f(0,0));
+        }
     }
 }
