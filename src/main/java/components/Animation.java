@@ -430,7 +430,7 @@ public class Animation extends Component {
 
                         Texture tex = AssetPool.getTexture(filename);
                         Spritesheet ss = new Spritesheet(tex, ssSpriteW, ssSpriteH, ssCount, ssSpacing);
-                        sprites.addAll(ss.getSprites());
+                        addSpritesheet(ss);
                         showAddSpritesheet = false;
                     }
                 }

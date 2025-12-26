@@ -381,13 +381,13 @@ public class ProjectManager {
                     );
 
                     Vector2f[] texCoords = new Vector2f[]{
-                            new Vector2f(fd.x + fd.w,    fd.y),
-                            new Vector2f(fd.x,           fd.y),
-                            new Vector2f(fd.x,           fd.y + fd.h),
-                            new Vector2f(fd.x + fd.w,    fd.y + fd.h),
+                            new Vector2f(fd.x,           fd.y),         // top-left
+                            new Vector2f(fd.x + fd.w,    fd.y),         // top-right
+                            new Vector2f(fd.x + fd.w,    fd.y + fd.h),  // bottom-right
+                            new Vector2f(fd.x,           fd.y + fd.h)   // bottom-left
                     };
-
                     Sprite sprite = new Sprite(tex, texCoords);
+
                     anim.addSprite(sprite);
                 }
 

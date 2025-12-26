@@ -87,4 +87,10 @@ public class AssetPool {
         return sounds.values();
     }
 
+    public static void clear() {
+        shaders = new HashMap<>();
+        textures = new HashMap<>();
+        spriteSheets = new HashMap<>();
+        sounds = new HashMap<>();
+    }
 }

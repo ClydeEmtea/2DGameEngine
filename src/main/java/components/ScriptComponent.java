@@ -103,7 +103,15 @@ public class ScriptComponent extends Component {
         reloadScript();
         if (scriptInstance != null) {
             scriptInstance.setEnvironment(this.gameObject, Window.get(), MouseListener.get(), KeyListener.get());
-            scriptInstance.init();
+
+            try {
+                scriptInstance.init();
+            } catch (Exception e) {
+                Window.addError(e.getMessage());
+                EventSystem.notify(null, new Event(EventType.ErrorEvent));
+                System.err.println("Error during script update: " + className);
+                e.printStackTrace();
+            }
         }
     }
 
@@ -117,7 +125,6 @@ public class ScriptComponent extends Component {
     @Override
     public void updateScript(float dt) {
         if (scriptInstance == null) return;
-
         try {
             scriptInstance.update(dt);
         } catch (Exception e) {

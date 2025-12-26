@@ -21,9 +21,11 @@ public class SpriteRenderer extends Component {
     private Transform lastTransform;
 
     private boolean isDirty = true;
-    private boolean flipX = false;
 
+    private boolean flipX = false;
     private boolean flipY = false;
+    private ImBoolean flippedX = new  ImBoolean(false);
+    private ImBoolean flippedY = new ImBoolean(false);
 
     private Vector2f[] customVertices = null;
 
@@ -62,13 +64,21 @@ public class SpriteRenderer extends Component {
     }
 
     public Vector2f[] getTexCoords() {
-        return sprite.getTexCoords();
+        Vector2f[] coords = new Vector2f[sprite.getTexCoords().length];
+        for (int i = 0; i < coords.length; i++) {
+            coords[i] = new Vector2f(sprite.getTexCoords()[i]);
+        }
+        return coords;
     }
+
 
     public void setSprite(String filename) {
         Window.getView().renderer.remove(this.gameObject);
         this.color = WHITE;
         this.sprite = new Sprite(AssetPool.getTexture(filename));
+        sprite.revert();
+        if (flipX) sprite.flipHorizontally();
+        if (flipY) sprite.flipVertically();
         this.setDirty();
         this.isColorOnly = false;
         Window.getView().renderer.add(this.gameObject);
@@ -78,6 +88,9 @@ public class SpriteRenderer extends Component {
         Window.getView().renderer.remove(this.gameObject);
         this.color = WHITE;
         this.sprite = sprite;
+        sprite.revert();
+        if (flipX) sprite.flipHorizontally();
+        if (flipY) sprite.flipVertically();
         this.setDirty();
         this.isColorOnly = false;
         Window.getView().renderer.add(this.gameObject);
@@ -122,10 +135,18 @@ public class SpriteRenderer extends Component {
             }
         }
 
-        if (ImGui.button("Flip horizontally")) {
+        // --- CHECKBOXY ---
+        ImGui.checkbox("Flip X", flippedX);
+        ImGui.checkbox("Flip Y", flippedY);
+
+        // --- SYNCHRONIZACE STAVU ---
+        if (flippedX.get() != flipX) {
+            flipX = flippedX.get();
             flip(true, false);
         }
-        if (ImGui.button("Flip vertically")) {
+
+        if (flippedY.get() != flipY) {
+            flipY = flippedY.get();
             flip(false, true);
         }
 
@@ -142,34 +163,50 @@ public class SpriteRenderer extends Component {
     }
 
     public void flip(boolean horizontal, boolean vertical) {
-        this.flipX = horizontal;
-        this.flipY = vertical;
-
+        System.out.println("flipiiiing");
         if (sprite == null) return;
 
-        Vector2f[] original = sprite.getTexCoords();
-        if (original == null) return;
-
-        Vector2f[] flipped = new Vector2f[original.length];
-        for (int i = 0; i < original.length; i++) {
-            float u = original[i].x;
-            float v = original[i].y;
-
-            if (flipX) u = 1 - u;
-            if (flipY) v = 1 - v;
-
-            flipped[i] = new Vector2f(u, v);
+        if (horizontal) {
+            sprite.flipHorizontally();
         }
 
-        sprite.setTexCoords(flipped);
+        if (vertical) {
+            sprite.flipVertically();
+        }
+
         setDirty();
     }
 
 
-    // Můžeš přidat i rychlé getter funkce:
 
-    public boolean isFlippedX() { return flipX; }
-    public boolean isFlippedY() { return flipY; }
+    public void setFlip(boolean horizontal, boolean vertical) {
+        System.out.println("flipiiiing");
+        // horizontální flip
+        if (flipX != horizontal) {
+            flipX = horizontal;
+            sprite.flipHorizontally(); // swap pouze pokud se stav mění
+            setDirty();
+        }
+
+        // vertikální flip
+        if (flipY != vertical) {
+            flipY = vertical;
+            sprite.flipVertically(); // swap pouze pokud se stav mění
+            setDirty();
+        }
+
+        // synchronizace ImGui checkboxů
+        flippedX.set(flipX);
+        flippedY.set(flipY);
+    }
+
+
+    /**
+     * Rychlé getter metody pro skript
+     */
+    public boolean getFlipX() { return flipX; }
+    public boolean getFlipY() { return flipY; }
+
     public Sprite getSprite() {
         return sprite;
     }
