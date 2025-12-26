@@ -35,4 +35,11 @@ public class Sprite {
     public void setTexCoords(Vector2f[] coords) {
         this.texCoords = coords;
     }
+
+    public Sprite copy() {
+        Sprite s = new Sprite(this.texture);
+        s.setTexCoords(this.getTexCoords());
+        return s;
+    }
+
 }

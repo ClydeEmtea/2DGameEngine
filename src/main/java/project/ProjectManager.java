@@ -367,6 +367,37 @@ public class ProjectManager {
             go.addComponent(bc);
         }
 
+        // Animations
+        if (god.animations != null) {
+            for (AnimationData ad : god.animations) {
+                Animation anim = new Animation();
+                anim.setAnimationName(ad.name);
+                anim.setInterval(ad.interval);
+                anim.setLoop(ad.loop);
+
+                for (SpriteFrameData fd : ad.frames) {
+                    Texture tex = AssetPool.getTexture(
+                            new File(fd.texturePath).getName()
+                    );
+
+                    Vector2f[] texCoords = new Vector2f[]{
+                            new Vector2f(fd.x + fd.w,    fd.y),
+                            new Vector2f(fd.x,           fd.y),
+                            new Vector2f(fd.x,           fd.y + fd.h),
+                            new Vector2f(fd.x + fd.w,    fd.y + fd.h),
+                    };
+
+                    Sprite sprite = new Sprite(tex, texCoords);
+                    anim.addSprite(sprite);
+                }
+
+
+                go.addComponent(anim);
+
+            }
+        }
+
+
         return go;
     }
 
@@ -481,6 +512,36 @@ public class ProjectManager {
             god.boxCollider.halfSize = new float[]{collider.getHalfSize().x, collider.getHalfSize().y};
             god.boxCollider.offset = new float[]{collider.getOffset().x, collider.getOffset().y};
         }
+
+        // Animations
+        List<Component> animations = go.getAllAnimations();
+        god.animations = new ArrayList<>();
+        if (!animations.isEmpty()) {
+
+            for (Component c : animations) {
+                Animation a = (Animation) c;
+
+                AnimationData ad = new AnimationData();
+                ad.name = a.getAnimationName();
+                ad.interval = a.getInterval();
+                ad.loop = a.isLoop();
+                ad.frames = new ArrayList<>();
+
+                for (Sprite s : a.getSprites()) {
+                    SpriteFrameData fd = new SpriteFrameData();
+                    fd.texturePath = s.getTexture().getFilePath();
+                    fd.x = s.getTexCoords()[0].x;
+                    fd.y = s.getTexCoords()[0].y;
+                    fd.w = s.getTexCoords()[2].x - fd.x;
+                    fd.h = s.getTexCoords()[2].y - fd.y;
+                    ad.frames.add(fd);
+                }
+
+
+                god.animations.add(ad);
+            }
+        }
+
 
         return god;
     }
@@ -645,6 +706,8 @@ class GameObjectData {
 
     RigidBodyData rigidBody;
     BoxColliderData boxCollider;
+
+    List<AnimationData> animations;
 }
 
 class GroupData {
@@ -666,4 +729,16 @@ class RigidBodyData {
 class BoxColliderData {
     float[] halfSize;
     float[] offset;
+}
+
+class AnimationData {
+    String name;
+    float interval;
+    boolean loop;
+    List<SpriteFrameData> frames;
+}
+
+class SpriteFrameData {
+    String texturePath;
+    float x, y, w, h;
 }

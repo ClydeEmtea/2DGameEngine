@@ -87,6 +87,16 @@ public class GameObject {
         return result;
     }
 
+    public List<Component> getAllAnimations() {
+        List<Component> result = new ArrayList<>();
+        for (Component c : components) {
+            if (c instanceof Animation a) {
+                result.add(a);
+            }
+        }
+        return result;
+    }
+
     public void addComponent(Component c) {
         components.add(c);
         c.gameObject = this;
@@ -130,6 +140,17 @@ public class GameObject {
 
     public ShapeRenderer getShaperenderer() {
         return getComponent(ShapeRenderer.class);
+    }
+
+    public Animation getAnimation(String name) {
+        for (Component c : components) {
+            if (c instanceof Animation a) {
+                if (a.getAnimationName().equals(name)) {
+                    return a;
+                }
+            }
+        }
+        return null;
     }
 
     public int getZIndex() {
@@ -321,6 +342,9 @@ public class GameObject {
             if (component instanceof Animation) {
                 ImGui.dummy(0, 10);
                 component.imgui();
+                if (ImGui.button("Remove animation")) {
+                    this.removeComponent(component);
+                }
             }
         }
 

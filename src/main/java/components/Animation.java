@@ -12,14 +12,16 @@ import util.AssetPool;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Animation extends Component {
     private boolean isPlaying = false;
     private List<Sprite> sprites;
     private float interval;
     private float timeToNext = 0;
-    private int currentFrame = 0;
+    private int currentFrame;
     private boolean loop = false;
     private Sprite originalSprite;
     private String animationName;
@@ -28,20 +30,27 @@ public class Animation extends Component {
 
     // Spritesheet UI
     private boolean showAddSpritesheet = false;
-    private int ssSpriteW = 32;
-    private int ssSpriteH = 32;
-    private int ssCount = 1;
+    private int ssSpriteW = 16;
+    private int ssSpriteH = 16;
+    private int ssCount = 10;
     private int ssSpacing = 0;
 
     private ImString imName = new ImString("New Animation", 64);
     private ImBoolean imLoop = new ImBoolean(false);
 
-    private ImInt imSpriteW = new ImInt(32);
-    private ImInt imSpriteH = new ImInt(32);
-    private ImInt imCount   = new ImInt(1);
-    private ImInt imSpacing = new ImInt(0);
+    private ImInt imSpriteW = new ImInt(ssSpriteW);
+    private ImInt imSpriteH = new ImInt(ssSpriteH);
+    private ImInt imCount   = new ImInt(ssCount);
+    private ImInt imSpacing = new ImInt(ssSpacing);
+    private Set<Integer> selectedFrames = new HashSet<>();
 
     private ImBoolean showFrames = new ImBoolean(false);
+
+    private static final int GRID_COLS = 8;
+    private static final float THUMB_SIZE = 48.0f;
+    private static final float THUMB_PADDING = 6.0f;
+    private int selectionAnchor = -1;
+
 
 
     public Animation() {
@@ -88,6 +97,10 @@ public class Animation extends Component {
 
     public void setLoop(boolean loop) {
         this.loop = loop;
+    }
+
+    public boolean isPlaying() {
+        return isPlaying;
     }
 
     public void play(boolean loops) {
@@ -183,67 +196,198 @@ public class Animation extends Component {
     }
 
     private void drawFramesWindow() {
-        ImGui.setNextWindowSize(500, 400, ImGuiCond.Once);
+        ImGui.setNextWindowSize(600, 450, ImGuiCond.Once);
         if (!ImGui.begin("Animation Frames", showFrames)) {
             ImGui.end();
             return;
         }
 
-        ImGui.text("Frames (" + sprites.size() + ")");
+        ImGui.text("Frames: " + sprites.size());
         ImGui.separator();
 
-        // =====================
-        // Sprites list
-        // =====================
-        if (showFrames.get() && sprites.size() > 0) {
-            for (int i = 0; i < sprites.size(); i++) {
-                ImGui.pushID(i);
+        if (sprites.isEmpty()) {
+            ImGui.textDisabled("No frames yet");
+        } else {
 
-                Sprite s = sprites.get(i);
+        float cellSize = THUMB_SIZE + THUMB_PADDING;
+        int col = 0;
 
-                ImGui.text("Frame " + i);
+        for (int i = 0; i < sprites.size(); i++) {
+            ImGui.pushID(i);
 
-                if (ImGui.selectable("Frame " + i)) {
-                    if (ImGui.beginDragDropSource()) {
-                        ImGui.setDragDropPayload("ANIM_FRAME", new int[]{i});
-                        ImGui.text("Frame " + i);
-                        ImGui.endDragDropSource();
+            Sprite sprite = sprites.get(i);
+            int texId = sprite.getTexture().getId();
+
+            // === IMAGE BUTTON ===
+            boolean clicked = ImGui.imageButton(texId, THUMB_SIZE, THUMB_SIZE);
+
+            boolean ctrl  = ImGui.getIO().getKeyCtrl();
+            boolean shift = ImGui.getIO().getKeyShift();
+
+            if (clicked) {
+
+                // SHIFT RANGE SELECT
+                if (shift && !selectedFrames.isEmpty()) {
+                    int start = findNearestSelected(i);
+                    if (start == -1) {
+                        start = i;
                     }
-                }
 
+                    clearSelection();
+                    int from = Math.min(start, i);
+                    int to   = Math.max(start, i);
 
-                // Drop target
-                if (ImGui.beginDragDropTarget()) {
-                    int[] payload = ImGui.acceptDragDropPayload("ANIM_FRAME");
-                    if (payload != null) {
-                        int from = payload[0];
-                        if (from != i) {
-                            Sprite tmp = sprites.remove(from);
-                            sprites.add(i, tmp);
-                        }
+                    for (int idx = from; idx <= to; idx++) {
+                        selectedFrames.add(idx);
                     }
-                    ImGui.endDragDropTarget();
+
+                    selectionAnchor = start;
                 }
 
-                ImGui.sameLine();
-                if (ImGui.button("Delete")) {
-                    sprites.remove(i);
-                    ImGui.popID();
-                    break;
+                // CTRL TOGGLE
+                else if (ctrl) {
+                    toggleSelection(i);
+                    selectionAnchor = i;
                 }
 
-                ImGui.popID();
+                // SINGLE SELECT
+                else {
+                    clearSelection();
+                    selectedFrames.add(i);
+                    selectionAnchor = i;
+                }
             }
+
+
+            if (isSelected(i)) {
+                ImGui.getWindowDrawList().addRect(
+                        ImGui.getItemRectMinX(),
+                        ImGui.getItemRectMinY(),
+                        ImGui.getItemRectMaxX(),
+                        ImGui.getItemRectMaxY(),
+                        0xFF4DA3FF, // modrá = selected
+                        0.0f,
+                        0,
+                        3.0f
+                );
+            }
+
+
+            if (i == currentFrame) {
+                ImGui.getWindowDrawList().addRect(
+                        ImGui.getItemRectMinX(),
+                        ImGui.getItemRectMinY(),
+                        ImGui.getItemRectMaxX(),
+                        ImGui.getItemRectMaxY(),
+                        0xFF00FF00
+                );
+            }
+
+            if (ImGui.isItemHovered()) {
+                ImGui.beginTooltip();
+                ImGui.text("Frame " + i);
+                ImGui.endTooltip();
+            }
+
+
+
+            // === DRAG SOURCE ===
+            if (ImGui.beginDragDropSource()) {
+                int[] payload;
+
+                if (isSelected(i)) {
+                    payload = selectedFrames.stream().mapToInt(Integer::intValue).toArray();
+                } else {
+                    payload = new int[]{i};
+                }
+
+                ImGui.setDragDropPayload("ANIM_FRAME_MULTI", payload);
+                ImGui.text("Move " + payload.length + " frame(s)");
+                ImGui.endDragDropSource();
+            }
+
+
+            // === DROP TARGET ===
+            if (ImGui.beginDragDropTarget()) {
+                int[] payload = ImGui.acceptDragDropPayload("ANIM_FRAME_MULTI");
+                if (payload != null) {
+
+                    // seřadit, ať nepadnou indexy
+                    java.util.Arrays.sort(payload);
+
+                    List<Sprite> moved = new ArrayList<>();
+                    for (int idx = payload.length - 1; idx >= 0; idx--) {
+                        moved.add(0, sprites.remove(payload[idx]));
+                    }
+
+                    int insertIndex = i;
+                    sprites.addAll(insertIndex, moved);
+
+                    clearSelection();
+                    for (int k = 0; k < moved.size(); k++) {
+                        selectedFrames.add(insertIndex + k);
+                    }
+                }
+                ImGui.endDragDropTarget();
+            }
+
+
+
+            ImGui.popID();
+
+            // === GRID FLOW ===
+            col++;
+            if (col < GRID_COLS) {
+                ImGui.sameLine();
+            } else {
+                col = 0;
+            }
+        }
         }
 
         ImGui.separator();
 
-        // =====================
-        // Drop new sprites
-        // =====================
-        ImGui.text("Drop images here");
+        if (ImGui.button("Duplicate Selected") && !selectedFrames.isEmpty()) {
+            List<Integer> sorted = selectedFrames.stream().sorted().toList();
+            int offset = 0;
+            for (int idx : sorted) {
+                sprites.add(idx + 1 + offset, sprites.get(idx + offset).copy());
+                offset++;
+            }
+            clearSelection();
+            selectionAnchor = -1;
+        }
 
-        ImGui.invisibleButton("##DROP", ImGui.getContentRegionAvailX(), 50);
+        ImGui.sameLine();
+
+        if (ImGui.button("Delete Selected") && !selectedFrames.isEmpty()) {
+            selectedFrames.stream()
+                    .sorted((a, b) -> b - a) // mazat odzadu
+                    .forEach(idx -> sprites.remove((int) idx));
+            clearSelection();
+            selectionAnchor = -1;
+        }
+
+        if (ImGui.isMouseClicked(0) && ImGui.isWindowHovered()) {
+            if (!ImGui.isAnyItemHovered()) {
+                clearSelection();
+                selectionAnchor = -1;
+            }
+        }
+
+
+
+        ImGui.separator();
+
+        drawDropArea();
+        if (ImGui.button("Add Spritesheet")) { showAddSpritesheet = true; } if (showAddSpritesheet) { drawSpritesheetPopup(); }
+
+        ImGui.end();
+    }
+
+    private void drawDropArea() {
+        ImGui.text("Drop images here");
+        ImGui.invisibleButton("##DROP", ImGui.getContentRegionAvailX(), 60);
 
         if (ImGui.beginDragDropTarget()) {
             Object payload = ImGui.acceptDragDropPayload("ASSET_FILE");
@@ -251,31 +395,18 @@ public class Animation extends Component {
                 String path = (String) payload;
                 String filename = Paths.get(path).getFileName().toString();
                 if (filename.endsWith(".png") || filename.endsWith(".jpg")) {
-                    sprites.add(new Sprite(
-                            AssetPool.getTexture(filename)
-                    ));
+                    sprites.add(new Sprite(AssetPool.getTexture(filename)));
                 }
             }
             ImGui.endDragDropTarget();
         }
-
-        // =====================
-        // Spritesheet
-        // =====================
-        if (ImGui.button("Add Spritesheet")) {
-            showAddSpritesheet = true;
-        }
-
-        if (showAddSpritesheet) {
-            drawSpritesheetPopup();
-        }
-
-        ImGui.end();
     }
+
+
 
     private void drawSpritesheetPopup() {
         // místo openPopup/modal použij beginChild/okno bez modalu
-        ImGui.setNextWindowSize(300, 200, ImGuiCond.Once);
+        ImGui.setNextWindowSize(400, 250, ImGuiCond.Once);
         if (ImGui.begin("Add Spritesheet", ImGuiWindowFlags.NoCollapse)) {
 
             ImGui.inputInt("Sprite Width", imSpriteW);
@@ -292,12 +423,18 @@ public class Animation extends Component {
                     String path = (String) payload;
                     String filename = Paths.get(path).getFileName().toString();
                     if (filename.endsWith(".png") || filename.endsWith(".jpg")) {
+                        ssSpriteW = imSpriteW.get();
+                        ssSpriteH = imSpriteH.get();
+                        ssCount   = imCount.get();
+                        ssSpacing = imSpacing.get();
+
                         Texture tex = AssetPool.getTexture(filename);
                         Spritesheet ss = new Spritesheet(tex, ssSpriteW, ssSpriteH, ssCount, ssSpacing);
                         sprites.addAll(ss.getSprites());
                         showAddSpritesheet = false;
                     }
                 }
+
                 ImGui.endDragDropTarget();
             }
 
@@ -307,8 +444,34 @@ public class Animation extends Component {
         }
     }
 
+    private boolean isSelected(int index) {
+        return selectedFrames.contains(index);
+    }
 
+    private void clearSelection() {
+        selectedFrames.clear();
+    }
 
+    private void toggleSelection(int index) {
+        if (selectedFrames.contains(index))
+            selectedFrames.remove(index);
+        else
+            selectedFrames.add(index);
+    }
+
+    private int findNearestSelected(int index) {
+        int nearest = -1;
+        int minDist = Integer.MAX_VALUE;
+
+        for (int sel : selectedFrames) {
+            int dist = Math.abs(sel - index);
+            if (dist < minDist) {
+                minDist = dist;
+                nearest = sel;
+            }
+        }
+        return nearest;
+    }
 
 
 }

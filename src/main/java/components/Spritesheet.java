@@ -26,11 +26,12 @@ public class Spritesheet {
             float rightX = (curX + spriteWidth) / (float)texture.getWidth();
 
             Vector2f[] texCoords = {
-                    new Vector2f(rightX, topY),
-                    new Vector2f(rightX, bottomY),
-                    new Vector2f(leftX, bottomY),
-                    new Vector2f(leftX, topY),
+                    new Vector2f(rightX, bottomY),  // bottom-right
+                    new Vector2f(leftX,  bottomY),  // bottom-left
+                    new Vector2f(leftX,  topY),     // top-left
+                    new Vector2f(rightX, topY),     // top-right
             };
+
             Sprite sprite = new Sprite(this.texture, texCoords);
             this.sprites.add(sprite);
 

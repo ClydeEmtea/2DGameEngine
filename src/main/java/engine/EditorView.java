@@ -50,6 +50,9 @@ public class EditorView extends View {
 
     @Override
     public void init() {
+        for (Sound sound : AssetPool.getAllSounds()) {
+            sound.stop();
+        }
         loadResources();
         this.camera = new Camera(new Vector2f());
         this.physics2D = new Physics2D();
@@ -61,7 +64,6 @@ public class EditorView extends View {
         List<GameObject> viewObjects;
         if (currentScene != null) {
             viewObjects = ProjectManager.get().loadSceneObjects(currentScene.getName());
-            System.out.println("aosdhfiuahgashfoshfhsaf" + currentScene.getName());
         } else {
             viewObjects = ProjectManager.get().loadSceneObjects("MainScene");
         }
@@ -71,41 +73,11 @@ public class EditorView extends View {
             }
         }
 
-//        AssetPool.addSpritesheet("spritesheet.png",
-//                new Spritesheet(AssetPool.getTexture("spritesheet.png"), 15, 15, 26, 0));
-//
-//        this.spritesheet = AssetPool.getSpritesheet("spritesheet.png");
-//
-//
-//
-//        // Vytvoření transformace
-//        Transform transform = new Transform(new Vector2f(0, 0), new Vector2f(0.2f, 0.2f), 0);
-//
-//        // Vytvoření GameObjectu
-//        animovany = new GameObject("animovany", transform, 50);
-//        animovany.addComponent(new SpriteRenderer(
-//                spritesheet.getSprite(0)
-//        ));
-//
-//        animovany.addComponent(new ShapeRenderer());
-//
-//        // Přidání do seznamu a root
-//        addGameObjectToView(animovany);
-
-
-
-
         for (GameObject go : gameObjects) {
             for (Component c : go.getAllScripts()) {
                 c.initScriptEditor();
             }
         }
-
-        for (Sound sound : AssetPool.getAllSounds()) {
-            sound.stop();
-        }
-
-
 
     }
 
@@ -276,25 +248,25 @@ public class EditorView extends View {
     private void movement() {
         float camSpeed = 0.04f * camera.getZoom();
         if (KeyListener.isKeyPressed(GLFW_KEY_W)) {
-            if (ImGui.isAnyItemActive()) {
+            if (ImGui.isAnyItemActive() || KeyListener.isKeyPressed(GLFW_KEY_LEFT_CONTROL)) {
                 return;
             }
             camera.position.y += camSpeed;
         }
         if (KeyListener.isKeyPressed(GLFW_KEY_S)) {
-            if (ImGui.isAnyItemActive()) {
+            if (ImGui.isAnyItemActive() || KeyListener.isKeyPressed(GLFW_KEY_LEFT_CONTROL)) {
                 return;
             }
             camera.position.y -= camSpeed;
         }
         if (KeyListener.isKeyPressed(GLFW_KEY_A)) {
-            if (ImGui.isAnyItemActive()) {
+            if (ImGui.isAnyItemActive() || KeyListener.isKeyPressed(GLFW_KEY_LEFT_CONTROL)) {
                 return;
             }
             camera.position.x -= camSpeed;
         }
         if (KeyListener.isKeyPressed(GLFW_KEY_D)) {
-            if (ImGui.isAnyItemActive()) {
+            if (ImGui.isAnyItemActive() || KeyListener.isKeyPressed(GLFW_KEY_LEFT_CONTROL)) {
                 return;
             }
             camera.position.x += camSpeed;

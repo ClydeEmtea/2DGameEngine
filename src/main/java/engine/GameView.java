@@ -6,6 +6,7 @@ import observers.EventType;
 import org.joml.Vector2f;
 import physics2d.Physics2D;
 import project.ProjectManager;
+import render.Renderer;
 import util.AssetPool;
 
 import java.util.ArrayList;
@@ -24,9 +25,17 @@ public class GameView extends View {
 
     @Override
     public void init() {
+        for (Sound sound : AssetPool.getAllSounds()) {
+            sound.stop();
+        }
         loadResources();
         this.camera = new Camera(new Vector2f());
         this.physics2D = new Physics2D();
+        this.gameObjects = new ArrayList<>();
+        this.renderer = new Renderer();
+        this.activeGameObject = null;
+        this.activeGroup = null;
+
         List<GameObject> viewObjects;
         if (currentScene != null) {
             viewObjects = ProjectManager.get().loadSceneObjects(currentScene.getName());
@@ -55,6 +64,7 @@ public class GameView extends View {
     @Override
     public void update(float dt) {
 
+        this.renderer.render();
         for (GameObject go : new ArrayList<>(this.gameObjects)) {
             go.update(dt);
             for (Component c : go.getAllScripts()) {
@@ -78,7 +88,6 @@ public class GameView extends View {
             assert false : "Physics update failed";
         }
 
-        this.renderer.render();
 
 
         if (KeyListener.isKeyTyped(GLFW_KEY_TAB)) {
