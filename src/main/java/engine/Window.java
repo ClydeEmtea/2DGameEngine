@@ -218,8 +218,6 @@ public class Window implements Observer {
         // Enable v-sync
         glfwSwapInterval(1);
 
-        // Make the window visible
-        glfwShowWindow(glfwWindow);
 
         // Initialize the audio device
         String defaultDeviceName = alcGetString(0, ALC_DEFAULT_DEVICE_SPECIFIER);
@@ -251,8 +249,11 @@ public class Window implements Observer {
         glfwGetFramebufferSize(glfwWindow, fbWidth, fbHeight);
         this.width = fbWidth[0];
         this.height = fbHeight[0];
+        // Make the window visible
+        glfwShowWindow(glfwWindow);
 
-        ProjectManager.get().openProject("C:\\Users\\milda\\Desktop\\TestovaciProjekt\\project.json");
+        ProjectManager.get().openProject("/home/milan/Documents/Projekt/project.json");
+//        ProjectManager.get().openProject("C:\\Users\\milda\\Desktop\\TestovaciProjekt\\project.json");
 //        ProjectManager.get().openProject("C:/Users/EmTea/Desktop/jrbu/project.json");
 
 
