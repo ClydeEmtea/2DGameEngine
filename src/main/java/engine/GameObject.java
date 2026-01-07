@@ -32,6 +32,7 @@ public class GameObject {
     private String newScriptName = "";
     private Float editorRotationDeg = null;
     private ImString imName;
+    private boolean locked = false;
 
 
     public GameObject(String name) {
@@ -154,6 +155,25 @@ public class GameObject {
         return null;
     }
 
+    public boolean isAnimationPlaying(String name) {
+        Animation anim = getAnimation(name);
+        if (anim != null) {
+            return anim.isPlaying();
+        }
+        return false;
+    }
+
+    public boolean isAnyAnimationPlaying() {
+        for (Component c : components) {
+            if (c instanceof Animation a) {
+                if (a.isPlaying()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public int getZIndex() {
         return zIndex;
     }
@@ -263,8 +283,12 @@ public class GameObject {
         }
 
         int[] zIndexArr = { zIndex };
-        if (ImGui.sliderInt("Z Index", zIndexArr, 0, 100)) {
+        if (ImGui.sliderInt("Z Index", zIndexArr, -100, 100)) {
             this.zIndex = zIndexArr[0];
+        }
+
+        if (ImGui.checkbox("Lock GameObject", locked)) {
+            locked = !locked;
         }
 
 
@@ -405,19 +429,39 @@ public class GameObject {
     private void onAssetDropped(String path) {
         String filename = Paths.get(path).getFileName().toString();
 
-        if (path.endsWith(".png") || path.endsWith(".jpg") || path.endsWith(".jpeg")) {
+        String fullPath = path;
 
-            SpriteRenderer sr = getComponent(SpriteRenderer.class);
+        if (fullPath.endsWith(".png") || fullPath.endsWith(".jpg") || fullPath.endsWith(".jpeg")) {
 
-            if (sr == null) {
-                sr = new SpriteRenderer(new Sprite(AssetPool.getTexture(filename)));
-                addComponent(sr);
-            } else {
-                sr.setSprite(filename);
+            String imagesPath = String.valueOf(ProjectManager.get()
+                    .getCurrentProject()
+                    .getImagesPath());
+
+            // normalizace separátorů
+            fullPath = fullPath.replace("\\", "/");
+            imagesPath = imagesPath.replace("\\", "/");
+
+            if (fullPath.startsWith(imagesPath)) {
+
+                String relativePath = fullPath.substring(imagesPath.length());
+                if (relativePath.startsWith("/"))
+                    relativePath = relativePath.substring(1);
+
+                SpriteRenderer sr = getComponent(SpriteRenderer.class);
+
+                if (sr == null) {
+                    sr = new SpriteRenderer(
+                            new Sprite(AssetPool.getTexture(relativePath))
+                    );
+                    addComponent(sr);
+                } else {
+                    sr.setSprite(relativePath);
+                }
+
+                System.out.println("Texture assigned: " + relativePath);
             }
-
-            System.out.println("Texture assigned: " + path);
         }
+
 
         else if (path.endsWith(".java")) {
             int dot = filename.lastIndexOf('.');
@@ -431,4 +475,11 @@ public class GameObject {
         }
     }
 
+    public boolean isLocked() {
+        return locked;
+    }
+
+    public void setLocked(boolean locked) {
+        this.locked = locked;
+    }
 }

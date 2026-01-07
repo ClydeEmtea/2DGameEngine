@@ -7,6 +7,7 @@ import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 import imgui.type.ImInt;
 import imgui.type.ImString;
+import project.ProjectManager;
 import render.Texture;
 import util.AssetPool;
 
@@ -104,6 +105,11 @@ public class Animation extends Component {
     }
 
     public void play(boolean loops) {
+        for (Component anim : this.gameObject.getAllAnimations()) {
+            if (anim instanceof Animation) {
+                ((Animation) anim).stop();
+            }
+        }
         originalSprite = gameObject.getComponent(SpriteRenderer.class).getSprite();
         this.isPlaying = true;
         this.timeToNext = 0;
@@ -112,6 +118,11 @@ public class Animation extends Component {
     }
 
     public void play() {
+        for (Component anim : this.gameObject.getAllAnimations()) {
+            if (anim instanceof Animation) {
+                ((Animation) anim).stop();
+            }
+        }
         originalSprite = gameObject.getComponent(SpriteRenderer.class).getSprite();
         this.isPlaying = true;
         this.timeToNext = 0;
@@ -120,7 +131,8 @@ public class Animation extends Component {
 
     public void stop() {
         this.isPlaying = false;
-        gameObject.getComponent(SpriteRenderer.class).setSprite(originalSprite);
+        if (originalSprite != null)
+            gameObject.getComponent(SpriteRenderer.class).setSprite(originalSprite);
     }
 
     @Override
@@ -140,7 +152,7 @@ public class Animation extends Component {
                         return;
                     }
                 }
-                System.out.println("Setting texture: " + sprites.get(currentFrame).getTexture());
+                System.out.println("Setting texture: " + sprites.get(currentFrame).getTexture().getFilePath());
                 gameObject.getComponent(SpriteRenderer.class).setSprite(sprites.get(currentFrame));
             }
         }
@@ -392,14 +404,32 @@ public class Animation extends Component {
         if (ImGui.beginDragDropTarget()) {
             Object payload = ImGui.acceptDragDropPayload("ASSET_FILE");
             if (payload != null) {
-                String path = (String) payload;
-                String filename = Paths.get(path).getFileName().toString();
-                if (filename.endsWith(".png") || filename.endsWith(".jpg")) {
-                    sprites.add(new Sprite(AssetPool.getTexture(filename)));
+                String fullPath = (String) payload;
+
+                String imagesPath = String.valueOf(ProjectManager.get()
+                        .getCurrentProject()
+                        .getImagesPath());
+
+                // sjednocení separátorů (Windows/Linux)
+                fullPath = fullPath.replace("\\", "/");
+                imagesPath = imagesPath.replace("\\", "/");
+
+                if (fullPath.startsWith(imagesPath)) {
+                    String relativePath = fullPath.substring(imagesPath.length());
+
+                    if (relativePath.startsWith("/"))
+                        relativePath = relativePath.substring(1);
+
+                    if (relativePath.endsWith(".png") || relativePath.endsWith(".jpg")) {
+                        sprites.add(
+                                new Sprite(AssetPool.getTexture(relativePath))
+                        );
+                    }
                 }
             }
             ImGui.endDragDropTarget();
         }
+
     }
 
 
@@ -420,23 +450,49 @@ public class Animation extends Component {
             if (ImGui.beginDragDropTarget()) {
                 Object payload = ImGui.acceptDragDropPayload("ASSET_FILE");
                 if (payload != null) {
-                    String path = (String) payload;
-                    String filename = Paths.get(path).getFileName().toString();
-                    if (filename.endsWith(".png") || filename.endsWith(".jpg")) {
-                        ssSpriteW = imSpriteW.get();
-                        ssSpriteH = imSpriteH.get();
-                        ssCount   = imCount.get();
-                        ssSpacing = imSpacing.get();
+                    String fullPath = (String) payload;
 
-                        Texture tex = AssetPool.getTexture(filename);
-                        Spritesheet ss = new Spritesheet(tex, ssSpriteW, ssSpriteH, ssCount, ssSpacing);
-                        addSpritesheet(ss);
-                        showAddSpritesheet = false;
+                    // povolené formáty
+                    if (fullPath.endsWith(".png") || fullPath.endsWith(".jpg") || fullPath.endsWith(".jpeg")) {
+
+                        String imagesPath = String.valueOf(ProjectManager.get()
+                                .getCurrentProject()
+                                .getImagesPath());
+
+                        // normalizace cest
+                        fullPath = fullPath.replace("\\", "/");
+                        imagesPath = imagesPath.replace("\\", "/");
+
+                        if (fullPath.startsWith(imagesPath)) {
+
+                            String relativePath = fullPath.substring(imagesPath.length());
+                            if (relativePath.startsWith("/"))
+                                relativePath = relativePath.substring(1);
+
+                            ssSpriteW = imSpriteW.get();
+                            ssSpriteH = imSpriteH.get();
+                            ssCount   = imCount.get();
+                            ssSpacing = imSpacing.get();
+
+                            Texture tex = AssetPool.getTexture(relativePath);
+                            Spritesheet ss = new Spritesheet(
+                                    tex,
+                                    ssSpriteW,
+                                    ssSpriteH,
+                                    ssCount,
+                                    ssSpacing
+                            );
+
+                            addSpritesheet(ss);
+                            showAddSpritesheet = false;
+
+                            System.out.println("Spritesheet added: " + relativePath);
+                        }
                     }
                 }
-
                 ImGui.endDragDropTarget();
             }
+
 
             if (ImGui.button("Cancel")) showAddSpritesheet = false;
 

@@ -11,7 +11,7 @@ public class Camera {
     private Matrix4f projectionMatrix, viewMatrix, inverseProjection, inverseView;
 
 
-    private float zoom = 1.5f;
+    private float zoom = 2.0f;
     public Vector2f position;
     private Vector2f projectionSize = new Vector2f(6,3);
 
@@ -84,6 +84,16 @@ public class Camera {
         float worldY = ((Window.get().getHeight() - screenY) / Window.get().getHeight()) * (camHalfHeight * 2) + position.y;
 
         return new Vector2f(worldX, worldY);
+    }
+
+    public void lookAt(Vector2f location) {
+        float viewWidth = projectionSize.x * zoom;
+        float viewHeight = projectionSize.y * zoom;
+
+        this.position.set(
+                location.x - viewWidth * 0.5f,
+                location.y - viewHeight * 0.5f
+        );
     }
 
 

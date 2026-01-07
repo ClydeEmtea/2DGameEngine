@@ -10,7 +10,7 @@ import render.Renderer;
 public class CapsuleCollider extends Collider {
 
     private float radius = 0.25f;
-    private float height = 1.0f; // CELKOVÁ výška kapsle
+    private float height = 1.0f;
 
     public float getRadius() {
         return radius;

@@ -144,6 +144,16 @@ public class EditorView extends View {
             duplicateSelected();
         }
 
+        if (KeyListener.isKeyPressed(GLFW_KEY_LEFT_CONTROL) && KeyListener.isKeyTyped(GLFW_KEY_A)) {
+            RightSidebar.selectedObjects.clear();
+            for (GameObject go : gameObjects) {
+                RightSidebar.selectedObjects.add(go);
+            }
+            if (!RightSidebar.selectedObjects.isEmpty()) {
+                setActiveGameObject(RightSidebar.selectedObjects.get(0));
+            }
+        }
+
         if (KeyListener.isKeyTyped(GLFW_KEY_DELETE)) {
             for (GameObject go : new ArrayList<>(RightSidebar.selectedObjects)) {
                 RightSidebar.selectedObjects.remove(go);
@@ -167,8 +177,10 @@ public class EditorView extends View {
 
     private void duplicateSelected() {
         List<GameObject> duplicates = new ArrayList<>();
+        List<String> reservedNames = new ArrayList<>();
         for (GameObject go : RightSidebar.selectedObjects) {
-            String name = generateDuplicateName(go.getName());
+            String name = generateDuplicateName(go.getName(), reservedNames);
+            reservedNames.add(name);
             GameObject created = new GameObject(name, go.transform.copy(), go.getZIndex());
             created.transform.position.x += go.transform.scale.x;
             if (go.getShaperenderer() != null) {
@@ -193,7 +205,8 @@ public class EditorView extends View {
 
             for (Component c : go.getAllComponents()) {
                 if (c instanceof ScriptComponent) {
-                    created.addComponent(c);
+                    ScriptComponent sc = new ScriptComponent(((ScriptComponent) c).getClassName(), ((ScriptComponent) c).getFilePath());
+                    created.addComponent(sc);
                 }
             }
 
@@ -209,6 +222,9 @@ public class EditorView extends View {
                 newRb.setContinuousCollision(rb.isContinuousCollision());
                 newRb.setFixedRotation(rb.isFixedRotation());
                 newRb.setLinearDamping(rb.getLinearDamping());
+                newRb.setDensity(rb.getDensity());
+                newRb.setFriction(rb.getFriction());
+                newRb.setRestitution(rb.getRestitution());
                 created.addComponent(newRb);
             }
 
@@ -221,6 +237,25 @@ public class EditorView extends View {
                 created.addComponent(newBc);
             }
 
+            // CircleCollider
+            CircleCollider cc = go.getComponent(CircleCollider.class);
+            if (cc != null) {
+                CircleCollider newCc = new CircleCollider();
+                newCc.setRadius(cc.getRadius());
+                newCc.setOffset(cc.getOffset());
+                created.addComponent(newCc);
+            }
+
+            // CapsuleCollider
+            CapsuleCollider cap = go.getComponent(CapsuleCollider.class);
+            if (cap != null) {
+                CapsuleCollider newCap = new CapsuleCollider();
+                newCap.setRadius(cap.getRadius());
+                newCap.setHeight(cap.getHeight());
+                newCap.setOffset(cap.getOffset());
+                created.addComponent(newCap);
+            }
+
             duplicates.add(created);
         }
         RightSidebar.selectedObjects.clear();
@@ -231,17 +266,20 @@ public class EditorView extends View {
         activeGameObject = duplicates.get(0);
     }
 
-    private String generateDuplicateName(String originalName) {
+    private String generateDuplicateName(String originalName, List<String> reservedNames) {
         String baseName = stripIndex(originalName);
         int index = 1;
 
-        String name = baseName;
-        while (getObjectByName(name) != null) {
+        String name;
+        while (true) {
             name = baseName + " (" + index + ")";
+            if (getObjectByName(name) == null && !reservedNames.contains(name)) {
+                return name;
+            }
             index++;
         }
-        return name;
     }
+
     private String stripIndex(String name) {
         return name.replaceAll("\\s*\\(\\d+\\)$", "");
     }
@@ -370,6 +408,7 @@ public class EditorView extends View {
             boolean found = false;
 
             for (GameObject go : gameObjects) {
+                if (go.isLocked()) continue;
                 SpriteRenderer sr = go.getComponent(SpriteRenderer.class);
                 if (sr == null) continue;
 
@@ -497,6 +536,7 @@ public class EditorView extends View {
             };
 
             for (GameObject go : gameObjects) {
+                if (go.isLocked()) continue;
                 Transform t = go.transform;
                 Vector2f pos = t.position;
                 Vector2f size = t.scale;
@@ -715,6 +755,9 @@ public class EditorView extends View {
         }
 
         if (ImGui.beginPopup("ActiveGOContextMenu")) {
+            if (ImGui.menuItem("Set to background")) {
+                activeGameObject.setZIndex(-100);
+            }
             if (ImGui.menuItem("Delete")) {
                 removeGameObject(activeGameObject);
                 setActiveGameObject(null);

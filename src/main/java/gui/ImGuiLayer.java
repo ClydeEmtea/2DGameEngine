@@ -617,16 +617,29 @@ public class ImGuiLayer implements Observer {
         ImGui.button("a", TILE_SIZE, TILE_SIZE);
     }
     private void drawFilePreview(File file) {
+
+        Path imagesPath = ProjectManager.get()
+                .getCurrentProject()
+                .getImagesPath();
+
+        Path filePath = file.toPath();
+
+        String relativePath = imagesPath
+                .relativize(filePath)
+                .toString()
+                .replace("\\", "/");
+
         Texture texture = null;
-        if (file.getName().toLowerCase().endsWith(".png") || file.getName().toLowerCase().endsWith(".jpg") || file.getName().toLowerCase().endsWith(".jpeg"))
-            texture = AssetPool.getTexture(file.getName());
+        String lower = relativePath.toLowerCase();
+
+        if (lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg")) {
+            texture = AssetPool.getTexture(relativePath);
+        }
 
         ImGui.beginGroup();
 
-        // interaktivní plocha
         ImGui.invisibleButton("##drag", TILE_SIZE, TILE_SIZE);
 
-        // pozice buttonu
         float x = ImGui.getItemRectMinX();
         float y = ImGui.getItemRectMinY();
 
@@ -640,7 +653,7 @@ public class ImGuiLayer implements Observer {
             ImGui.getWindowDrawList().addRectFilled(
                     x, y,
                     x + TILE_SIZE, y + TILE_SIZE,
-                    ImGui.getColorU32(1.0f, 1.0f, 1.0f, 1.0f) // bílá barva
+                    ImGui.getColorU32(0.2f, 0.2f, 0.2f, 1.0f)
             );
         }
 
@@ -662,17 +675,6 @@ public class ImGuiLayer implements Observer {
             }
             ImGui.endDragDropSource();
         }
-
-        // Zalomit název po každých 20 znacích
-//        String name = file.getName();
-//        int wrapLength = 10;
-//        if (name.length() > wrapLength) {
-//            for (int start = 0; start < name.length(); start += wrapLength) {
-//                int end = Math.min(start + wrapLength, name.length());
-//                ImGui.text(name.substring(start, end));
-//            }
-//        }
-
 
         ImGui.endGroup();
     }

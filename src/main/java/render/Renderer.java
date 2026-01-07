@@ -201,7 +201,6 @@ public class Renderer {
         );
 
 
-        // === boční hrany ===
         Vector2f leftTop = new Vector2f(-radius, +halfStraight);
         Vector2f leftBottom = new Vector2f(-radius, -halfStraight);
         Vector2f rightTop = new Vector2f(+radius, +halfStraight);

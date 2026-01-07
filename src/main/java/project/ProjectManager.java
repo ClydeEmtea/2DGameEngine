@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -312,15 +313,19 @@ public class ProjectManager {
                 ),
                 god.zIndex
         );
+        go.setLocked(god.locked);
 
         // SpriteRenderer
         if (god.colorOnly) {
-            go.addComponent(new SpriteRenderer(new Vector4f(god.r, god.g, god.b, god.a)));
+            SpriteRenderer sr = new SpriteRenderer(new Vector4f(god.r, god.g, god.b, god.a));
+            go.addComponent(sr);
+            sr.setFlip(god.flippedX, god.flippedY);
         } else if (god.texturePath != null) {
-            Texture tex = AssetPool.getTexture(new File(god.texturePath).getName());
+            Texture tex = AssetPool.getTexture(god.texturePath);
             SpriteRenderer sr = new SpriteRenderer(new Sprite(tex));
             sr.setColor(new Vector4f(god.r, god.g, god.b, god.a));
             go.addComponent(sr);
+            sr.setFlip(god.flippedX, god.flippedY);
         }
 
         // ShapeRenderer
@@ -407,7 +412,7 @@ public class ProjectManager {
 
                 for (SpriteFrameData fd : ad.frames) {
                     Texture tex = AssetPool.getTexture(
-                            new File(fd.texturePath).getName()
+                            fd.texturePath
                     );
 
                     Vector2f[] texCoords = new Vector2f[]{
@@ -488,12 +493,26 @@ public class ProjectManager {
         god.roundness = go.transform.roundness;
         god.zIndex = go.getZIndex();
         god.shapeType = String.valueOf(go.getShapeType());
+        god.locked = go.isLocked();
 
         SpriteRenderer spriteRenderer = go.getComponent(SpriteRenderer.class);
         if (spriteRenderer != null) {
+            god.flippedX = spriteRenderer.getFlipX();
+            god.flippedY = spriteRenderer.getFlipY();
             if (spriteRenderer.getTexture() != null) {
-                god.texturePath = spriteRenderer.getTexture().getFilePath();
+
+                Path imagesPath = ProjectManager.get()
+                        .getCurrentProject()
+                        .getImagesPath();
+                Path texturePath = Paths.get(
+                        spriteRenderer.getTexture().getFilePath()
+                );
+
+                Path relativePath = imagesPath.relativize(texturePath);
+
+                god.texturePath = relativePath.toString().replace("\\", "/");
                 god.colorOnly = false;
+
             } else {
                 god.texturePath = null;
                 god.colorOnly = true;
@@ -577,6 +596,10 @@ public class ProjectManager {
         god.animations = new ArrayList<>();
         if (!animations.isEmpty()) {
 
+            Path imagesRoot = ProjectManager.get()
+                    .getCurrentProject()
+                    .getImagesPath();
+
             for (Component c : animations) {
                 Animation a = (Animation) c;
 
@@ -588,18 +611,26 @@ public class ProjectManager {
 
                 for (Sprite s : a.getSprites()) {
                     SpriteFrameData fd = new SpriteFrameData();
-                    fd.texturePath = s.getTexture().getFilePath();
+
+                    Path texturePath = Paths.get(
+                            s.getTexture().getFilePath()
+                    );
+
+                    Path relativePath = imagesRoot.relativize(texturePath);
+                    fd.texturePath = relativePath.toString().replace("\\", "/");
+
                     fd.x = s.getTexCoords()[0].x;
                     fd.y = s.getTexCoords()[0].y;
                     fd.w = s.getTexCoords()[2].x - fd.x;
                     fd.h = s.getTexCoords()[2].y - fd.y;
+
                     ad.frames.add(fd);
                 }
-
 
                 god.animations.add(ad);
             }
         }
+
 
 
         return god;
@@ -767,6 +798,9 @@ class GameObjectData {
     float rotation;
     float roundness;
     int zIndex;
+    boolean flippedX;
+    boolean flippedY;
+    boolean locked;
 
     boolean colorOnly;
     String texturePath;  // null pokud není sprite

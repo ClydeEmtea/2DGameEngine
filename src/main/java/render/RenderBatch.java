@@ -32,6 +32,8 @@ public class RenderBatch implements Comparable<RenderBatch> {
 
     private Renderer renderer;
 
+    private boolean isDirty = false;
+
     public RenderBatch(int maxBatchSize, int zIndex, Renderer renderer) {
         this.zIndex = zIndex;
         shader = AssetPool.getShader(DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER);
@@ -90,6 +92,11 @@ public class RenderBatch implements Comparable<RenderBatch> {
             glBindBuffer(GL_ARRAY_BUFFER, vboID);
             glBufferSubData(GL_ARRAY_BUFFER, 0, vertexArray);
         }
+        if (isDirty) {
+            glBindBuffer(GL_ARRAY_BUFFER, vboID);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, vertexArray);
+            isDirty = false;
+        }
 
         shader.use();
         shader.uploadMat4f("uProjection", Window.getView().camera().getProjectionMatrix());
@@ -132,6 +139,8 @@ public class RenderBatch implements Comparable<RenderBatch> {
         updateEBO(); // důležité pro trojúhelníky
 
         if (numSprites >= maxBatchSize) hasRoom = false;
+
+        isDirty = true;
     }
 
 
@@ -303,6 +312,8 @@ public class RenderBatch implements Comparable<RenderBatch> {
                 numSprites--;
                 hasRoom = true;
                 System.out.println("nicim: " + go);
+                updateEBO();
+                isDirty = true;
 
                 return true;
             }
