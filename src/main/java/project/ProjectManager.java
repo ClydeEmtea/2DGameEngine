@@ -358,6 +358,10 @@ public class ProjectManager {
             rb.setFixedRotation(god.rigidBody.fixedRotation);
             rb.setContinuousCollision(god.rigidBody.continuousCollision);
             rb.setBodyType(BodyType.valueOf(god.rigidBody.bodyType));
+
+            rb.setDensity(god.rigidBody.density);
+            rb.setFriction(god.rigidBody.friction);
+            rb.setRestitution(god.rigidBody.restitution);
             go.addComponent(rb);
         }
 
@@ -529,6 +533,10 @@ public class ProjectManager {
             god.rigidBody.fixedRotation = rigidBody.isFixedRotation();
             god.rigidBody.continuousCollision = rigidBody.isContinuousCollision();
             god.rigidBody.bodyType = String.valueOf(rigidBody.getBodyType());
+
+            god.rigidBody.density = rigidBody.getDensity();
+            god.rigidBody.friction = rigidBody.getFriction();
+            god.rigidBody.restitution = rigidBody.getRestitution();
         }
 
         // Box2DCollider
@@ -723,13 +731,26 @@ public class %s implements Script {
 
     public void openInVSCode(Path file) {
         try {
-            new ProcessBuilder(
-                    "cmd", "/c", "code", file.toAbsolutePath().toString()
-            ).start();
-        } catch (IOException e) {
+            String os = System.getProperty("os.name").toLowerCase();
+            ProcessBuilder pb;
+
+            if (os.contains("win")) {
+                pb = new ProcessBuilder("cmd", "/c", "code", file.toAbsolutePath().toString());
+            } else if (os.contains("linux")) {
+                pb = new ProcessBuilder("code", file.toAbsolutePath().toString());
+            } else if (os.contains("mac")) {
+                pb = new ProcessBuilder("open", "-a", "Visual Studio Code", file.toAbsolutePath().toString());
+            } else {
+                throw new RuntimeException("Unsupported OS: " + os);
+            }
+
+            pb.start();
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
 
 
 }
@@ -777,6 +798,10 @@ class RigidBodyData {
     boolean fixedRotation;
     boolean continuousCollision;
     String bodyType;
+
+    float density;
+    float friction;
+    float restitution;
 }
 
 class BoxColliderData {

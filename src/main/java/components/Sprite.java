@@ -58,19 +58,16 @@ public class Sprite {
 
     /** Flip přes prohození souřadnic */
     public void flipHorizontally() {
-        System.out.println("flipiiiing");
         swap(0, 1); // top-left ↔ top-right
         swap(3, 2); // bottom-left ↔ bottom-right
     }
 
     public void flipVertically() {
-        System.out.println("flipiiiing");
         swap(0, 3); // top-left ↔ bottom-left
         swap(1, 2); // top-right ↔ bottom-right
     }
 
     private void swap(int i, int j) {
-        System.out.println("flipiiiing");
         Vector2f temp = texCoords[i];
         texCoords[i] = texCoords[j];
         texCoords[j] = temp;

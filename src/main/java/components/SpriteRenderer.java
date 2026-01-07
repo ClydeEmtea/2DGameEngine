@@ -163,7 +163,6 @@ public class SpriteRenderer extends Component {
     }
 
     public void flip(boolean horizontal, boolean vertical) {
-        System.out.println("flipiiiing");
         if (sprite == null) return;
 
         if (horizontal) {
@@ -180,7 +179,6 @@ public class SpriteRenderer extends Component {
 
 
     public void setFlip(boolean horizontal, boolean vertical) {
-        System.out.println("flipiiiing");
         // horizontální flip
         if (flipX != horizontal) {
             flipX = horizontal;

@@ -21,6 +21,18 @@ public class RigidBody2D extends Component {
 
     private transient Body rawBody = null;
 
+    private float density = 1.0f;
+    private float friction = 0.3f;
+    private float restitution = 0.0f;
+
+    public float getDensity() { return density; }
+    public float getFriction() { return friction; }
+    public float getRestitution() { return restitution; }
+
+    public void setDensity(float density) { this.density = density; }
+    public void setFriction(float friction) { this.friction = friction; }
+    public void setRestitution(float restitution) { this.restitution = restitution; }
+
     @Override
     public void update(float dt) {
         if (!Window.getView().isGame) return;
@@ -141,6 +153,19 @@ public class RigidBody2D extends Component {
         if (ImGui.combo("Body Type", current, types, types.length)) {
             bodyType = BodyType.values()[current.get()];
         }
+
+        ImGui.text("Material Properties:");
+        float[] d = { density };
+        if (ImGui.dragFloat("Density", d, 0.01f, 0f, 100f))
+            density = d[0];
+
+        float[] f = { friction };
+        if (ImGui.dragFloat("Friction", f, 0.01f, 0f, 1f))
+            friction = f[0];
+
+        float[] r = { restitution };
+        if (ImGui.dragFloat("Restitution", r, 0.01f, 0f, 1f))
+            restitution = r[0];
 
     }
 

@@ -5,10 +5,7 @@ import engine.Transform;
 import org.jbox2d.collision.shapes.CircleShape;
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Vec2;
-import org.jbox2d.dynamics.Body;
-import org.jbox2d.dynamics.BodyDef;
-import org.jbox2d.dynamics.BodyType;
-import org.jbox2d.dynamics.World;
+import org.jbox2d.dynamics.*;
 import org.joml.Vector2f;
 import physics2d.components.Box2DCollider;
 import physics2d.components.CapsuleCollider;
@@ -57,8 +54,14 @@ public class Physics2D {
                 CircleShape shape = new CircleShape();
                 shape.m_radius = cc.getRadius();
                 shape.m_p.set(cc.getOffset().x, cc.getOffset().y);
-                body.createFixture(shape, rb.getMass());
-                return;
+
+                FixtureDef fd = new FixtureDef();
+                fd.shape = shape;
+                fd.density = rb.getDensity();
+                fd.friction = rb.getFriction();
+                fd.restitution = rb.getRestitution();
+
+                body.createFixture(fd);
             }
 
             Box2DCollider bc = go.getComponent(Box2DCollider.class);
@@ -67,7 +70,16 @@ public class Physics2D {
                 Vector2f hs = new Vector2f(bc.getHalfSize()).mul(0.5f);
                 Vector2f off = bc.getOffset();
                 shape.setAsBox(hs.x, hs.y, new Vec2(off.x, off.y), 0);
-                body.createFixture(shape, rb.getMass());
+
+                FixtureDef fd = new FixtureDef();
+                fd.shape = shape;
+                fd.density = rb.getDensity();
+                fd.friction = rb.getFriction();
+                fd.restitution = rb.getRestitution();
+
+                System.out.println("Density: " + fd.density + " Friction: " + fd.friction + " Restitution: " + fd.restitution);
+
+                body.createFixture(fd);
             }
 
             CapsuleCollider cap = go.getComponent(CapsuleCollider.class);
@@ -83,20 +95,33 @@ public class Physics2D {
                 CircleShape top = new CircleShape();
                 top.m_radius = r;
                 top.m_p.set(off.x, off.y + halfStraight);
-                body.createFixture(top, rb.getMass());
+                FixtureDef topFD = new FixtureDef();
+                topFD.shape = top;
+                topFD.density = rb.getDensity();
+                topFD.friction = rb.getFriction();
+                topFD.restitution = rb.getRestitution();
+                body.createFixture(topFD);
 
                 // dolní kruh
                 CircleShape bottom = new CircleShape();
                 bottom.m_radius = r;
                 bottom.m_p.set(off.x, off.y - halfStraight);
-                body.createFixture(bottom, rb.getMass());
+                FixtureDef bottomFD = new FixtureDef();
+                bottomFD.shape = bottom;
+                bottomFD.density = rb.getDensity();
+                bottomFD.friction = rb.getFriction();
+                bottomFD.restitution = rb.getRestitution();
+                body.createFixture(bottomFD);
 
                 // střední box
                 PolygonShape box = new PolygonShape();
                 box.setAsBox(r, halfStraight, new Vec2(off.x, off.y), 0);
-                body.createFixture(box, rb.getMass());
-
-                return;
+                FixtureDef boxFD = new FixtureDef();
+                boxFD.shape = box;
+                boxFD.density = rb.getDensity();
+                boxFD.friction = rb.getFriction();
+                boxFD.restitution = rb.getRestitution();
+                body.createFixture(boxFD);
             }
 
 

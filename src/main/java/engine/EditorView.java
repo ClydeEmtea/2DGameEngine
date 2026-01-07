@@ -160,6 +160,8 @@ public class EditorView extends View {
                 }
                 root.removeGroup(g);
             }
+            activeGameObject = null;
+            activeGroup = null;
         }
     }
 
@@ -695,9 +697,23 @@ public class EditorView extends View {
         }
 
         activeGameObjectImGui();
-        if (ImGui.isMouseReleased(GLFW_MOUSE_BUTTON_2) && (!MouseListener.wasDragging()) && activeGameObject != null) {
-            ImGui.openPopup("ActiveGOContextMenu");
+        if (ImGui.isMouseReleased(GLFW_MOUSE_BUTTON_2) && (!MouseListener.wasDragging())) {
+            if (activeGameObject != null)
+                ImGui.openPopup("ActiveGOContextMenu");
+            else ImGui.openPopup("SceneContextMenu");
         }
+
+        if (ImGui.beginPopup("SceneContextMenu")) {
+            if (ImGui.menuItem("Add GameObject")) {
+                GameObject go = Window.getView().createNewObject();
+                go.transform.position = camera.screenToWorld(
+                        MouseListener.getX(),
+                        MouseListener.getY()
+                );
+            }
+            ImGui.endPopup();
+        }
+
         if (ImGui.beginPopup("ActiveGOContextMenu")) {
             if (ImGui.menuItem("Delete")) {
                 removeGameObject(activeGameObject);
