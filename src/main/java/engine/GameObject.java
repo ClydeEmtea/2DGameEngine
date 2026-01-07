@@ -11,6 +11,7 @@ import observers.EventType;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import physics2d.components.Box2DCollider;
+import physics2d.components.CapsuleCollider;
 import physics2d.components.CircleCollider;
 import physics2d.components.RigidBody2D;
 import project.ProjectManager;
@@ -373,6 +374,16 @@ public class GameObject {
                 ImGui.dummy(0, 10);
                 component.imgui();
                 if (ImGui.button("Remove circle collider")) {
+                    this.removeComponent(component);
+                }
+            }
+        }
+
+        for (Component component : componentsSnapshot) {
+            if (component instanceof CapsuleCollider) {
+                ImGui.dummy(0, 10);
+                component.imgui();
+                if (ImGui.button("Remove capsule collider")) {
                     this.removeComponent(component);
                 }
             }

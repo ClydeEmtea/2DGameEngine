@@ -2,6 +2,7 @@ package physics2d;
 
 import engine.GameObject;
 import engine.Transform;
+import org.jbox2d.collision.shapes.CircleShape;
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
@@ -10,6 +11,7 @@ import org.jbox2d.dynamics.BodyType;
 import org.jbox2d.dynamics.World;
 import org.joml.Vector2f;
 import physics2d.components.Box2DCollider;
+import physics2d.components.CapsuleCollider;
 import physics2d.components.CircleCollider;
 import physics2d.components.RigidBody2D;
 
@@ -47,26 +49,58 @@ public class Physics2D {
                 case Dynamic -> bodyDef.type = BodyType.DYNAMIC;
             }
 
-            PolygonShape shape = new PolygonShape();
-            CircleCollider circleCollider;
-            Box2DCollider boxCollider;
-
-            if ((circleCollider = go.getComponent(CircleCollider.class)) != null) {
-                shape.setRadius(circleCollider.getRadius());
-            } else if ((boxCollider = go.getComponent(Box2DCollider.class)) != null) {
-                Vector2f halfSize = new Vector2f(boxCollider.getHalfSize()).mul(0.5f);
-                Vector2f offset = boxCollider.getOffset();
-                shape.setAsBox(halfSize.x, halfSize.y, new Vec2(offset.x, offset.y), 0);
-
-//                Vec2 pos = bodyDef.position;
-//                float xPos = pos.x + offset.x;
-//                float yPos = pos.y + offset.y;
-//                bodyDef.position.set(xPos, yPos);
-            }
-
             Body body = this.world.createBody(bodyDef);
             rb.setRawBody(body);
-            body.createFixture(shape, rb.getMass());
+
+            CircleCollider cc = go.getComponent(CircleCollider.class);
+            if (cc != null) {
+                CircleShape shape = new CircleShape();
+                shape.m_radius = cc.getRadius();
+                shape.m_p.set(cc.getOffset().x, cc.getOffset().y);
+                body.createFixture(shape, rb.getMass());
+                return;
+            }
+
+            Box2DCollider bc = go.getComponent(Box2DCollider.class);
+            if (bc != null) {
+                PolygonShape shape = new PolygonShape();
+                Vector2f hs = new Vector2f(bc.getHalfSize()).mul(0.5f);
+                Vector2f off = bc.getOffset();
+                shape.setAsBox(hs.x, hs.y, new Vec2(off.x, off.y), 0);
+                body.createFixture(shape, rb.getMass());
+            }
+
+            CapsuleCollider cap = go.getComponent(CapsuleCollider.class);
+            if (cap != null) {
+
+                float r = cap.getRadius();
+                float h = cap.getHeight();
+                float halfStraight = (h / 2f) - r;
+
+                Vector2f off = cap.getOffset();
+
+                // horní kruh
+                CircleShape top = new CircleShape();
+                top.m_radius = r;
+                top.m_p.set(off.x, off.y + halfStraight);
+                body.createFixture(top, rb.getMass());
+
+                // dolní kruh
+                CircleShape bottom = new CircleShape();
+                bottom.m_radius = r;
+                bottom.m_p.set(off.x, off.y - halfStraight);
+                body.createFixture(bottom, rb.getMass());
+
+                // střední box
+                PolygonShape box = new PolygonShape();
+                box.setAsBox(r, halfStraight, new Vec2(off.x, off.y), 0);
+                body.createFixture(box, rb.getMass());
+
+                return;
+            }
+
+
+
         }
     }
 

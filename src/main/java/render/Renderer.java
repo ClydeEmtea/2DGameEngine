@@ -135,6 +135,122 @@ public class Renderer {
         endLines();
     }
 
+    public static void drawCircle(Vector2f center, float radius, Vector4f color, int segments) {
+        beginLines(color);
+
+        float angleIncrement = (float)(2 * Math.PI / segments);
+        for (int i = 0; i < segments; i++) {
+            float angle1 = i * angleIncrement;
+            float angle2 = (i + 1) * angleIncrement;
+
+            float x1 = center.x + radius * (float)Math.cos(angle1);
+            float y1 = center.y + radius * (float)Math.sin(angle1);
+            float x2 = center.x + radius * (float)Math.cos(angle2);
+            float y2 = center.y + radius * (float)Math.sin(angle2);
+
+            drawLine(x1, y1, x2, y2);
+        }
+
+        endLines();
+    }
+
+    public static void drawCapsule(
+            Vector2f center,
+            float radius,
+            float height,
+            float rotation,
+            Vector4f color,
+            int segments
+    ) {
+        if (height < radius * 2f) return;
+
+        float halfStraight = (height / 2f) - radius;
+
+        // středy kruhů
+        Vector2f topCenter = new Vector2f(center.x, center.y + halfStraight);
+        Vector2f bottomCenter = new Vector2f(center.x, center.y - halfStraight);
+
+        // rotace kolem středu kapsle
+        if (rotation != 0f) {
+            rotate(topCenter, rotation, center);
+            rotate(bottomCenter, rotation, center);
+        }
+
+        beginLines(color);
+        float a0 = rotation;
+        float aPi = rotation + (float)Math.PI;
+        float a2Pi = rotation + (float)(2 * Math.PI);
+
+
+// === horní půlkruh (nahoru) ===
+        drawArc(
+                topCenter,
+                radius,
+                a0,
+                aPi,
+                segments
+        );
+
+// === dolní půlkruh (dolů) ===
+        drawArc(
+                bottomCenter,
+                radius,
+                aPi,
+                a2Pi,
+                segments
+        );
+
+
+        // === boční hrany ===
+        Vector2f leftTop = new Vector2f(-radius, +halfStraight);
+        Vector2f leftBottom = new Vector2f(-radius, -halfStraight);
+        Vector2f rightTop = new Vector2f(+radius, +halfStraight);
+        Vector2f rightBottom = new Vector2f(+radius, -halfStraight);
+
+        // posun + rotace
+        leftTop.add(center);
+        leftBottom.add(center);
+        rightTop.add(center);
+        rightBottom.add(center);
+
+        if (rotation != 0f) {
+            rotate(leftTop, rotation, center);
+            rotate(leftBottom, rotation, center);
+            rotate(rightTop, rotation, center);
+            rotate(rightBottom, rotation, center);
+        }
+
+        drawLine(leftTop, leftBottom);
+        drawLine(rightTop, rightBottom);
+
+        endLines();
+    }
+
+    private static void drawArc(
+            Vector2f center,
+            float radius,
+            float startAngle,
+            float endAngle,
+            int segments
+    ) {
+        float angleRange = endAngle - startAngle;
+        float step = angleRange / segments;
+
+        for (int i = 0; i < segments; i++) {
+            float a1 = startAngle + i * step;
+            float a2 = startAngle + (i + 1) * step;
+
+            float x1 = center.x + radius * (float)Math.cos(a1);
+            float y1 = center.y + radius * (float)Math.sin(a1);
+            float x2 = center.x + radius * (float)Math.cos(a2);
+            float y2 = center.y + radius * (float)Math.sin(a2);
+
+            drawLine(x1, y1, x2, y2);
+        }
+    }
+
+
+
     public static void rotate(Vector2f vec, float angleDeg, Vector2f origin) {
         float x = vec.x - origin.x;
         float y = vec.y - origin.y;

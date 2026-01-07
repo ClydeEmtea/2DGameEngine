@@ -10,6 +10,7 @@ import org.joml.Vector2f;
 import org.joml.Vector4f;
 import physics2d.Physics2D;
 import physics2d.components.Box2DCollider;
+import physics2d.components.CapsuleCollider;
 import physics2d.components.CircleCollider;
 import physics2d.components.RigidBody2D;
 import project.ProjectManager;
@@ -728,6 +729,12 @@ public class EditorView extends View {
             if (ImGui.menuItem("Add Circle Collider")) {
                 if (activeGameObject.getComponent(CircleCollider.class) == null && activeGameObject.getComponent(Box2DCollider.class) == null) {
                     activeGameObject.addComponent(new CircleCollider());
+                }
+            }
+
+            if (ImGui.menuItem("Add Capsule Collider")) {
+                if (activeGameObject.getComponent(CircleCollider.class) == null && activeGameObject.getComponent(Box2DCollider.class) == null) {
+                    activeGameObject.addComponent(new CapsuleCollider());
                 }
             }
             ImGui.endPopup();

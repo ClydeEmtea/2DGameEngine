@@ -10,6 +10,8 @@ import observers.EventType;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
 import physics2d.components.Box2DCollider;
+import physics2d.components.CapsuleCollider;
+import physics2d.components.CircleCollider;
 import physics2d.components.RigidBody2D;
 import physics2d.enums.BodyType;
 import render.Texture;
@@ -367,6 +369,30 @@ public class ProjectManager {
             go.addComponent(bc);
         }
 
+        // CircleCollider
+        if (god.circleCollider != null) {
+            CircleCollider cc = new CircleCollider();
+            cc.setRadius(god.circleCollider.radius);
+            cc.setOffset(new Vector2f(
+                    god.circleCollider.offset[0],
+                    god.circleCollider.offset[1]
+            ));
+            go.addComponent(cc);
+        }
+
+        if (god.capsuleCollider != null) {
+            CapsuleCollider cc = new CapsuleCollider();
+            cc.setRadius(god.capsuleCollider.radius);
+            cc.setHeight(god.capsuleCollider.height);
+            cc.setOffset(new Vector2f(
+                    god.capsuleCollider.offset[0],
+                    god.capsuleCollider.offset[1]
+            ));
+            go.addComponent(cc);
+        }
+
+
+
         // Animations
         if (god.animations != null) {
             for (AnimationData ad : god.animations) {
@@ -512,6 +538,31 @@ public class ProjectManager {
             god.boxCollider.halfSize = new float[]{collider.getHalfSize().x, collider.getHalfSize().y};
             god.boxCollider.offset = new float[]{collider.getOffset().x, collider.getOffset().y};
         }
+
+        // CircleCollider
+        CircleCollider cc = go.getComponent(CircleCollider.class);
+        if (cc != null) {
+            god.circleCollider = new CircleColliderData();
+            god.circleCollider.radius = cc.getRadius();
+            god.circleCollider.offset = new float[]{
+                    cc.getOffset().x,
+                    cc.getOffset().y
+            };
+        }
+
+        CapsuleCollider cap = go.getComponent(CapsuleCollider.class);
+        if (cap != null) {
+            god.capsuleCollider = new CapsuleColliderData();
+            god.capsuleCollider.radius = cap.getRadius();
+            god.capsuleCollider.height = cap.getHeight();
+            god.capsuleCollider.offset = new float[]{
+                    cap.getOffset().x,
+                    cap.getOffset().y
+            };
+        }
+
+
+
 
         // Animations
         List<Component> animations = go.getAllAnimations();
@@ -706,6 +757,8 @@ class GameObjectData {
 
     RigidBodyData rigidBody;
     BoxColliderData boxCollider;
+    CircleColliderData circleCollider;
+    CapsuleColliderData capsuleCollider;
 
     List<AnimationData> animations;
 }
@@ -730,6 +783,19 @@ class BoxColliderData {
     float[] halfSize;
     float[] offset;
 }
+
+class CircleColliderData {
+    float radius;
+    float[] offset;
+}
+
+class CapsuleColliderData {
+    float radius;
+    float height;
+    float[] offset;
+}
+
+
 
 class AnimationData {
     String name;
