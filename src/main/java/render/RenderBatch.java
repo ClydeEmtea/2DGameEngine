@@ -75,6 +75,7 @@ public class RenderBatch implements Comparable<RenderBatch> {
             SpriteRenderer sprite = sprites[i];
             if (sprites[i].isDirty()) {
                 loadVertexProperties(i);
+                updateEBO();
                 sprites[i].setClean();
                 rebuffer = true;
             }
@@ -137,6 +138,7 @@ public class RenderBatch implements Comparable<RenderBatch> {
 
         loadVertexProperties(numSprites - 1);
         updateEBO(); // důležité pro trojúhelníky
+        rebuildTextures();
 
         if (numSprites >= maxBatchSize) hasRoom = false;
 
@@ -312,6 +314,7 @@ public class RenderBatch implements Comparable<RenderBatch> {
                 numSprites--;
                 hasRoom = true;
                 System.out.println("nicim: " + go);
+                rebuildTextures();
                 updateEBO();
                 isDirty = true;
 
