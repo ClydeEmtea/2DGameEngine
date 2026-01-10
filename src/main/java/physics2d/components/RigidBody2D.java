@@ -110,6 +110,8 @@ public class RigidBody2D extends Component {
 
     @Override
     public void imgui() {
+        super.imgui();
+
         ImGui.text("RigidBody2D");
 
         // Velocity

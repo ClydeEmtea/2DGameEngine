@@ -1,6 +1,7 @@
 package gui;
 
 import engine.*;
+import imgui.ImFont;
 import imgui.ImGui;
 import imgui.ImGuiIO;
 import imgui.flag.*;
@@ -38,6 +39,8 @@ public class ImGuiLayer implements Observer {
     private static final float TILE_SIZE = 96f;
     private static final float TILE_PADDING = 16f;
 
+    public static ImFont boldFont;
+
 
     public void init() {
         // Create context
@@ -52,6 +55,7 @@ public class ImGuiLayer implements Observer {
         io.addConfigFlags(ImGuiConfigFlags.DockingEnable);
         io.setIniFilename("assets/gui/imgui.ini"); // Disable saving .ini file
         io.getFonts().addFontFromFileTTF("assets/fonts/JetBrainsMono-Regular.ttf", 18);
+        boldFont = io.getFonts().addFontFromFileTTF("assets/fonts/JetBrainsMono-Bold.ttf", 19);
         io.addConfigFlags(ImGuiConfigFlags.NavEnableKeyboard); // Enable Keyboard Controls
         io.addConfigFlags(ImGuiConfigFlags.DockingEnable);
 
@@ -371,7 +375,7 @@ public class ImGuiLayer implements Observer {
         if (ImGui.beginPopupModal("CreateScenePopup", ImGuiWindowFlags.AlwaysAutoResize)) {
             ImGui.inputText("Scene name", newSceneName);
 
-            if (ImGui.button("Create")) {
+            if (ImGuiUtils.lightBlueButton("Create")) {
                 if (!newSceneName.get().isBlank()) {
                     Window.createNewScene(newSceneName.get());
                     newSceneName.set("");
@@ -380,7 +384,7 @@ public class ImGuiLayer implements Observer {
             }
 
             ImGui.sameLine();
-            if (ImGui.button("Cancel")) {
+            if (ImGuiUtils.redButton("Cancel")) {
                 newSceneName.set("");
                 ImGui.closeCurrentPopup();
             }

@@ -1,6 +1,8 @@
 package engine;
 
 import components.*;
+import gui.ImGuiLayer;
+import gui.ImGuiUtils;
 import imgui.ImGui;
 import imgui.ImVec4;
 import imgui.flag.ImGuiCol;
@@ -189,7 +191,7 @@ public class GameObject {
     public void imgui() {
         ImGui.inputText("##Name", imName);
         ImGui.sameLine();
-        if (ImGui.button("Submit")) {
+        if (ImGuiUtils.lightBlueButton("Submit")) {
             if (imName.isNotEmpty()) setName(String.valueOf(imName));
         }
 
@@ -295,22 +297,14 @@ public class GameObject {
         ImGui.dummy(0,20);
 
 
-        ImVec4 oldButton = ImGui.getStyle().getColor(ImGuiCol.Button);
-        ImVec4 oldHover = ImGui.getStyle().getColor(ImGuiCol.ButtonHovered);
-        ImVec4 oldActive = ImGui.getStyle().getColor(ImGuiCol.ButtonActive);
 
-        ImGui.getStyle().setColor(ImGuiCol.Button, 0.6f, 0.2f, 0.2f, 1.0f);
-        ImGui.getStyle().setColor(ImGuiCol.ButtonHovered, 0.7f, 0.3f, 0.4f, 1.0f);
-        ImGui.getStyle().setColor(ImGuiCol.ButtonActive, 0.8f, 0.1f, 0.2f, 1.0f);
 
-        if (ImGui.button("Remove object")) {
+        if (ImGuiUtils.redButton("Remove object")) {
             Window.getView().removeGameObject(this);
             Window.getView().setActiveGameObject(null);
         }
 
-        ImGui.getStyle().setColor(ImGuiCol.Button, oldButton.x, oldButton.y, oldButton.z, oldButton.w);
-        ImGui.getStyle().setColor(ImGuiCol.ButtonHovered, oldHover.x, oldHover.y, oldHover.z, oldHover.w);
-        ImGui.getStyle().setColor(ImGuiCol.ButtonActive, oldActive.x, oldActive.y, oldActive.z, oldActive.w);
+
 
 
 
@@ -325,7 +319,7 @@ public class GameObject {
 
         ImGui.sameLine();
 
-        if (ImGui.button("Create")) {
+        if (ImGuiUtils.lightBlueButton("Create")) {
             if (!newScriptName.isBlank()) {
                 try {
                     var pm = ProjectManager.get();
@@ -346,7 +340,10 @@ public class GameObject {
         }
 
 
+        ImGui.dummy(0,10);
         ImGui.separator();
+        ImGui.dummy(0,10);
+
 
         List<Component> componentsSnapshot = new ArrayList<>(getAllComponents());
 
@@ -354,22 +351,32 @@ public class GameObject {
             if (component instanceof SpriteRenderer) {
                 ImGui.dummy(0, 10);
                 component.imgui();
+                ImGui.dummy(0,10);
+                ImGui.separator();
+                ImGui.dummy(0,10);
             }
         }
+
 
         for (Component component : componentsSnapshot) {
             if (component instanceof ScriptComponent) {
                 ImGui.dummy(0, 10);
                 component.imgui();
+                ImGui.dummy(0,10);
+                ImGui.separator();
+                ImGui.dummy(0,10);
             }
         }
         for (Component component : componentsSnapshot) {
             if (component instanceof Animation) {
                 ImGui.dummy(0, 10);
                 component.imgui();
-                if (ImGui.button("Remove animation")) {
+                if (ImGuiUtils.redButton("Remove animation")) {
                     this.removeComponent(component);
                 }
+                ImGui.dummy(0,10);
+                ImGui.separator();
+                ImGui.dummy(0,10);
             }
         }
 
@@ -377,9 +384,12 @@ public class GameObject {
             if (component instanceof RigidBody2D) {
                 ImGui.dummy(0, 10);
                 component.imgui();
-                                if (ImGui.button("Remove rigid body")) {
+                                if (ImGuiUtils.redButton("Remove rigid body")) {
                     this.removeComponent(component);
                 }
+                ImGui.dummy(0,10);
+                ImGui.separator();
+                ImGui.dummy(0,10);
             }
         }
 
@@ -387,9 +397,12 @@ public class GameObject {
             if (component instanceof Box2DCollider) {
                 ImGui.dummy(0, 10);
                 component.imgui();
-                if (ImGui.button("Remove box collider")) {
+                if (ImGuiUtils.redButton("Remove box collider")) {
                     this.removeComponent(component);
                 }
+                ImGui.dummy(0,10);
+                ImGui.separator();
+                ImGui.dummy(0,10);
             }
         }
 
@@ -397,9 +410,12 @@ public class GameObject {
             if (component instanceof CircleCollider) {
                 ImGui.dummy(0, 10);
                 component.imgui();
-                if (ImGui.button("Remove circle collider")) {
+                if (ImGuiUtils.redButton("Remove circle collider")) {
                     this.removeComponent(component);
                 }
+                ImGui.dummy(0,10);
+                ImGui.separator();
+                ImGui.dummy(0,10);
             }
         }
 
@@ -407,9 +423,12 @@ public class GameObject {
             if (component instanceof CapsuleCollider) {
                 ImGui.dummy(0, 10);
                 component.imgui();
-                if (ImGui.button("Remove capsule collider")) {
+                if (ImGuiUtils.redButton("Remove capsule collider")) {
                     this.removeComponent(component);
                 }
+                ImGui.dummy(0,10);
+                ImGui.separator();
+                ImGui.dummy(0,10);
             }
         }
 

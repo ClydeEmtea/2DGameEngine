@@ -1,5 +1,6 @@
 package engine;
 
+import gui.ImGuiUtils;
 import imgui.ImGui;
 import imgui.type.ImString;
 
@@ -104,7 +105,7 @@ public class Group {
     public void imgui() {
         ImGui.inputText("##Name", imName);
         ImGui.sameLine();
-        if (ImGui.button("Submit")) {
+        if (ImGuiUtils.lightBlueButton("Submit")) {
             if (imName.isNotEmpty()) setName(String.valueOf(imName));
         }
 

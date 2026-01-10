@@ -2,6 +2,7 @@ package engine;
 
 import components.ShapeRenderer;
 import components.SpriteRenderer;
+import gui.ImGuiLayer;
 import imgui.ImGui;
 import imgui.flag.ImGuiTreeNodeFlags;
 import org.joml.Vector2f;
@@ -197,11 +198,18 @@ public class View {
             ImGui.dummy(0, 50);
             ImGui.separator();
             ImGui.dummy(0,15);
+
+            ImGui.pushFont(ImGuiLayer.boldFont);
             ImGui.text(activeGameObject.getName());
+            ImGui.popFont();
+
             activeGameObject.imgui();
 
         }
     }
 
 
+    public List<GameObject> getAllGameObjects() {
+        return this.gameObjects;
+    }
 }

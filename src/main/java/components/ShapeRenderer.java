@@ -186,6 +186,8 @@ public class ShapeRenderer extends Component {
 
     @Override
     public void imgui() {
+        super.imgui();
+
         ImGui.text("Shape Type");
         ImGui.sameLine();
         if (ImGui.beginCombo("##Shape Type", shapeType.name())) {

@@ -1,5 +1,6 @@
 package engine;
 
+import gui.ImGuiLayer;
 import imgui.ImGui;
 
 public abstract class Component {
@@ -14,7 +15,10 @@ public abstract class Component {
     public void initScript() {}
 
     public void imgui() {
+        ImGui.pushFont(ImGuiLayer.boldFont);
         ImGui.text("Component: " + this.getClass().getSimpleName());
+        ImGui.popFont();
+        ImGui.dummy(0,5);
     }
 
     public boolean isColorOnly() {

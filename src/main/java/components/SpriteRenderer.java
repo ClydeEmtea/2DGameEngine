@@ -3,6 +3,7 @@ package components;
 import engine.Component;
 import engine.Transform;
 import engine.Window;
+import gui.ImGuiUtils;
 import imgui.ImGui;
 import imgui.type.ImBoolean;
 import org.joml.Vector2f;
@@ -130,7 +131,7 @@ public class SpriteRenderer extends Component {
             ImGui.image(texId, 100,100);
         }
         if (!isColorOnly) {
-            if (ImGui.button("Remove sprite")) {
+            if (ImGuiUtils.redButton("Remove sprite")) {
                 removeSprite();
             }
         }

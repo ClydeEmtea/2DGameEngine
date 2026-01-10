@@ -4,6 +4,7 @@ import engine.Component;
 import engine.KeyListener;
 import engine.MouseListener;
 import engine.Window;
+import gui.ImGuiUtils;
 import imgui.ImGui;
 import observers.Event;
 import observers.EventSystem;
@@ -159,6 +160,8 @@ public class ScriptComponent extends Component {
 
     @Override
     public void imgui() {
+        super.imgui();
+
         ImGui.pushID(this.toString());
         super.imgui();
         ImGui.sameLine();
@@ -168,7 +171,7 @@ public class ScriptComponent extends Component {
             ProjectManager.get().openInVSCode(this.filePath);
         }
         ImGui.sameLine();
-        if (ImGui.button("Remove")) {
+        if (ImGuiUtils.redButton("Remove")) {
             this.gameObject.removeComponent(this);
         }
         ImGui.sameLine();

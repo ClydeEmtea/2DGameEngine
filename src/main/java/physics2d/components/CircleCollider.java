@@ -29,6 +29,8 @@ public class CircleCollider extends Collider {
 
     @Override
     public void imgui() {
+        super.imgui();
+
         ImGui.text("CircleCollider");
 
         float[] r = { radius };

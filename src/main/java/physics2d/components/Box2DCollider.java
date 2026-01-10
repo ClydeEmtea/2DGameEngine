@@ -27,6 +27,8 @@ public class Box2DCollider extends Collider {
 
     @Override
     public void imgui() {
+        super.imgui();
+
         ImGui.text("Box2DCollider");
 
         final float EDITOR_SCALE = 100.0f;

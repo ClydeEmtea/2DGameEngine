@@ -48,6 +48,8 @@ public class CapsuleCollider extends Collider {
 
     @Override
     public void imgui() {
+        super.imgui();
+
         ImGui.text("CapsuleCollider");
 
         float[] r = { radius };

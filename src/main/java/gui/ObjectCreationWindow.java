@@ -109,7 +109,7 @@ public class ObjectCreationWindow {
             }
         }
 
-        if (ImGui.button("Create")) {
+        if (ImGuiUtils.lightBlueButton("Create")) {
 
             // Unikátní jméno
             String baseName = name.get();

@@ -162,6 +162,7 @@ public class Animation extends Component {
 
     @Override
     public void imgui() {
+        super.imgui();
         ImGui.pushID(this.toString());
         super.imgui();
 

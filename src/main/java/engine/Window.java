@@ -1,5 +1,6 @@
 package engine;
 
+import components.Animation;
 import gui.ImGuiLayer;
 import observers.Event;
 import observers.EventSystem;
@@ -52,6 +53,16 @@ public class Window implements Observer {
     }
 
     public static void setCurrentView(int scene) {
+        if (currentView != null) {
+            for (GameObject go : currentView.getAllGameObjects()) {
+                for (Component c : go.getAllAnimations()) {
+                    if (c instanceof Animation) {
+                        ((Animation) c).stop();
+                        System.out.println("stopping animation");
+                    }
+                }
+            }
+        }
         Scene curScene = null;
         if (currentView != null && currentView.currentScene != null) curScene = currentView.currentScene;
         switch (scene) {
