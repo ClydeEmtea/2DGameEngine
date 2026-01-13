@@ -1,5 +1,6 @@
 package engine;
 
+import actions.ValueChangeAction;
 import components.*;
 import gui.ImGuiLayer;
 import gui.ImGuiUtils;
@@ -18,6 +19,8 @@ import physics2d.components.CircleCollider;
 import physics2d.components.RigidBody2D;
 import project.ProjectManager;
 import util.AssetPool;
+import util.HasId;
+import util.IdGenerator;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -25,7 +28,7 @@ import java.util.List;
 
 import static util.Constants.EDITOR_SCALE;
 
-public class GameObject {
+public class GameObject implements HasId {
 
     private String name;
     private List<Component> components;
@@ -36,6 +39,15 @@ public class GameObject {
     private ImString imName;
     private boolean locked = false;
 
+    private long id;
+
+    private Vector2f positionDragStart = new Vector2f();
+    private Vector2f scaleDragStart = new Vector2f();
+    private float roundnessDragStart;
+    private float rotationDragStartDeg;
+    private Vector4f colorDragStart;
+    private int zIndexDragStart;
+
 
     public GameObject(String name) {
         this.name = name;
@@ -43,6 +55,7 @@ public class GameObject {
         this.zIndex = 0;
         this.components = new ArrayList<>();
         this.transform = new Transform();
+        this.id = IdGenerator.getNextId();
     }
 
     public GameObject(String name, Transform transform, int zIndex) {
@@ -51,6 +64,21 @@ public class GameObject {
         this.zIndex = zIndex;
         this.components = new ArrayList<>();
         this.transform = transform;
+        this.id = IdGenerator.getNextId();
+    }
+
+    public GameObject(String name, Transform transform, int zIndex, long id) {
+        this.name = name;
+        this.imName = new ImString(name, 50);
+        this.zIndex = zIndex;
+        this.components = new ArrayList<>();
+        this.transform = transform;
+        this.id = id;
+    }
+
+    @Override
+    public long getId() {
+        return id;
     }
 
     public String getName() {
@@ -208,15 +236,42 @@ public class GameObject {
         }
 
         ImGui.endGroup();
+
         float[] pos = {
                 transform.position.x * EDITOR_SCALE,
                 transform.position.y * EDITOR_SCALE
         };
 
-        if (ImGui.dragFloat2("Position", pos, 1.0f)) {
+        ImGui.dragFloat2("Position", pos, 1.0f);
+
+// --- START DRAG ---
+        if (ImGui.isItemActivated()) {
+            positionDragStart.set(transform.position);
+        }
+
+// --- LIVE UPDATE ---
+        if (ImGui.isItemEdited()) {
             transform.position.x = pos[0] / EDITOR_SCALE;
             transform.position.y = pos[1] / EDITOR_SCALE;
         }
+
+// --- END DRAG → CREATE ACTION ---
+        if (ImGui.isItemDeactivatedAfterEdit()) {
+
+            Vector2f oldValue = new Vector2f(positionDragStart);
+            Vector2f newValue = new Vector2f(transform.position);
+
+            Window.getActionManager().execute(
+                    new ValueChangeAction<>(
+                            "Change Position",
+                            this,
+                            (go, v) -> go.transform.position.set(v),
+                            oldValue,
+                            newValue
+                    )
+            );
+        }
+
 
         // =========================
         // SCALE (editor units)
@@ -226,14 +281,25 @@ public class GameObject {
                 transform.scale.y * EDITOR_SCALE
         };
 
-        if (ImGui.dragFloat2("Scale", scale, 1.0f)) {
+        ImGui.dragFloat2("Scale", scale, 1.0f);
+
+// --- START DRAG ---
+        if (ImGui.isItemActivated()) {
+            scaleDragStart.set(transform.scale);
+        }
+
+// --- LIVE UPDATE ---
+        if (ImGui.isItemEdited()) {
 
             boolean keepAspect = ImGui.getIO().getKeyCtrl();
 
             if (keepAspect) {
-                float ratio = transform.scale.x / transform.scale.y;
-                if (Math.abs(scale[0] - transform.scale.x * EDITOR_SCALE)
-                        > Math.abs(scale[1] - transform.scale.y * EDITOR_SCALE)) {
+                float ratio = scaleDragStart.x / scaleDragStart.y;
+
+                float dx = Math.abs(scale[0] - scaleDragStart.x * EDITOR_SCALE);
+                float dy = Math.abs(scale[1] - scaleDragStart.y * EDITOR_SCALE);
+
+                if (dx > dy) {
                     scale[1] = scale[0] / ratio;
                 } else {
                     scale[0] = scale[1] * ratio;
@@ -242,27 +308,91 @@ public class GameObject {
 
             transform.scale.x = scale[0] / EDITOR_SCALE;
             transform.scale.y = scale[1] / EDITOR_SCALE;
-
         }
+
+// --- END DRAG → ACTION ---
+        if (ImGui.isItemDeactivatedAfterEdit()) {
+
+            Vector2f oldValue = new Vector2f(scaleDragStart);
+            Vector2f newValue = new Vector2f(transform.scale);
+
+            Window.getActionManager().execute(
+                    new ValueChangeAction<>(
+                            "Change Scale",
+                            this,
+                            (go, v) -> go.transform.scale.set(v),
+                            oldValue,
+                            newValue
+                    )
+            );
+        }
+
 
 
         float[] roundness = { transform.roundness };
-        if (ImGui.dragFloat("Roundness", roundness, 0.005f, 0.0f, 0.5f)) {
+
+        ImGui.dragFloat("Roundness", roundness, 0.005f, 0.0f, 0.5f);
+
+// --- START ---
+        if (ImGui.isItemActivated()) {
+            roundnessDragStart = transform.roundness;
+        }
+
+// --- LIVE ---
+        if (ImGui.isItemEdited()) {
             transform.roundness = roundness[0];
         }
 
-        if (editorRotationDeg == null) {
-            editorRotationDeg = (float) Math.toDegrees(transform.rotation);
+// --- END → ACTION ---
+        if (ImGui.isItemDeactivatedAfterEdit()) {
+
+            Window.getActionManager().execute(
+                    new ValueChangeAction<>(
+                            "Change Roundness",
+                            this,
+                            (go, v) -> go.transform.roundness = v,
+                            roundnessDragStart,
+                            transform.roundness
+                    )
+            );
         }
+
+
+        float rotationDeg = (float) Math.toDegrees(-transform.rotation);
+        float[] rot = { rotationDeg };
 
         float speed = ImGui.getIO().getKeyCtrl() ? 0.1f : 1.0f;
 
-        float[] rot = { editorRotationDeg };
+        ImGui.dragFloat("Rotation", rot, speed, -180.0f, 180.0f);
 
-        if (ImGui.dragFloat("Rotation", rot, speed, -180.0f, 180.0f)) {
-            editorRotationDeg = rot[0];
-            transform.rotation = (float) Math.toRadians(-editorRotationDeg);
+// --- START ---
+        if (ImGui.isItemActivated()) {
+            rotationDragStartDeg = rotationDeg;
         }
+
+// --- LIVE ---
+        if (ImGui.isItemEdited()) {
+            transform.rotation = (float) Math.toRadians(-rot[0]);
+        }
+
+// --- END → ACTION ---
+        if (ImGui.isItemDeactivatedAfterEdit()) {
+
+            float oldRad = (float) Math.toRadians(-rotationDragStartDeg);
+            float newRad = transform.rotation;
+
+            Window.getActionManager().execute(
+                    new ValueChangeAction<>(
+                            "Change Rotation",
+                            this,
+                            (go, v) -> go.transform.rotation = v,
+                            oldRad,
+                            newRad
+                    )
+            );
+        }
+
+
 
         if (ImGui.button("Reset rotation")) {
             editorRotationDeg = 0.0f;
@@ -273,6 +403,7 @@ public class GameObject {
 
 
         SpriteRenderer sr = getComponent(SpriteRenderer.class);
+
         float[] color = {
                 sr.getColor().x,
                 sr.getColor().y,
@@ -280,18 +411,88 @@ public class GameObject {
                 sr.getColor().w
         };
 
+// --- START ---
         if (ImGui.colorEdit4("Color", color)) {
-            sr.setColor(new Vector4f(color[0], color[1], color[2], color[3]));
+
+            // live update
+            sr.setColor(new Vector4f(
+                    color[0],
+                    color[1],
+                    color[2],
+                    color[3]
+            ));
         }
 
+// --- START DRAG ---
+        if (ImGui.isItemActivated()) {
+            colorDragStart = new Vector4f(sr.getColor());
+        }
+
+// --- END → ACTION ---
+        if (ImGui.isItemDeactivatedAfterEdit()) {
+
+            Vector4f oldValue = new Vector4f(colorDragStart);
+            Vector4f newValue = new Vector4f(sr.getColor());
+
+            Window.getActionManager().execute(
+                    new ValueChangeAction<>(
+                            "Change Color",
+                            this,
+                            GameObject::setColor,
+                            oldValue,
+                            newValue
+                    )
+            );
+
+        }
+
+
         int[] zIndexArr = { zIndex };
+
+// --- START ---
         if (ImGui.sliderInt("Z Index", zIndexArr, -100, 100)) {
             this.zIndex = zIndexArr[0];
         }
 
-        if (ImGui.checkbox("Lock GameObject", locked)) {
-            locked = !locked;
+// --- START DRAG ---
+        if (ImGui.isItemActivated()) {
+            zIndexDragStart = zIndex;
         }
+
+// --- END → ACTION ---
+        if (ImGui.isItemDeactivatedAfterEdit()) {
+
+            int oldValue = zIndexDragStart;
+            int newValue = zIndex;
+
+            Window.getActionManager().execute(
+                    new ValueChangeAction<>(
+                            "Change Z Index",
+                            this,
+                            (go, v)-> go.zIndex = v,
+                            oldValue,
+                            newValue
+                    )
+            );
+        }
+
+
+        if (ImGui.checkbox("Lock GameObject", locked)) {
+            boolean oldValue = locked;
+            locked = !locked;
+
+            Window.getActionManager().execute(
+                    new ValueChangeAction<>(
+                            "Toggle Lock",
+                            this,
+                            (go, v) -> go.locked = v,
+                            oldValue,
+                            locked
+                    )
+            );
+        }
+
+
 
 
         ImGui.dummy(0,20);
@@ -500,5 +701,12 @@ public class GameObject {
 
     public void setLocked(boolean locked) {
         this.locked = locked;
+    }
+
+    public void setColor(Vector4f color) {
+        SpriteRenderer sr = getComponent(SpriteRenderer.class);
+        if (sr != null) {
+            sr.setColor(color);
+        }
     }
 }

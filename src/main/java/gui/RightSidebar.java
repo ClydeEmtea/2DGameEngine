@@ -308,7 +308,7 @@ public class RightSidebar {
             callback.run();
         }
 
-        ImGui.beginChild("RightSidebarScroll", 0, Window.get().getHeight()- 400, true, ImGuiWindowFlags.HorizontalScrollbar);
+        ImGui.beginChild("RightSidebarScroll", 0, Window.get().getHeight()- 700, true, ImGuiWindowFlags.HorizontalScrollbar);
 
         sceneObjectsImGui(currentView);
 
@@ -316,6 +316,11 @@ public class RightSidebar {
 
 
         activeGroupImGui(currentView);
+        ImGui.dummy(0,20);
+        ImGui.separator();
+        ImGui.dummy(0,20);
+
+        ActionHistoryPanel.render(Window.getActionManager());
         ImGui.end();
     }
 }

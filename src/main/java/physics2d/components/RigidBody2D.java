@@ -8,11 +8,12 @@ import imgui.type.ImInt;
 import org.jbox2d.dynamics.Body;
 import org.joml.Vector2f;
 import physics2d.enums.BodyType;
+import actions.ComponentValueChangeAction;
 
 public class RigidBody2D extends Component {
     private Vector2f velocity = new Vector2f();
-    private float angularDamping = 0.8f;
-    private float linearDamping = 0.9f;
+    private float angularDamping = 0.0f;
+    private float linearDamping = 0.0f;
     private float mass = 0;
     private BodyType bodyType = BodyType.Dynamic;
 
@@ -24,6 +25,15 @@ public class RigidBody2D extends Component {
     private float density = 1.0f;
     private float friction = 0.3f;
     private float restitution = 0.0f;
+
+    private Vector2f velocityDragStart = new Vector2f();
+    private float massDragStart;
+    private float angularDampingDragStart;
+    private float linearDampingDragStart;
+    private float densityDragStart;
+    private float frictionDragStart;
+    private float restitutionDragStart;
+
 
     public float getDensity() { return density; }
     public float getFriction() { return friction; }
@@ -114,61 +124,230 @@ public class RigidBody2D extends Component {
 
         ImGui.text("RigidBody2D");
 
-        // Velocity
+// --- Velocity ---
         float[] vel = { velocity.x, velocity.y };
-        if (ImGui.dragFloat2("Velocity", vel, 0.1f)) {
+        ImGui.dragFloat2("Velocity", vel, 0.1f);
+        if (ImGui.isItemActivated()) {
+            velocityDragStart.set(velocity);
+        }
+        if (ImGui.isItemEdited()) {
             velocity.set(vel[0], vel[1]);
         }
-
-        // Mass
-        float[] m = { mass };
-        if (ImGui.dragFloat("Mass", m, 0.1f, 0.0f, 1000.0f)) {
-            mass = m[0];
+        if (ImGui.isItemDeactivatedAfterEdit()) {
+            Vector2f oldVel = new Vector2f(velocityDragStart);
+            Vector2f newVel = new Vector2f(velocity);
+            Window.getActionManager().execute(
+                    new ComponentValueChangeAction<>(
+                            "Change Velocity",
+                            gameObject,
+                            RigidBody2D.class,
+                            RigidBody2D::setVelocity,
+                            oldVel,
+                            newVel
+                    )
+            );
         }
 
-        // Angular Damping
+
+        // --- Mass ---
+        float[] m = { mass };
+        ImGui.dragFloat("Mass", m, 1.0f, 0.0f, 10000.0f);
+
+        if (ImGui.isItemActivated()) massDragStart = mass;
+        if (ImGui.isItemEdited()) mass = m[0];
+        if (ImGui.isItemDeactivatedAfterEdit()) {
+            Window.getActionManager().execute(
+                    new ComponentValueChangeAction<>(
+                            "Change Mass",
+                            gameObject,
+                            RigidBody2D.class,
+                            RigidBody2D::setMass,
+                            massDragStart,
+                            mass
+                    )
+            );
+        }
+
+
+        // --- Angular Damping ---
         float[] angDamp = { angularDamping };
-        if (ImGui.dragFloat("Angular Damping", angDamp, 0.01f, 0.0f, 10.0f)) {
+        ImGui.dragFloat("Angular Damping", angDamp, 0.01f, 0.0f, 1.0f);
+
+        if (ImGui.isItemActivated()) {
+            angularDampingDragStart = angularDamping;
+        }
+
+        if (ImGui.isItemEdited()) {
             angularDamping = angDamp[0];
         }
 
-        // Linear Damping
+        if (ImGui.isItemDeactivatedAfterEdit()) {
+            Window.getActionManager().execute(
+                    new ComponentValueChangeAction<>(
+                            "Change Angular Damping",
+                            gameObject,
+                            RigidBody2D.class,
+                            RigidBody2D::setAngularDamping,
+                            angularDampingDragStart,
+                            angularDamping
+                    )
+            );
+        }
+
+// --- Linear Damping ---
         float[] linDamp = { linearDamping };
-        if (ImGui.dragFloat("Linear Damping", linDamp, 0.01f, 0.0f, 10.0f)) {
+        ImGui.dragFloat("Linear Damping", linDamp, 0.01f, 0.0f, 1.0f);
+
+        if (ImGui.isItemActivated()) {
+            linearDampingDragStart = linearDamping;
+        }
+
+        if (ImGui.isItemEdited()) {
             linearDamping = linDamp[0];
         }
 
-        // Fixed Rotation
+        if (ImGui.isItemDeactivatedAfterEdit()) {
+            Window.getActionManager().execute(
+                    new ComponentValueChangeAction<>(
+                            "Change Linear Damping",
+                            gameObject,
+                            RigidBody2D.class,
+                            RigidBody2D::setLinearDamping,
+                            linearDampingDragStart,
+                            linearDamping
+                    )
+            );
+        }
+
+        // --- Fixed Rotation ---
         ImBoolean fixedRot = new ImBoolean(fixedRotation);
         if (ImGui.checkbox("Fixed Rotation", fixedRot)) {
+            boolean oldVal = fixedRotation;
             fixedRotation = fixedRot.get();
+            Window.getActionManager().execute(
+                    new ComponentValueChangeAction<>(
+                            "Toggle Fixed Rotation",
+                            gameObject,
+                            RigidBody2D.class,
+                            RigidBody2D::setFixedRotation,
+                            oldVal,
+                            fixedRotation
+                    )
+            );
         }
 
-        // Continuous Collision
+        // --- Continuous Collision ---
         ImBoolean contColl = new ImBoolean(continuousCollision);
         if (ImGui.checkbox("Continuous Collision", contColl)) {
+            boolean oldVal = continuousCollision;
             continuousCollision = contColl.get();
+            Window.getActionManager().execute(
+                    new ComponentValueChangeAction<>(
+                            "Toggle Continuous Collision",
+                            gameObject,
+                            RigidBody2D.class,
+                            RigidBody2D::setContinuousCollision,
+                            oldVal,
+                            continuousCollision
+                    )
+            );
         }
 
+        // --- Body Type ---
         String[] types = { "Static", "Dynamic", "Kinematic" };
         ImInt current = new ImInt(bodyType.ordinal());
         if (ImGui.combo("Body Type", current, types, types.length)) {
+            BodyType oldVal = bodyType;
             bodyType = BodyType.values()[current.get()];
+            Window.getActionManager().execute(
+                    new ComponentValueChangeAction<>(
+                            "Change Body Type",
+                            gameObject,
+                            RigidBody2D.class,
+                            RigidBody2D::setBodyType,
+                            oldVal,
+                            bodyType
+                    )
+            );
         }
 
+        // --- Material Properties ---
         ImGui.text("Material Properties:");
+
+        // --- Density ---
         float[] d = { density };
-        if (ImGui.dragFloat("Density", d, 0.01f, 0f, 100f))
+        ImGui.dragFloat("Density", d, 0.01f, 0f, 100f);
+
+        if (ImGui.isItemActivated()) {
+            densityDragStart = density;
+        }
+
+        if (ImGui.isItemEdited()) {
             density = d[0];
+        }
 
+        if (ImGui.isItemDeactivatedAfterEdit()) {
+            Window.getActionManager().execute(
+                    new ComponentValueChangeAction<>(
+                            "Change Density",
+                            gameObject,
+                            RigidBody2D.class,
+                            RigidBody2D::setDensity,
+                            densityDragStart,
+                            density
+                    )
+            );
+        }
+
+// --- Friction ---
         float[] f = { friction };
-        if (ImGui.dragFloat("Friction", f, 0.01f, 0f, 1f))
-            friction = f[0];
+        ImGui.dragFloat("Friction", f, 0.01f, 0f, 1f);
 
+        if (ImGui.isItemActivated()) {
+            frictionDragStart = friction;
+        }
+
+        if (ImGui.isItemEdited()) {
+            friction = f[0];
+        }
+
+        if (ImGui.isItemDeactivatedAfterEdit()) {
+            Window.getActionManager().execute(
+                    new ComponentValueChangeAction<>(
+                            "Change Friction",
+                            gameObject,
+                            RigidBody2D.class,
+                            RigidBody2D::setFriction,
+                            frictionDragStart,
+                            friction
+                    )
+            );
+        }
+
+// --- Restitution ---
         float[] r = { restitution };
-        if (ImGui.dragFloat("Restitution", r, 0.01f, 0f, 1f))
+        ImGui.dragFloat("Restitution", r, 0.01f, 0f, 1f);
+
+        if (ImGui.isItemActivated()) {
+            restitutionDragStart = restitution;
+        }
+
+        if (ImGui.isItemEdited()) {
             restitution = r[0];
+        }
+
+        if (ImGui.isItemDeactivatedAfterEdit()) {
+            Window.getActionManager().execute(
+                    new ComponentValueChangeAction<>(
+                            "Change Restitution",
+                            gameObject,
+                            RigidBody2D.class,
+                            RigidBody2D::setRestitution,
+                            restitutionDragStart,
+                            restitution
+                    )
+            );
+        }
 
     }
-
 }

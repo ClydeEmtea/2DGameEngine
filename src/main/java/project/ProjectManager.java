@@ -311,7 +311,8 @@ public class ProjectManager {
                         god.rotation,
                         god.roundness
                 ),
-                god.zIndex
+                god.zIndex,
+                god.id
         );
         go.setLocked(god.locked);
 
@@ -484,6 +485,7 @@ public class ProjectManager {
 
     private GameObjectData gameObjectToData(GameObject go) {
         GameObjectData god = new GameObjectData();
+        god.id = go.getId();
         god.name = go.getName();
         god.posX = go.transform.position.x;
         god.posY = go.transform.position.y;
@@ -792,6 +794,7 @@ class SceneData {
 }
 
 class GameObjectData {
+    long id;
     String name;
     float posX, posY;
     float scaleX, scaleY;

@@ -1,5 +1,6 @@
 package engine;
 
+import actions.ActionManager;
 import components.Animation;
 import gui.ImGuiLayer;
 import observers.Event;
@@ -42,6 +43,8 @@ public class Window implements Observer {
     private long audioDevice;
 
     private static List<String> errors = new ArrayList<>();
+
+    private static ActionManager actionManager = new ActionManager();
 
     private Window() {
         this.width = Constants.WIDTH;
@@ -101,6 +104,7 @@ public class Window implements Observer {
         ProjectManager.get().saveProject();
         if (currentView.isGame) currentView = new GameView();
         else currentView = new EditorView();
+        actionManager = new ActionManager();
         for (String name : ProjectManager.get().getScenes()) {
             Scene s = new Scene(name);
             currentView.scenes.add(s);
@@ -127,6 +131,20 @@ public class Window implements Observer {
     public static View getView() {
         get();
         return currentView;
+    }
+
+    public static EditorView getEditorView() {
+        get();
+        if (currentView instanceof EditorView) {
+            return (EditorView) currentView;
+        } else {
+            return null;
+        }
+    }
+
+    public static ActionManager getActionManager() {
+        get();
+        return actionManager;
     }
 
     public static List<String> getErrors() {

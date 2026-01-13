@@ -17,6 +17,7 @@ import project.ProjectManager;
 import render.Renderer;
 import render.Texture;
 import util.AssetPool;
+import util.IdGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +45,10 @@ public class EditorView extends View {
     private int spriteFlipTimeLeft = 100;
     private int spriteFlipTime = 100;
     private int spriteIndex = 0;
+
+    private boolean draggingObjects = false;
+    private final java.util.Map<GameObject, Vector2f> dragStartPositions = new java.util.HashMap<>();
+
 
     public EditorView() {
         System.out.println("Editor Scene Initialized");
@@ -80,7 +85,9 @@ public class EditorView extends View {
             }
         }
 
+        IdGenerator.resetCurrentIdFromObjects(this.gameObjects);
     }
+
 
     private void loadResources() {
         AssetPool.getShader(DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER);
@@ -128,6 +135,14 @@ public class EditorView extends View {
 
     }
 
+    public GameObject getObjectById(long id) {
+        for (GameObject go : gameObjects) {
+            if (go.getId() == id) return go;
+        }
+        return null;
+    }
+
+
     private void keyboardHandles() {
         if (KeyListener.isKeyTyped(GLFW_KEY_TAB)) {
             Window.setCurrentView(1);
@@ -142,6 +157,12 @@ public class EditorView extends View {
 
         if (KeyListener.isKeyPressed(GLFW_KEY_LEFT_CONTROL) && KeyListener.isKeyTyped(GLFW_KEY_D)) {
             duplicateSelected();
+        }
+        if (KeyListener.isKeyPressed(GLFW_KEY_LEFT_CONTROL) && KeyListener.isKeyTyped(GLFW_KEY_Z)) {
+            Window.getActionManager().undo();
+        }
+        if (KeyListener.isKeyPressed(GLFW_KEY_LEFT_CONTROL) && KeyListener.isKeyTyped(GLFW_KEY_Y)) {
+            Window.getActionManager().redo();
         }
 
         if (KeyListener.isKeyPressed(GLFW_KEY_LEFT_CONTROL) && KeyListener.isKeyTyped(GLFW_KEY_A)) {
@@ -472,7 +493,16 @@ public class EditorView extends View {
 
                 if (contains) {
                     dragging = true;
-                    dragOffset.set(mouseWorld.x - activeTransform.position.x, mouseWorld.y - activeTransform.position.y);
+                    draggingObjects = true;
+                    dragOffset.set(
+                            mouseWorld.x - activeTransform.position.x,
+                            mouseWorld.y - activeTransform.position.y
+                    );
+
+                    dragStartPositions.clear();
+                    for (GameObject go : RightSidebar.selectedObjects) {
+                        dragStartPositions.put(go, new Vector2f(go.transform.position));
+                    }
                 }
             }
 
@@ -491,6 +521,37 @@ public class EditorView extends View {
 
         } else {
             dragging = false;
+            if (!MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_1) && draggingObjects) {
+
+                draggingObjects = false;
+
+                java.util.Map<GameObject, Vector2f> endPositions = new java.util.HashMap<>();
+
+                boolean moved = false;
+
+                for (GameObject go : dragStartPositions.keySet()) {
+                    Vector2f start = dragStartPositions.get(go);
+                    Vector2f end = new Vector2f(go.transform.position);
+                    endPositions.put(go, end);
+
+                    if (!start.equals(end)) {
+                        moved = true;
+                    }
+                }
+
+                if (moved) {
+                    Window.getActionManager().execute(
+                            new actions.MultiMoveAction(
+                                    "Move Objects",
+                                    new java.util.HashMap<>(dragStartPositions),
+                                    endPositions
+                            )
+                    );
+                }
+
+                dragStartPositions.clear();
+            }
+
         }
 
         if (MouseListener.mouseButtonDown(GLFW_MOUSE_BUTTON_1)) {
