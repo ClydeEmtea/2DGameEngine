@@ -205,4 +205,9 @@ public class ScriptComponent extends Component {
 
     }
 
+    @Override
+    public Component copy() {
+        return new ScriptComponent(this.className, this.filePath);
+    }
+
 }

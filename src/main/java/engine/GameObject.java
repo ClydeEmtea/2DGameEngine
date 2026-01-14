@@ -250,36 +250,8 @@ public class GameObject implements HasId {
         if (ImGui.beginDragDropTarget()) {
             Object payload = ImGui.acceptDragDropPayload("ASSET_FILE");
 
-            if (payload != null) {
-
-                // --- SNAPSHOT BEFORE ---
-                List<Component> before = new ArrayList<>();
-
-                // --- APPLY DROP ---
+            if (payload != null)
                 onAssetDropped((String) payload);
-
-                // --- SNAPSHOT AFTER ---
-                List<Component> after = new ArrayList<>(components);
-
-                // --- CREATE ACTION ---
-                Window.getActionManager().execute(
-                        new ValueChangeAction<>(
-                                "Drop Asset",
-                                this,
-                                (go, newComponents) -> {
-                                    go.components.clear();
-                                    go.components.addAll(newComponents);
-
-                                    // znovu napoj GameObject reference
-                                    for (Component c : newComponents) {
-                                        c.gameObject = go;
-                                    }
-                                },
-                                before,
-                                after
-                        )
-                );
-            }
 
             ImGui.endDragDropTarget();
         }
@@ -719,13 +691,28 @@ public class GameObject implements HasId {
 
                 SpriteRenderer sr = getComponent(SpriteRenderer.class);
 
+                Sprite newSprite = new Sprite(AssetPool.getTexture(relativePath));
+
+
                 if (sr == null) {
+
                     sr = new SpriteRenderer(
                             new Sprite(AssetPool.getTexture(relativePath))
                     );
                     addComponent(sr);
                 } else {
-                    sr.setSprite(relativePath);
+                    // změna sprite – s undo/redo
+                    Sprite oldSprite = sr.getSprite();
+
+                    Window.getActionManager().execute(
+                            new ValueChangeAction<>(
+                                    "Change Sprite",
+                                    this,
+                                    (go, sprite) -> go.getComponent(SpriteRenderer.class).setSprite(sprite),
+                                    oldSprite,
+                                    newSprite
+                            )
+                    );
                 }
 
                 System.out.println("Texture assigned: " + relativePath);

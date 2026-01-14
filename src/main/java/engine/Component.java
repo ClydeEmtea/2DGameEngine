@@ -28,4 +28,8 @@ public abstract class Component {
     public void initScriptEditor() {};
 
     public void updateScript(float dt) {}
+
+    public Component copy() {
+        return this;
+    }
 }

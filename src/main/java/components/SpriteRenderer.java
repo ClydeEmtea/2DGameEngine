@@ -1,5 +1,6 @@
 package components;
 
+import actions.ComponentValueChangeAction;
 import engine.Component;
 import engine.Transform;
 import engine.Window;
@@ -136,19 +137,38 @@ public class SpriteRenderer extends Component {
             }
         }
 
-        // --- CHECKBOXY ---
-        ImGui.checkbox("Flip X", flippedX);
-        ImGui.checkbox("Flip Y", flippedY);
+// ---------- FLIP X ----------
+        if (ImGui.checkbox("Flip X", flippedX)) {
+            boolean oldX = flipX;
+            boolean newX = flippedX.get();
 
-        // --- SYNCHRONIZACE STAVU ---
-        if (flippedX.get() != flipX) {
-            flipX = flippedX.get();
-            flip(true, false);
+            Window.getActionManager().execute(
+                    new ComponentValueChangeAction<>(
+                            "Flip Sprite X",
+                            gameObject,
+                            SpriteRenderer.class,
+                            (sr, v) -> sr.setFlip(v, sr.getFlipY()),
+                            oldX,
+                            newX
+                    )
+            );
         }
 
-        if (flippedY.get() != flipY) {
-            flipY = flippedY.get();
-            flip(false, true);
+        // ---------- FLIP Y ----------
+        if (ImGui.checkbox("Flip Y", flippedY)) {
+            boolean oldY = flipY;
+            boolean newY = flippedY.get();
+
+            Window.getActionManager().execute(
+                    new ComponentValueChangeAction<>(
+                            "Flip Sprite Y",
+                            gameObject,
+                            SpriteRenderer.class,
+                            (sr, v) -> sr.setFlip(sr.getFlipX(), v),
+                            oldY,
+                            newY
+                    )
+            );
         }
 
 
@@ -210,7 +230,9 @@ public class SpriteRenderer extends Component {
         return sprite;
     }
 
+    @Override
     public SpriteRenderer copy() {
+        System.out.println("Copying SpriteRenderer");
         SpriteRenderer copy = new SpriteRenderer(this.color);
         copy.sprite = this.sprite;
         copy.flipX = this.flipX;
