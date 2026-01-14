@@ -281,9 +281,9 @@ public class Window implements Observer {
         // Make the window visible
         glfwShowWindow(glfwWindow);
 
-//        ProjectManager.get().openProject("/home/milan/Documents/Projekt/project.json");
+        ProjectManager.get().openProject("/home/milan/Documents/Projekt/project.json");
 //        ProjectManager.get().openProject("C:\\Users\\milda\\Desktop\\TestovaciProjekt\\project.json");
-        ProjectManager.get().openProject("C:/Users/EmTea/Desktop/jrbu/project.json");
+//        ProjectManager.get().openProject("C:/Users/EmTea/Desktop/jrbu/project.json");
 
 
         Window.setCurrentView(0);

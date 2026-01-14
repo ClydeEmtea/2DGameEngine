@@ -1,5 +1,6 @@
 package physics2d.components;
 
+import actions.ComponentValueChangeAction;
 import engine.Component;
 import engine.Window;
 import imgui.ImGui;
@@ -11,6 +12,10 @@ public class CapsuleCollider extends Collider {
 
     private float radius = 0.25f;
     private float height = 1.0f;
+
+    private Vector2f offsetDragStart = new Vector2f();
+    private float radiusDragStart;
+    private float heightDragStart;
 
     public float getRadius() {
         return radius;
@@ -53,22 +58,96 @@ public class CapsuleCollider extends Collider {
         ImGui.text("CapsuleCollider");
 
         float[] r = { radius };
-        if (ImGui.dragFloat("Radius", r, 0.01f, 0.01f, 10.0f)) {
+        ImGui.dragFloat("Radius", r, 0.01f, 0.01f, 10.0f);
+
+        if (ImGui.isItemActivated()) {
+            radiusDragStart = radius;
+        }
+
+        if (ImGui.isItemEdited()) {
             setRadius(r[0]);
         }
 
-        float[] h = { height };
-        if (ImGui.dragFloat("Height", h, 0.01f, radius * 2f, 20.0f)) {
-            setHeight(h[0]);
+        if (ImGui.isItemDeactivatedAfterEdit()) {
+            float oldRadius = radiusDragStart;
+            float newRadius = radius;
+            Window.getActionManager().execute(
+                    new ComponentValueChangeAction<>(
+                            "Change Collider Radius",
+                            gameObject,
+                            CapsuleCollider.class,
+                            CapsuleCollider::setRadius,
+                            oldRadius,
+                            newRadius
+                    )
+            );
         }
 
-        float[] off = { getOffset().x, getOffset().y };
-        if (ImGui.dragFloat2("Offset", off, 0.01f)) {
-            setOffset(new Vector2f(off[0], off[1]));
+        float[] h = { height };
+        ImGui.dragFloat("Height", h, 0.01f, radius * 2f, 20.0f);
+
+        if (ImGui.isItemActivated()) {
+            heightDragStart = height;
+        }
+        if (ImGui.isItemEdited()) {
+            setHeight(h[0]);
+        }
+        if (ImGui.isItemDeactivatedAfterEdit()) {
+            float oldHeight = heightDragStart;
+            float newHeight = height;
+            Window.getActionManager().execute(
+                    new ComponentValueChangeAction<>(
+                            "Change Collider Height",
+                            gameObject,
+                            CapsuleCollider.class,
+                            CapsuleCollider::setHeight,
+                            oldHeight,
+                            newHeight
+                    )
+            );
+        }
+
+        float[] offset = {getOffset().x, getOffset().y};
+        ImGui.dragFloat2("Offset", offset, 0.01f);
+
+        if (ImGui.isItemActivated()) {
+            offsetDragStart.set(getOffset());
+        }
+
+        if (ImGui.isItemEdited()) {
+            setOffset(new Vector2f(offset[0], offset[1]));
+        }
+        if (ImGui.isItemDeactivatedAfterEdit()) {
+            Vector2f oldOffset = new Vector2f(offsetDragStart);
+            Vector2f newOffset = new Vector2f(getOffset());
+            Window.getActionManager().execute(
+                    new ComponentValueChangeAction<>(
+                            "Change Collider Offset",
+                            gameObject,
+                            CapsuleCollider.class,
+                            CapsuleCollider::setOffset,
+                            oldOffset,
+                            newOffset
+                    )
+            );
         }
 
         if (ImGui.button("Reset offset")) {
-            setOffset(new Vector2f(0, 0));
+            Vector2f oldOffset = new Vector2f(getOffset());
+            Vector2f newOffset = new Vector2f(0, 0);
+
+            setOffset(newOffset);
+
+            Window.getActionManager().execute(
+                    new ComponentValueChangeAction<>(
+                            "Reset Collider Offset",
+                            gameObject,
+                            CapsuleCollider.class,
+                            CapsuleCollider::setOffset,
+                            oldOffset,
+                            newOffset
+                    )
+            );
         }
     }
 }

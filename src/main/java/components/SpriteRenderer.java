@@ -209,4 +209,20 @@ public class SpriteRenderer extends Component {
     public Sprite getSprite() {
         return sprite;
     }
+
+    public SpriteRenderer copy() {
+        SpriteRenderer copy = new SpriteRenderer(this.color);
+        copy.sprite = this.sprite;
+        copy.flipX = this.flipX;
+        copy.flipY = this.flipY;
+        copy.isColorOnly = this.isColorOnly;
+        if (this.customVertices != null) {
+            Vector2f[] verticesCopy = new Vector2f[this.customVertices.length];
+            for (int i = 0; i < this.customVertices.length; i++) {
+                verticesCopy[i] = new Vector2f(this.customVertices[i]);
+            }
+            copy.customVertices = verticesCopy;
+        }
+        return copy;
+    }
 }

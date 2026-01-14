@@ -217,11 +217,31 @@ public class GameObject implements HasId {
     }
 
     public void imgui() {
+// --- Name ---
         ImGui.inputText("##Name", imName);
         ImGui.sameLine();
+
         if (ImGuiUtils.lightBlueButton("Submit")) {
-            if (imName.isNotEmpty()) setName(String.valueOf(imName));
+            if (imName.isNotEmpty()) {
+                String oldName = getName();
+                String newName = imName.get();
+
+                if (!oldName.equals(newName)) {
+                    setName(newName);
+
+                    Window.getActionManager().execute(
+                            new ValueChangeAction<>(
+                                    "Change Name",
+                                    this,
+                                    GameObject::setName,
+                                    oldName,
+                                    newName
+                            )
+                    );
+                }
+            }
         }
+
 
         ImGui.beginGroup();
 
@@ -229,13 +249,43 @@ public class GameObject implements HasId {
 
         if (ImGui.beginDragDropTarget()) {
             Object payload = ImGui.acceptDragDropPayload("ASSET_FILE");
+
             if (payload != null) {
+
+                // --- SNAPSHOT BEFORE ---
+                List<Component> before = new ArrayList<>();
+
+                // --- APPLY DROP ---
                 onAssetDropped((String) payload);
+
+                // --- SNAPSHOT AFTER ---
+                List<Component> after = new ArrayList<>(components);
+
+                // --- CREATE ACTION ---
+                Window.getActionManager().execute(
+                        new ValueChangeAction<>(
+                                "Drop Asset",
+                                this,
+                                (go, newComponents) -> {
+                                    go.components.clear();
+                                    go.components.addAll(newComponents);
+
+                                    // znovu napoj GameObject reference
+                                    for (Component c : newComponents) {
+                                        c.gameObject = go;
+                                    }
+                                },
+                                before,
+                                after
+                        )
+                );
             }
+
             ImGui.endDragDropTarget();
         }
 
         ImGui.endGroup();
+
 
         float[] pos = {
                 transform.position.x * EDITOR_SCALE,
