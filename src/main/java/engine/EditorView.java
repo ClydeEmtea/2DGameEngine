@@ -1,6 +1,7 @@
 package engine;
 
 import actions.MultiCreateGameObjectAction;
+import actions.MultiDeleteGameObjectAction;
 import components.*;
 import gui.ObjectCreationWindow;
 import gui.RightSidebar;
@@ -177,24 +178,25 @@ public class EditorView extends View {
         }
 
         if (KeyListener.isKeyTyped(GLFW_KEY_DELETE)) {
-            for (GameObject go : new ArrayList<>(RightSidebar.selectedObjects)) {
-                RightSidebar.selectedObjects.remove(go);
-                removeGameObject(go);
+
+            List<GameObject> toDelete = new ArrayList<>();
+
+            toDelete.addAll(RightSidebar.selectedObjects);
+
+            for (Group g : RightSidebar.selectedGroups) {
+                toDelete.addAll(g.getObjects());
             }
-            for (Group g : new ArrayList<>(RightSidebar.selectedGroups)) {
-                for (GameObject go : new ArrayList<>(g.getObjects())) {
-                    g.remove(go);
-                    root.add(go);
-                }
-                for (Group group : new ArrayList<>(g.getGroups())) {
-                    g.removeGroup(group);
-                    root.addGroup(group);
-                }
-                root.removeGroup(g);
-            }
+
+            Window.getActionManager().execute(
+                    new MultiDeleteGameObjectAction("Delete", toDelete)
+            );
+
+            RightSidebar.selectedObjects.clear();
+            RightSidebar.selectedGroups.clear();
             activeGameObject = null;
             activeGroup = null;
         }
+
     }
 
     private void duplicateSelected() {

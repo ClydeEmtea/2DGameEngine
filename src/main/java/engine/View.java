@@ -239,4 +239,8 @@ public class View {
     public List<GameObject> getAllGameObjects() {
         return this.gameObjects;
     }
+
+    public Group findParentGroupOfGameObject(GameObject gameObject) {
+        return root.findParentOf(gameObject);
+    }
 }

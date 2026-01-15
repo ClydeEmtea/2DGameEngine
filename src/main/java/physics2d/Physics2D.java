@@ -22,8 +22,8 @@ public class Physics2D {
     private World world = new World(gravity);
 
     private float physicsTime = 0.0f;
-    private float physicsTimeStep = 1.0f / 60.0f;
-//    private float physicsTimeStep = 1.0f / 100.0f;
+//    private float physicsTimeStep = 1.0f / 60.0f;
+    private float physicsTimeStep = 1.0f / 100.0f;
     private int velocityIterations = 16;
     private int positionIterations = 6;
 

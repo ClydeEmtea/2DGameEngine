@@ -219,6 +219,11 @@ public class GameObject implements HasId {
         return transform.rotation;
     }
 
+    public Group getParentGroup() {
+        var view = Window.getView();
+        return view.findParentGroupOfGameObject(this);
+    }
+
     public void imgui() {
 // --- Name ---
         ImGui.inputText("##Name", imName);
