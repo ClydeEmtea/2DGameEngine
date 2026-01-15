@@ -1,5 +1,6 @@
 package engine;
 
+import actions.MultiCreateGameObjectAction;
 import components.*;
 import gui.ObjectCreationWindow;
 import gui.RightSidebar;
@@ -279,11 +280,16 @@ public class EditorView extends View {
 
             duplicates.add(created);
         }
+
+        Window.getActionManager().execute(
+                new MultiCreateGameObjectAction(
+                        "Duplicate GameObject",
+                        duplicates
+                )
+        );
+
         RightSidebar.selectedObjects.clear();
-        for (GameObject go : duplicates) {
-            addGameObjectToView(go);
-            RightSidebar.selectedObjects.add(go);
-        }
+        RightSidebar.selectedObjects.addAll(duplicates);
         activeGameObject = duplicates.get(0);
     }
 
@@ -787,9 +793,9 @@ public class EditorView extends View {
             }
             ImGui.treePop();
         }
-        if (ImGui.button("Add GameObject")) {
-            this.showCreationWindow = !this.showCreationWindow;
-        }
+//        if (ImGui.button("Add GameObject")) {
+//            this.showCreationWindow = !this.showCreationWindow;
+//        }
 
         if (this.showCreationWindow) {
             if (ObjectCreationWindow.imgui(this)) {
@@ -805,15 +811,32 @@ public class EditorView extends View {
         }
 
         if (ImGui.beginPopup("SceneContextMenu")) {
+
             if (ImGui.menuItem("Add GameObject")) {
-                GameObject go = Window.getView().createNewObject();
-                go.transform.position = camera.screenToWorld(
-                        MouseListener.getX(),
-                        MouseListener.getY()
+
+                GameObject go = createNewObjectWithoutAdding();
+
+                go.transform.position.set(
+                        camera.screenToWorld(
+                                MouseListener.getX(),
+                                MouseListener.getY()
+                        )
                 );
+
+                Window.getActionManager().execute(
+                        new MultiCreateGameObjectAction(
+                                "Create GameObject",
+                                List.of(go)
+                        )
+                );
+
+                Window.getView().setActiveGameObject(go);
             }
+
             ImGui.endPopup();
         }
+
+
 
         if (ImGui.beginPopup("ActiveGOContextMenu")) {
             if (ImGui.menuItem("Set to background")) {

@@ -167,6 +167,9 @@ public class GameObject implements HasId {
     }
 
     public ShapeType getShapeType() {
+        if (getComponent(ShapeRenderer.class) == null) {
+            addComponent(new ShapeRenderer());
+        }
         return getComponent(ShapeRenderer.class).getShapeType();
     }
 
