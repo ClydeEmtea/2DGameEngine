@@ -363,6 +363,7 @@ public class ProjectManager {
             rb.setLinearDamping(god.rigidBody.linearDamping);
             rb.setFixedRotation(god.rigidBody.fixedRotation);
             rb.setContinuousCollision(god.rigidBody.continuousCollision);
+            rb.setSensor(god.rigidBody.isSensor);
             rb.setBodyType(BodyType.valueOf(god.rigidBody.bodyType));
 
             rb.setDensity(god.rigidBody.density);
@@ -553,6 +554,7 @@ public class ProjectManager {
             god.rigidBody.linearDamping = rigidBody.getLinearDamping();
             god.rigidBody.fixedRotation = rigidBody.isFixedRotation();
             god.rigidBody.continuousCollision = rigidBody.isContinuousCollision();
+            god.rigidBody.isSensor = rigidBody.isSensor();
             god.rigidBody.bodyType = String.valueOf(rigidBody.getBodyType());
 
             god.rigidBody.density = rigidBody.getDensity();
@@ -834,6 +836,7 @@ class RigidBodyData {
     float linearDamping;
     boolean fixedRotation;
     boolean continuousCollision;
+    boolean isSensor;
     String bodyType;
 
     float density;

@@ -13,11 +13,9 @@ import observers.EventSystem;
 import observers.EventType;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
-import physics2d.components.Box2DCollider;
-import physics2d.components.CapsuleCollider;
-import physics2d.components.CircleCollider;
-import physics2d.components.RigidBody2D;
+import physics2d.components.*;
 import project.ProjectManager;
+import scripts.Script;
 import util.AssetPool;
 import util.HasId;
 import util.IdGenerator;
@@ -119,6 +117,16 @@ public class GameObject implements HasId {
         return result;
     }
 
+    public List<Script> getAllScriptInstances() {
+        List<Script> result = new ArrayList<>();
+        for (Component c : components) {
+            if (c instanceof ScriptComponent sc) {
+                result.add(sc.getScriptInstance());
+            }
+        }
+        return result;
+    }
+
     public List<Component> getAllAnimations() {
         List<Component> result = new ArrayList<>();
         for (Component c : components) {
@@ -135,6 +143,10 @@ public class GameObject implements HasId {
 
         if (c instanceof ScriptComponent sc) {
             sc.onAddedToGameObject();
+        }
+
+        if (getComponent(CollisionComponent.class) == null) {
+            addComponent(new CollisionComponent());
         }
     }
 

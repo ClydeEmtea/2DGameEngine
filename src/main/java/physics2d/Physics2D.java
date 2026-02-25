@@ -7,10 +7,7 @@ import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.*;
 import org.joml.Vector2f;
-import physics2d.components.Box2DCollider;
-import physics2d.components.CapsuleCollider;
-import physics2d.components.CircleCollider;
-import physics2d.components.RigidBody2D;
+import physics2d.components.*;
 
 public class Physics2D {
     private Vec2 gravity = new Vec2(0, -10.0f);
@@ -21,9 +18,11 @@ public class Physics2D {
 
     private World world = new World(gravity);
 
+    private final ContactListener contactListener = new ContactListener();
+
     private float physicsTime = 0.0f;
-//    private float physicsTimeStep = 1.0f / 60.0f;
-    private float physicsTimeStep = 1.0f / 100.0f;
+    private float physicsTimeStep = 1.0f / 60.0f;
+//    private float physicsTimeStep = 1.0f / 100.0f;
     private int velocityIterations = 16;
     private int positionIterations = 6;
 
@@ -49,6 +48,8 @@ public class Physics2D {
             Body body = this.world.createBody(bodyDef);
             rb.setRawBody(body);
 
+            body.setUserData(go);
+
             CircleCollider cc = go.getComponent(CircleCollider.class);
             if (cc != null) {
                 CircleShape shape = new CircleShape();
@@ -60,6 +61,7 @@ public class Physics2D {
                 fd.density = rb.getDensity();
                 fd.friction = rb.getFriction();
                 fd.restitution = rb.getRestitution();
+                fd.isSensor = rb.isSensor();
 
                 body.createFixture(fd);
             }
@@ -76,6 +78,7 @@ public class Physics2D {
                 fd.density = rb.getDensity();
                 fd.friction = rb.getFriction();
                 fd.restitution = rb.getRestitution();
+                fd.isSensor = rb.isSensor();
 
                 System.out.println("Density: " + fd.density + " Friction: " + fd.friction + " Restitution: " + fd.restitution);
 
@@ -100,6 +103,7 @@ public class Physics2D {
                 topFD.density = rb.getDensity();
                 topFD.friction = rb.getFriction();
                 topFD.restitution = rb.getRestitution();
+                topFD.isSensor = rb.isSensor();
                 body.createFixture(topFD);
 
                 // dolní kruh
@@ -111,6 +115,7 @@ public class Physics2D {
                 bottomFD.density = rb.getDensity();
                 bottomFD.friction = rb.getFriction();
                 bottomFD.restitution = rb.getRestitution();
+                bottomFD.isSensor = rb.isSensor();
                 body.createFixture(bottomFD);
 
                 // střední box
@@ -121,6 +126,7 @@ public class Physics2D {
                 boxFD.density = rb.getDensity();
                 boxFD.friction = rb.getFriction();
                 boxFD.restitution = rb.getRestitution();
+                boxFD.isSensor = rb.isSensor();
                 body.createFixture(boxFD);
             }
 
@@ -129,11 +135,72 @@ public class Physics2D {
         }
     }
 
+    private void clearAllCollisions() {
+        for (Body b = world.getBodyList(); b != null; b = b.getNext()) {
+            GameObject go = (GameObject) b.getUserData();
+            if (go == null) continue;
+
+            CollisionComponent cc = go.getComponent(CollisionComponent.class);
+            if (cc != null) {
+                cc.clear();
+            }
+        }
+    }
+
+    private void addCollision(GameObject self, GameObject other) {
+        CollisionComponent cc = self.getComponent(CollisionComponent.class);
+        if (cc != null) {
+            cc.begin(other);
+        }
+    }
+
     public void update(float dt) {
         physicsTime += dt;
-        if (physicsTime >= 0) {
+        if (physicsTime >= physicsTimeStep) {
             physicsTime -= physicsTimeStep;
+
+            for (Body b = world.getBodyList(); b != null; b = b.getNext()) {
+                GameObject go = (GameObject) b.getUserData();
+                if (go == null) continue;
+
+                CollisionComponent cc = go.getComponent(CollisionComponent.class);
+                if (cc != null) {
+                    cc.sync();
+                    cc.clear();
+                }
+            }
+
             world.step(physicsTimeStep, velocityIterations, positionIterations);
+
+            for (var c = world.getContactList(); c != null; c = c.getNext()) {
+                if (!c.isTouching()) continue;
+
+                GameObject a = (GameObject) c.getFixtureA().getBody().getUserData();
+                GameObject b = (GameObject) c.getFixtureB().getBody().getUserData();
+
+                if (a == null || b == null) continue;
+
+                addCollision(a, b);
+                addCollision(b, a);
+            }
+
+            for (Body b = world.getBodyList(); b != null; b = b.getNext()) {
+                GameObject go = (GameObject) b.getUserData();
+                if (go == null) continue;
+
+                CollisionComponent cc = go.getComponent(CollisionComponent.class);
+                if (cc == null) continue;
+
+                // ENTER
+                for (GameObject entered : cc.getEntered()) {
+                    go.getAllScriptInstances().forEach(s -> s.onCollisionEnter(entered));
+                }
+
+                // EXIT
+                for (GameObject exited : cc.getExited()) {
+                    go.getAllScriptInstances().forEach(s -> s.onCollisionExit(exited));
+                }
+            }
         }
     }
 

@@ -34,6 +34,7 @@ public class RigidBody2D extends Component {
     private float frictionDragStart;
     private float restitutionDragStart;
 
+    private boolean isSensor = false;
 
     public float getDensity() { return density; }
     public float getFriction() { return friction; }
@@ -116,6 +117,14 @@ public class RigidBody2D extends Component {
 
     public void setRawBody(Body rawBody) {
         this.rawBody = rawBody;
+    }
+
+    public boolean isSensor() {
+        return isSensor;
+    }
+
+    public void setSensor(boolean sensor) {
+        isSensor = sensor;
     }
 
     @Override
@@ -215,6 +224,23 @@ public class RigidBody2D extends Component {
                             RigidBody2D::setLinearDamping,
                             linearDampingDragStart,
                             linearDamping
+                    )
+            );
+        }
+
+        // --- Sensor ---
+        ImBoolean sensor = new ImBoolean(isSensor);
+        if (ImGui.checkbox("Is Sensor", sensor)) {
+            boolean oldVal = isSensor;
+            isSensor = sensor.get();
+            Window.getActionManager().execute(
+                    new ComponentValueChangeAction<>(
+                            "Toggle Sensor",
+                            gameObject,
+                            RigidBody2D.class,
+                            RigidBody2D::setSensor,
+                            oldVal,
+                            isSensor
                     )
             );
         }
