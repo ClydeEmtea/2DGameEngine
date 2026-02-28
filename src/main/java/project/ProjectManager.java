@@ -97,9 +97,6 @@ public class ProjectManager {
 
     }
 
-    public void createNewProjectWithScenes(String name, String path) {
-        // Implement project creation with default scenes logic here
-    }
 
     public void createNewScene(String name) {
         if (currentProject == null) return;
@@ -282,14 +279,12 @@ public class ProjectManager {
 
             if (sceneData == null) return null;
 
-            // Root-level objekty
             if (sceneData.objects != null) {
                 for (GameObjectData god : sceneData.objects) {
                     root.add(dataToGameObject(god));
                 }
             }
 
-            // Root-level groups
             if (sceneData.groups != null) {
                 for (GroupData gd : sceneData.groups) {
                     root.addGroup(dataToGroup(gd));
@@ -442,12 +437,10 @@ public class ProjectManager {
     private Group dataToGroup(GroupData gd) {
         Group group = new Group(gd.name);
 
-        // Přidáme všechny objekty
         for (GameObjectData god : gd.objects) {
             group.add(dataToGameObject(god));
         }
 
-        // Rekurzivně přidáme všechny podskupiny
         for (GroupData sub : gd.groups) {
             group.addGroup(dataToGroup(sub));
         }
@@ -649,12 +642,10 @@ public class ProjectManager {
         GroupData gd = new GroupData();
         gd.name = g.getName();
 
-        // Uložíme všechny objekty v group
         for (GameObject go : g.getObjects()) {
             gd.objects.add(gameObjectToData(go));
         }
 
-        // Rekurzivně uložíme všechny podskupiny
         for (Group sub : g.getGroups()) {
             gd.groups.add(groupToData(sub));
         }

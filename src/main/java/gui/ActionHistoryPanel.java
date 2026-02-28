@@ -13,7 +13,6 @@ public class ActionHistoryPanel {
         ImGui.text("Action History");
         ImGui.separator();
 
-        // Scrollovací oblast (300px výška)
         ImGui.beginChild(
                 "ActionHistoryScroll",
                 0,

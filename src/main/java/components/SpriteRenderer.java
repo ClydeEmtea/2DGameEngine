@@ -200,29 +200,24 @@ public class SpriteRenderer extends Component {
 
 
     public void setFlip(boolean horizontal, boolean vertical) {
-        // horizontální flip
         if (flipX != horizontal) {
             flipX = horizontal;
-            sprite.flipHorizontally(); // swap pouze pokud se stav mění
+            sprite.flipHorizontally();
             setDirty();
         }
 
-        // vertikální flip
         if (flipY != vertical) {
             flipY = vertical;
-            sprite.flipVertically(); // swap pouze pokud se stav mění
+            sprite.flipVertically();
             setDirty();
         }
 
-        // synchronizace ImGui checkboxů
         flippedX.set(flipX);
         flippedY.set(flipY);
     }
 
 
-    /**
-     * Rychlé getter metody pro skript
-     */
+
     public boolean getFlipX() { return flipX; }
     public boolean getFlipY() { return flipY; }
 

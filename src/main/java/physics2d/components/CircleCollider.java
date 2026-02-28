@@ -1,7 +1,6 @@
 package physics2d.components;
 
 import actions.ComponentValueChangeAction;
-import engine.Component;
 import engine.Window;
 import imgui.ImGui;
 import org.joml.Vector2f;

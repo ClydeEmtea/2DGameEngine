@@ -70,13 +70,11 @@ public class Group {
         float deltaX = x - avgX;
         float deltaY = y - avgY;
 
-        // Posun všech objektů
         for (GameObject go : objects) {
             go.transform.position.x += deltaX;
             go.transform.position.y += deltaY;
         }
 
-        // Rekurzivně posun subgroups
         for (Group g : groups) {
             g.moveTo(g.getCenterX() + deltaX, g.getCenterY() + deltaY);
         }
@@ -147,19 +145,16 @@ public class Group {
     }
 
     public boolean containsRecursively(GameObject go) {
-        // Zkontrolujeme, jestli je objekt přímo v této group
         if (objects.contains(go)) {
             return true;
         }
 
-        // Rekurzivně projdeme všechny podskupiny
         for (Group g : groups) {
             if (g.containsRecursively(go)) {
                 return true;
             }
         }
 
-        // Nenašli jsme
         return false;
     }
     public Group findParentOf(GameObject go) {

@@ -107,25 +107,21 @@ public class View {
                 return go;
             }
         }
-        return null; // nenalezeno
+        return null;
     }
 
     public GameObject createNewObject() {
-        // Základní jméno
         String baseName = "GameObject";
         String name = baseName;
         int index = 1;
 
-        // Zajistíme unikátní jméno
         while (getObjectByName(name) != null) {
             name = baseName + " (" + index + ")";
             index++;
         }
 
-        // Vytvoření transformace
         Transform transform = new Transform(new Vector2f(0, 0), new Vector2f(0.5f, 0.5f), 0);
 
-        // Vytvoření GameObjectu
         GameObject go = new GameObject(name, transform, 50);
         go.addComponent(new SpriteRenderer(
                 new Vector4f(1, 1, 1, 1)
@@ -133,28 +129,23 @@ public class View {
 
         go.addComponent(new ShapeRenderer());
 
-        // Přidání do seznamu a root
         addGameObjectToView(go);
 
         return go;
     }
 
     public GameObject createNewObjectWithoutAdding() {
-        // Základní jméno
         String baseName = "GameObject";
         String name = baseName;
         int index = 1;
 
-        // Zajistíme unikátní jméno
         while (getObjectByName(name) != null) {
             name = baseName + " (" + index + ")";
             index++;
         }
 
-        // Vytvoření transformace
         Transform transform = new Transform(new Vector2f(0, 0), new Vector2f(0.5f, 0.5f), 0);
 
-        // Vytvoření GameObjectu
         GameObject go = new GameObject(name, transform, 50);
         go.addComponent(new SpriteRenderer(
                 new Vector4f(1, 1, 1, 1)
@@ -181,7 +172,7 @@ public class View {
             }
         }
 
-        return null; // nenalezeno
+        return null;
     }
 
 

@@ -11,7 +11,6 @@ import project.ProjectManager;
 import render.Texture;
 import util.AssetPool;
 
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -152,12 +151,9 @@ public class Animation extends Component {
                         return;
                     }
                 }
-                System.out.println("Setting texture: " + sprites.get(currentFrame).getTexture().getFilePath());
                 gameObject.getComponent(SpriteRenderer.class).setSprite(sprites.get(currentFrame));
             }
         }
-
-
     }
 
     @Override
@@ -278,7 +274,7 @@ public class Animation extends Component {
                         ImGui.getItemRectMinY(),
                         ImGui.getItemRectMaxX(),
                         ImGui.getItemRectMaxY(),
-                        0xFF4DA3FF, // modrá = selected
+                        0xFF4DA3FF,
                         0.0f,
                         0,
                         3.0f
@@ -325,7 +321,6 @@ public class Animation extends Component {
                 int[] payload = ImGui.acceptDragDropPayload("ANIM_FRAME_MULTI");
                 if (payload != null) {
 
-                    // seřadit, ať nepadnou indexy
                     java.util.Arrays.sort(payload);
 
                     List<Sprite> moved = new ArrayList<>();
@@ -375,7 +370,7 @@ public class Animation extends Component {
 
         if (ImGui.button("Delete Selected") && !selectedFrames.isEmpty()) {
             selectedFrames.stream()
-                    .sorted((a, b) -> b - a) // mazat odzadu
+                    .sorted((a, b) -> b - a)
                     .forEach(idx -> sprites.remove((int) idx));
             clearSelection();
             selectionAnchor = -1;
@@ -436,7 +431,6 @@ public class Animation extends Component {
 
 
     private void drawSpritesheetPopup() {
-        // místo openPopup/modal použij beginChild/okno bez modalu
         ImGui.setNextWindowSize(400, 250, ImGuiCond.Once);
         if (ImGui.begin("Add Spritesheet", ImGuiWindowFlags.NoCollapse)) {
 
@@ -453,14 +447,12 @@ public class Animation extends Component {
                 if (payload != null) {
                     String fullPath = (String) payload;
 
-                    // povolené formáty
                     if (fullPath.endsWith(".png") || fullPath.endsWith(".jpg") || fullPath.endsWith(".jpeg")) {
 
                         String imagesPath = String.valueOf(ProjectManager.get()
                                 .getCurrentProject()
                                 .getImagesPath());
 
-                        // normalizace cest
                         fullPath = fullPath.replace("\\", "/");
                         imagesPath = imagesPath.replace("\\", "/");
 

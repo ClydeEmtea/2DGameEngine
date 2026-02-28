@@ -11,7 +11,7 @@ public class ValueChangeAction<T> implements EditorAction {
 
     private final String name;
     private final long objectId;
-    private final BiConsumer<GameObject, T> setter; // setter bere objekt + hodnotu
+    private final BiConsumer<GameObject, T> setter;
     private final T oldValue;
     private final T newValue;
 

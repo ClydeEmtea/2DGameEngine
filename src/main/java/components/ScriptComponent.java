@@ -69,13 +69,10 @@ public class ScriptComponent extends Component {
     }
 
     private void reloadScript() {
-        // 1. Compile
         ScriptCompiler.compile(filePath);
 
-        // 2. Reload
         Script newScript = ScriptLoader.loadScript(filePath.getParent(), className);
         if (newScript != null) {
-            // 3. Copy environment a instance
             newScript.setEnvironment(this.gameObject, Window.get(), MouseListener.get(), KeyListener.get());
             this.scriptInstance = newScript;
             System.out.println("Script reloaded: " + className);
@@ -192,7 +189,7 @@ public class ScriptComponent extends Component {
                 String name = field.getName();
                 Object value = field.get(scriptInstance);
 
-                String text = type + " " + name + " = " + String.valueOf(value);
+                String text = type + " " + name + " = " + value;
                 ImGui.text(text);
 
             } catch (IllegalAccessException e) {

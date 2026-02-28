@@ -3,8 +3,6 @@ package actions;
 import engine.Component;
 import engine.GameObject;
 import engine.Window;
-import org.joml.Vector2f;
-import org.joml.Vector4f;
 
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -14,7 +12,7 @@ public class ComponentValueChangeAction<T extends Component, V> implements Edito
     private final String name;
     private final long objectId;
     private final Class<T> componentClass;
-    private final BiConsumer<T, V> setter; // setter bere komponentu + hodnotu
+    private final BiConsumer<T, V> setter;
     private final V oldValue;
     private final V newValue;
 

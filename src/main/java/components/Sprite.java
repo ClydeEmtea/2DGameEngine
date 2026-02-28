@@ -17,7 +17,6 @@ public class Sprite {
                 new Vector2f(1.0f, 0.0f), // bottom-right
                 new Vector2f(0.0f, 0.0f)  // bottom-left
         };
-        // deep copy pro original
         this.originalTexCoords = new Vector2f[texCoords.length];
         for (int i = 0; i < texCoords.length; i++) {
             this.originalTexCoords[i] = new Vector2f(texCoords[i]);
@@ -56,15 +55,14 @@ public class Sprite {
         return s;
     }
 
-    /** Flip přes prohození souřadnic */
     public void flipHorizontally() {
-        swap(0, 1); // top-left ↔ top-right
-        swap(3, 2); // bottom-left ↔ bottom-right
+        swap(0, 1);
+        swap(3, 2);
     }
 
     public void flipVertically() {
-        swap(0, 3); // top-left ↔ bottom-left
-        swap(1, 2); // top-right ↔ bottom-right
+        swap(0, 3);
+        swap(1, 2);
     }
 
     private void swap(int i, int j) {
@@ -73,7 +71,6 @@ public class Sprite {
         texCoords[j] = temp;
     }
 
-    /** Revert na původní souřadnice */
     public void revert() {
         for (int i = 0; i < texCoords.length; i++) {
             texCoords[i].set(originalTexCoords[i]);

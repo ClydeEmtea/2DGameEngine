@@ -1,0 +1,238 @@
+\documentclass[14pt]{extarticle}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{chngcntr}
+\usepackage{titling}
+\usepackage{float}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{natbib}
+\usepackage{url}
+\usepackage{listings}
+\usepackage{listings-ext}
+\usepackage{fancyvrb}
+\usepackage{indentfirst}
+\usepackage[czech]{babel}
+\usepackage{charter}
+\usepackage{color}
+\usepackage[normalem]{ulem}
+\definecolor{lightgray}{rgb}{0.95,0.95,0.95}
+\definecolor{darkgray}{rgb}{0.4,0.4,0.4}
+\definecolor{purple}{rgb}{0.58,0.0,0.82}
+\definecolor{keywordblue}{rgb}{0.0,0.3,0.7}
+\definecolor{stringred}{rgb}{0.8,0.0,0.0}
+\definecolor{commentgreen}{rgb}{0.0,0.5,0.0}
+\definecolor{functionorange}{rgb}{0.8,0.4,0.0}
+
+\lstdefinelanguage{TypeScript}{
+  keywords={
+    typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break, for,
+    const, let, async, await, yield, try, throw, from, of
+  },
+  keywordstyle=\color{keywordblue}\bfseries,
+  ndkeywords={
+    class, export, boolean, implements, import, this, interface, extends, public, private, protected, static, readonly, any, void, never, string, number, enum, declare, namespace, module, type, as, abstract, infer, keyof, typeof, instanceOf
+  },
+  ndkeywordstyle=\color{darkgray}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=true,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{commentgreen}\ttfamily,
+  stringstyle=\color{stringred}\ttfamily,
+  morestring=[b]',
+  morestring=[b]",
+  morestring=[b]`,
+  alsoletter={@},
+  frame=single,
+  framesep=5pt,
+  rulecolor=\color{lightgray}
+}
+
+\lstset{
+    language=TypeScript,
+    basicstyle=\ttfamily\footnotesize,
+    numberstyle=\footnotesize,
+    numbers=left,
+    frame=single,
+    tabsize=2,
+    title=\lstname,
+    escapeinside={\%*}{*)},
+    breaklines=true,
+    breakatwhitespace=true,
+    framextopmargin=2pt,
+    framexbottommargin=2pt,
+    inputencoding=utf8,
+    extendedchars=true,
+    literate=    {á}{{\'a}}1
+    {č}{{\v{c}}}1
+    {ď}{{\v{d}}}1
+    {é}{{\'e}}1
+    {ě}{{\v{e}}}1
+    {í}{{\'i}}1
+    {ň}{{\v{n}}}1
+    {ó}{{\'o}}1
+    {ř}{{\v{r}}}1
+    {š}{{\v{s}}}1
+    {ť}{{\v{t}}}1
+    {ú}{{\'u}}1
+    {ů}{{\r{u}}}1
+    {ý}{{\'y}}1
+    {ž}{{\v{z}}}1
+}
+
+\renewcommand\lstlistingname{Výpis}
+\renewcommand\figurename{Obrázek}
+
+\usepackage{sourcecodepro}
+
+\geometry{left=25mm, right=25mm, top=25mm, bottom=25mm}
+
+\begin{document}
+
+% Create the title page
+\begin{titlepage}
+
+% Insert the image
+
+% Add the top text
+\begin{center}
+{\Large Gymnázium, Praha 6, Arabská 14\par}
+{\small předmět Programování, zadavatel Ing. Daniel Kahoun\par}
+\vspace{0.5cm}
+\begin{center}
+\includegraphics[width=0.6\textwidth]{images/gyarab-logo.png}
+\end{center}
+\vspace{2cm}
+{\Large\bfseries 2D Game Engine\par}
+\vspace{1cm}
+{\large Maturitní práce\par}
+\vspace{4.5cm}
+{\Large Milan Tuček, IV.E \hspace{5cm}únor 2026\par}
+\end{center}
+\end{titlepage}
+\subsection*{Anotace}
+\par Cílem maturitní práce je vytvořit desktopovou aplikaci sloužící jako editor pro tvorbu 2D her. Nástroj umožní uživateli interaktivně navrhovat herní scény a spravovat herní data s možností ukládání scén, psaní vlastních skriptů či využití fyzikálního enginu.
+
+\subsection*{Annotation}
+\par The aim of the project is to develop a desktop application serving as an editor for creating 2D games. The tool will allow users to interactively design game scenes and manage game data, with support for saving scenes, writing custom scripts, and using a physics engine.
+
+\subsection*{Zusammenfassung}
+
+Ziel der Abschlussarbeit ist die Entwicklung einer Desktop-Anwendung, die als Editor zur Erstellung von 2D-Spielen dient. Das Werkzeug ermöglicht es den Nutzern, Spielszenerien interaktiv zu entwerfen und Spieldaten zu verwalten, einschließlich der Möglichkeit, Szenen zu speichern, eigene Skripte zu schreiben oder eine Physik-Engine zu nutzen.
+
+\vspace{3cm}
+Prohlašuji, že jsem jediným autorem tohoto projektu, všechny citace jsou řádně označené a všechna použitá literatura a další zdroje jsou v práci uvedené. Tímto dle zákona 121/2000 Sb. (tzv. Autorský zákon) ve znění pozdějších předpisů uděluji bezúplatně škole Gymnázium, Praha 6, Arabská 14 oprávnění k výkonu práva na rozmnožování díla (§ 13) a práva na sdělování díla veřejnosti (§ 18) na dobu časově neomezenou a bez omezení územního rozsahu.
+\\
+
+\noindent V \rule{2cm}{0.4pt} dne \rule{2cm}{0.4pt}
+\hfill
+Podpis \rule{5cm}{0.4pt}
+\newpage
+\thispagestyle{empty}
+\renewcommand\contentsname{Obsah}
+\tableofcontents
+
+\newpage
+
+\section{Zadání práce}
+
+
+
+
+\newpage
+
+\section{Teoretická východiska}
+
+
+\subsection{Herní engine}
+Herní engine je softwarový framework určený pro vývoj her, který poskytuje různé funkce počítačových her, a tím výrazně zjednodušuje proces vývoje. Typicky se skládá z několika modulů, které zajišťují zpracování vstupů, výstupů (renderování 2D/3D grafiky, vykreslování textur, přehrávání zvuku) a logiky hry. \cite{game-engines-sci}
+
+Rozsah funkcí se u jednotlivých enginů výrazně liší. Existují jednoduché knihovny zaměřené pouze na vykreslování, ale i rozsáhlé desktopové aplikace s velkou sadou nástrojů a podpůrných systémů. Herní engine může být vytvořen pro jednu konkrétní hru, či jako editor pro obecný vývoj her. Kromě herního průmyslu jsou enginy často využívány také pro fyzikální simulace nebo vědecké experimenty. \cite{herni-engine}
+
+Mezi nejznámější a nejpoužívanější herní editory patří Unity, Unreal Engine 5 nebo Godot.
+
+\subsubsection{Historie herních enginů}
+Pro první videohry žádné enginy nebyly, každá hra se musela vyvíjet pro specifický hardware a velmi malá část kódu a assetů byla znovu použitelná. Proto si velké firmy jako Nintendo po letech 1980 začaly vyvíjet své herní enginy určené k usnadnění a zlevnění vývoje vlastních her. \cite{herni-engine-jaburek}
+
+S nástupem 3D her v letech se výrazně zvýšily požadavky na technickou i vizuální kvalitu herních titulů. Vývoj her se tím výrazně prodloužil, což vedlo ke vzniku poptávky po herních enginech, které řeší vykreslování a technické aspekty vývoje za samotné vývojáře.
+
+Jeden z prvních enginů byl Doom engine od firmy id Software, vydaný v roce 1993 společně s hrou Doom. Výrazný úspěch této hry inspiroval řadu dalších firem k vývoji vlastních herních enginů, což vedlo k rozšíření nabídky jak komerčních, tak i nezávisle vyvíjených řešení. \cite{herni-engine-jaburek}
+
+\subsubsection{Základní komponenty herního enginu}
+Většina herních enginů má několik společných základních funkcionalit. Liší se mezi sebou způsoby provedení, zpracování a postupy.
+
+\textbf{Grafický engine}, neboli rendering engine, představuje klíčovou komponentu herního enginu, odpovědnou za převod herních dat do vizuální podoby zobrazované na obrazovce. Zajišťuje vykreslování 2D a 3D objektů a implementuje algoritmy pro práci s geometrií, texturami, světelnými modely a shadery, které určují výslednou podobu hry. Moderní grafické enginy využívají API, například Vulkan, DirectX či starší OpenGL.
+
+\textbf{Zvukový engine} umožňuje přehrávání různých zvuků, efektů či hudby ve hrách. Využívá se zde zkreslování, generace čí různé úpravy zvuků. Herní enginy mohou vývojářům pomoci přehráváním zvuků a hudby v rámci specifických událostí, mohou také umístit zvuk do 3D pole, díky čemuž budou zvuky vycházet z určité oblasti podél herního prostředí. \cite{basic-elements}
+
+\textbf{Fyzikální engine} patří mezi pokročilejší komponenty herního enginu. Umožňuje detekci kolizí mezi objekty ve 2D i 3D herním světě a simuluje působení fyzikálních sil na tyto objekty, včetně gravitace, tření a nárazů. Vzhledem k rozsahu a složitosti této problematiky herní enginy často integrují již hotová řešení fyzikálních enginů, namísto jejich vývoje od základu.
+
+Herní engine obsahuje nespočet dalších součástí a komponent, které se využívají pro vývoj her či simulací. Skriptovací engine je odpovědný za interpretaci kódu napsaného vývojáři  a jeho spuštění. Síťový modul zajišťuje možnosti vývoje her pro více hráčů. Engine musí rovněž obsahovat funkcionalitu běžně očekávanou od vývojových editorů, jako je ukládání a načítání projektů, práce se soubory, možnost vracení provedených akcí (undo/redo) a další podpůrné nástroje.
+
+\subsection{Použité technologie}
+Pro vývoj herních enginů se nejčastěji používají nízkoúrovňové programovací jazyky, jelikož je kladen vysoký důraz na výkon a efektivní práci s hardwarem. Z tohoto důvodu jsou nejrozšířenějšími volbami jazyky C a C++. V rámci tohoto projektu byl však zvolen programovací jazyk Java, a to z důvodu absence významného moderního herního enginu vytvořeného v tomto jazyce, přestože Java nabízí dostatečný výkon a široké možnosti využití.
+
+\subsubsection{OpenGL}
+OpenGL (Open Graphics Library) je grafické API používané k vývoji aplikací v oblasti 2D a 3D grafiky. Původně bylo vyvinuto firmou Silicon Graphics v roce 1992 a od té doby se stalo univerzálním standardem v oblasti vizualizace a grafiky. Umožňuje programátorům vytvářet grafické prostředí bez ohledu na zařízení, neboť není závislé na platformě či operačním systému.
+
+OpenGL podporuje širokou škálu grafických funkcí, včetně stínování, textur, osvětlení a transformací, což dává vývojářům možnost vytvářet složité a vizuálně bohaté scény ve 2D i 3D.
+
+Důležitou vlastností OpenGL je jeho otevřený standard, nebo-li že je k dispozici jako otevřený zdrojový kód a přístupný všem vývojářům. To vytváří prostor pro neustálý vývoj a inovace, což umožňuje přizpůsobení se novým technologickým trendům a potřebám průmyslu. OpenGL se vyskytuje v širokém spektru aplikací, od počítačových her až po profesionální CAD (Computer-Aided Design) software. \cite{OpenGLManual}
+
+V projektu se využívá implementace OpenGL do jazyka Java pomocí knihovny LWJGL. LWJGL je knihovna v Javě, která umožňuje multiplatformní přístup k populárním nativním API, jež jsou užitečné při vývoji grafických (OpenGL, Vulkan), zvukových (OpenAL) a paralelních výpočetních (OpenCL) aplikací. \cite{lwjgl}
+
+\subsubsection{Dear ImGui}
+Dear ImGui je lehká grafická knihovna pro tvorbu uživatelského rozhraní v jazyce C++. Generuje optimalizované vertex buffery, jež lze vykreslit kdykoliv v aplikaci využívající 3D/2D grafickou pipeline. Knihovna je rychlá, přenositelná, nezávislá na konkrétním rendereru a plně samostatná, bez nutnosti externích závislostí. \cite{imgui}
+
+V rámci tohoto projektu je Dear ImGui využíváno v prostředí jazyka Java prostřednictvím jeho Java vazby, která umožňuje pohodlnou integraci s grafickým rozhraním založeným na OpenGL. Toto řešení poskytuje jednoduchý způsob, jak rychle a efektivně tvořit rozhraní, které se aktualizuje v reálném čase. \cite{imgui-java}
+
+\subsubsection{Další knihovny}
+V projektu jsou použity i některé další knihovny. Pro zpracovávání a pouštění zvuků je použito hned několik knihoven pro různé typy audio souborů (OpenAL, JLayer, Java AudioSystem). Knihovna Box2D je implementována ve fyzikálním enginu jako jeden z nejlepších fyzikálních enginů ve 2D prostředí a pomocí knihovny GSON od společnosti Google se zpracovávají JSON soubory použité k ukládání a načítání scén.
+
+
+\newpage
+\section{Implementace}
+\subsection{Struktura }
+
+
+\subsection{Objekty a komponenty}
+
+
+\subsection{Vykreslování}
+
+
+\subsection{Uživatelské rozhraní}
+
+
+\subsection{Zvuky}
+
+
+\subsection{Skriptování}
+
+
+
+\subsection{Ukládání}
+
+
+
+\subsection{Fyzikální engine}
+
+
+
+\subsection{Editorové funkce}
+
+
+\newpage
+\section{Závěr}
+
+
+\newpage
+
+\bibliographystyle{plainnat}
+\bibliography{zdroje}
+
+\newpage
+\end{document}

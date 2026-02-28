@@ -21,8 +21,8 @@ public class Physics2D {
     private final ContactListener contactListener = new ContactListener();
 
     private float physicsTime = 0.0f;
-    private float physicsTimeStep = 1.0f / 60.0f;
-//    private float physicsTimeStep = 1.0f / 100.0f;
+//    private float physicsTimeStep = 1.0f / 60.0f;
+    private float physicsTimeStep = 1.0f / 100.0f;
     private int velocityIterations = 16;
     private int positionIterations = 6;
 
@@ -56,14 +56,7 @@ public class Physics2D {
                 shape.m_radius = cc.getRadius();
                 shape.m_p.set(cc.getOffset().x, cc.getOffset().y);
 
-                FixtureDef fd = new FixtureDef();
-                fd.shape = shape;
-                fd.density = rb.getDensity();
-                fd.friction = rb.getFriction();
-                fd.restitution = rb.getRestitution();
-                fd.isSensor = rb.isSensor();
-
-                body.createFixture(fd);
+                createFixtureDefCircle(rb, body, shape);
             }
 
             Box2DCollider bc = go.getComponent(Box2DCollider.class);
@@ -98,25 +91,13 @@ public class Physics2D {
                 CircleShape top = new CircleShape();
                 top.m_radius = r;
                 top.m_p.set(off.x, off.y + halfStraight);
-                FixtureDef topFD = new FixtureDef();
-                topFD.shape = top;
-                topFD.density = rb.getDensity();
-                topFD.friction = rb.getFriction();
-                topFD.restitution = rb.getRestitution();
-                topFD.isSensor = rb.isSensor();
-                body.createFixture(topFD);
+                createFixtureDefCircle(rb, body, top);
 
                 // dolní kruh
                 CircleShape bottom = new CircleShape();
                 bottom.m_radius = r;
                 bottom.m_p.set(off.x, off.y - halfStraight);
-                FixtureDef bottomFD = new FixtureDef();
-                bottomFD.shape = bottom;
-                bottomFD.density = rb.getDensity();
-                bottomFD.friction = rb.getFriction();
-                bottomFD.restitution = rb.getRestitution();
-                bottomFD.isSensor = rb.isSensor();
-                body.createFixture(bottomFD);
+                createFixtureDefCircle(rb, body, bottom);
 
                 // střední box
                 PolygonShape box = new PolygonShape();
@@ -133,6 +114,17 @@ public class Physics2D {
 
 
         }
+    }
+
+    private void createFixtureDefCircle(RigidBody2D rb, Body body, CircleShape shape) {
+        FixtureDef fd = new FixtureDef();
+        fd.shape = shape;
+        fd.density = rb.getDensity();
+        fd.friction = rb.getFriction();
+        fd.restitution = rb.getRestitution();
+        fd.isSensor = rb.isSensor();
+
+        body.createFixture(fd);
     }
 
     private void clearAllCollisions() {
@@ -191,12 +183,10 @@ public class Physics2D {
                 CollisionComponent cc = go.getComponent(CollisionComponent.class);
                 if (cc == null) continue;
 
-                // ENTER
                 for (GameObject entered : cc.getEntered()) {
                     go.getAllScriptInstances().forEach(s -> s.onCollisionEnter(entered));
                 }
 
-                // EXIT
                 for (GameObject exited : cc.getExited()) {
                     go.getAllScriptInstances().forEach(s -> s.onCollisionExit(exited));
                 }

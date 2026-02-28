@@ -137,7 +137,7 @@ public class RenderBatch implements Comparable<RenderBatch> {
             textures.add(sprite.getTexture());
 
         loadVertexProperties(numSprites - 1);
-        updateEBO(); // důležité pro trojúhelníky
+        updateEBO();
         rebuildTextures();
 
         if (numSprites >= maxBatchSize) hasRoom = false;
@@ -285,7 +285,7 @@ public class RenderBatch implements Comparable<RenderBatch> {
                 sprites[numSprites - 1] = null;
                 numSprites--;
                 hasRoom = true;
-                updateEBO(); // důležité po odstranění
+                updateEBO();
                 break;
             }
         }

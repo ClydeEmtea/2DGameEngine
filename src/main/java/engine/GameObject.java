@@ -127,6 +127,17 @@ public class GameObject implements HasId {
         return result;
     }
 
+    public Script getScriptInstance(String className) {
+        for (Component c : components) {
+            if (c instanceof ScriptComponent sc) {
+                if (sc.getClassName().equals(className)) {
+                    return sc.getScriptInstance();
+                }
+            }
+        }
+        return null;
+    }
+
     public List<Component> getAllAnimations() {
         List<Component> result = new ArrayList<>();
         for (Component c : components) {
@@ -681,11 +692,6 @@ public class GameObject implements HasId {
                 component.imgui();
             }
         }
-
-
-
-
-
     }
 
     private void onAssetDropped(String path) {
@@ -721,7 +727,6 @@ public class GameObject implements HasId {
                     );
                     addComponent(sr);
                 } else {
-                    // změna sprite – s undo/redo
                     Sprite oldSprite = sr.getSprite();
 
                     Window.getActionManager().execute(

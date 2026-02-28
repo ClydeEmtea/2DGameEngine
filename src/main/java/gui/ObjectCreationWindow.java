@@ -26,8 +26,6 @@ import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 
-import static util.Constants.EDITOR_SCALE;
-
 public class ObjectCreationWindow {
 
     private static ImString name = new ImString("New Game Object", 128);
@@ -73,7 +71,6 @@ public class ObjectCreationWindow {
 
                     if (lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg")) {
 
-                        // Cílová složka v projektu
                         Path texturesPath = ProjectManager.get()
                                 .getCurrentProject()
                                 .getImagesPath();
@@ -92,7 +89,6 @@ public class ObjectCreationWindow {
                             EventSystem.notify(null, new Event(EventType.ErrorEvent));
                         }
 
-                        // !!! Ukládáme pouze název souboru, NE celou cestu
                         selectedFileName = fileName;
 
                     } else {
@@ -131,7 +127,7 @@ public class ObjectCreationWindow {
             if (useSprite && !selectedFileName.isEmpty()) {
 
                 System.out.println("Loading texture: " + selectedFileName);
-                Texture tex = AssetPool.getTexture(selectedFileName); // -> assets/images/<name>
+                Texture tex = AssetPool.getTexture(selectedFileName);
 
                 float ratio = (float) tex.getWidth() / (float) tex.getHeight();
                 float height = 0.5f;

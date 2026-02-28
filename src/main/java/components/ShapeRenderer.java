@@ -4,16 +4,13 @@ import engine.Component;
 import engine.Transform;
 import imgui.ImGui;
 import org.joml.Vector2f;
-import org.joml.Vector4f;
-import util.Constants;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.lwjgl.opengl.GL11.*;
 
 public class ShapeRenderer extends Component {
 
-    private ShapeType shapeType = ShapeType.DEFAULT; // Default = standardní quad
+    private ShapeType shapeType = ShapeType.DEFAULT;
     private SpriteRenderer spriteRenderer;
     private List<Vector2f> points = new ArrayList<>();
 
@@ -89,7 +86,6 @@ public class ShapeRenderer extends Component {
     public boolean containsPoint(Vector2f worldPoint) {
         Transform t = gameObject.transform;
 
-        // world → local
         Vector2f p = new Vector2f(worldPoint).sub(t.position);
 
         float cos = (float) Math.cos(-t.rotation);
@@ -98,7 +94,6 @@ public class ShapeRenderer extends Component {
         float lx = p.x * cos - p.y * sin;
         float ly = p.x * sin + p.y * cos;
 
-        // scale
         lx /= t.scale.x;
         ly /= t.scale.y;
 

@@ -162,7 +162,6 @@ public class ImGuiLayer implements Observer {
                 if (ImGui.menuItem("New")) {
                     ProjectManager pm = ProjectManager.get();
 
-                    // 1) Nejprve okno pro zadání názvu projektu
                     String projectName = JOptionPane.showInputDialog(
                             null,
                             "Zadejte název projektu:",
@@ -178,7 +177,6 @@ public class ImGuiLayer implements Observer {
 
                     projectName = projectName.trim();
 
-                    // 2) Nyní se otevře JFileChooser pro výběr složky
                     JFileChooser chooser = new JFileChooser();
                     chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
                     chooser.setCurrentDirectory(Path.of(".").toFile());
@@ -213,10 +211,8 @@ public class ImGuiLayer implements Observer {
                     if (result == JFileChooser.APPROVE_OPTION) {
                         Path selectedFile = chooser.getSelectedFile().toPath();
 
-                        // Otevření projektu přes ProjectManager
                         ProjectManager.get().openProject(selectedFile.toString());
 
-                        // Aktualizace okna a scény
                         Window.get().updateTitle();
                         Window.getView().resetGameObjects();
                         Window.setCurrentView(0);
@@ -229,7 +225,6 @@ public class ImGuiLayer implements Observer {
                 if (ImGui.menuItem("Save")) {
                     ProjectManager pm = ProjectManager.get();
                     if (pm.getCurrentProject() == null) {
-                        // 1) Nejprve okno pro zadání názvu projektu
                         String projectName = JOptionPane.showInputDialog(
                                 null,
                                 "Zadejte název projektu:",
@@ -237,7 +232,6 @@ public class ImGuiLayer implements Observer {
                                 JOptionPane.PLAIN_MESSAGE
                         );
 
-                        // Pokud uživatel zrušil nebo nechal prázdné
                         if (projectName == null || projectName.trim().isEmpty()) {
                             System.out.println("Project creation cancelled.");
                             return;
@@ -245,7 +239,6 @@ public class ImGuiLayer implements Observer {
 
                         projectName = projectName.trim();
 
-                        // 2) Nyní se otevře JFileChooser pro výběr složky
                         JFileChooser chooser = new JFileChooser();
                         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
                         chooser.setCurrentDirectory(Path.of(".").toFile());
@@ -317,19 +310,18 @@ public class ImGuiLayer implements Observer {
         ImGui.text("Errors:");
         ImGui.separator();
 
-        // Child okno se scrollbarem
         ImGui.beginChild(
-                "ErrorScrollRegion",   // unikátní ID
-                0,                     // šířka = fill parent
-                200,                   // výška (klidně uprav)
-                true                   // border
+                "ErrorScrollRegion",
+                0,
+                200,
+                true
         );
 
         for (String error : Window.getErrors()) {
             ImGui.textWrapped(error);
         }
 
-        // automaticky scrollne dolů (volitelné)
+        // automaticky scrollne dolů
         if (ImGui.getScrollY() >= ImGui.getScrollMaxY()) {
             ImGui.setScrollHereY(1.0f);
         }
@@ -535,13 +527,13 @@ public class ImGuiLayer implements Observer {
             ImGui.pushID("..");
             ImGui.beginGroup();
 
-            drawFolderPreview(); // vykreslíme ikonku složky
+            drawFolderPreview();
 
             if (ImGui.isItemClicked()) {
                 currentDirectory = dir.getParent();
             }
 
-            ImGui.textWrapped(".."); // název složky
+            ImGui.textWrapped("..");
 
             ImGui.endGroup();
             ImGui.popID();
@@ -555,7 +547,6 @@ public class ImGuiLayer implements Observer {
         for (File file : files) {
             String name = file.getName();
 
-            // Skip .class files
             if (name.endsWith(".class")) continue;
 
             ImGui.pushID(file.getAbsolutePath());
@@ -569,11 +560,9 @@ public class ImGuiLayer implements Observer {
             } else {
                 drawFilePreview(file);
 
-                // Double click behavior
                 if (ImGui.isItemHovered() && ImGui.isMouseDoubleClicked(0)) {
                     try {
                         if (name.endsWith(".java")) {
-                            // Open in VSCode
                             ProjectManager.get().openInVSCode(file.toPath());
                         }
                         if (name.endsWith(".mp3") || name.endsWith(".wav") || name.endsWith(".ogg")|| name.endsWith(".aif")) {

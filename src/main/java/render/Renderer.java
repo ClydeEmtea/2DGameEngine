@@ -182,7 +182,6 @@ public class Renderer {
         float a2Pi = rotation + (float)(2 * Math.PI);
 
 
-// === horní půlkruh (nahoru) ===
         drawArc(
                 topCenter,
                 radius,
@@ -191,7 +190,6 @@ public class Renderer {
                 segments
         );
 
-// === dolní půlkruh (dolů) ===
         drawArc(
                 bottomCenter,
                 radius,

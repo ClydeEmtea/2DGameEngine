@@ -62,7 +62,6 @@ public class RightSidebar {
         String displayName = isRoot ? "Scene" : group.getName();
         boolean groupSelected = !isRoot && selectedGroups.contains(group);
 
-        // Zvýrazníme group pokud je vybraná
         int flags = ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.OpenOnArrow;
         if (groupSelected) {
             flags |= ImGuiTreeNodeFlags.Selected;
@@ -83,7 +82,6 @@ public class RightSidebar {
 
             Object payloadGroup = ImGui.acceptDragDropPayload(PAYLOAD_GROUP);
             if (payloadGroup instanceof Group g) {
-                // group můžeš přesunout na root
                 Group old = view.findParentGroup(g);
                 if (old != null) old.removeGroup(g);
 
@@ -105,7 +103,6 @@ public class RightSidebar {
             Object payloadGO = ImGui.acceptDragDropPayload(PAYLOAD_GAMEOBJECT);
             if (payloadGO instanceof GameObject go) {
 
-                // Odeber GO ze staré group
                 Group old = view.findParentGroup(go);
                 if (old != null) old.remove(go);
 
@@ -129,7 +126,6 @@ public class RightSidebar {
 
 
 
-        // Klik na group mimo expand arrow
         if (!isRoot && ImGui.isItemClicked()) {
             boolean shift = ImGui.getIO().getKeyShift();
             boolean ctrl = ImGui.getIO().getKeyCtrl();
@@ -137,7 +133,6 @@ public class RightSidebar {
             if (shift && lastSelectedGroup != null) {
                 if (!selectedGroups.contains(group))
                     selectedGroups.add(group);
-                // Přidej všechny objekty této group do selection
                 for (GameObject go : group.getAllObjectsRecursive()) {
                     if (!selectedObjects.contains(go)) selectedObjects.add(go);
                 }
@@ -151,7 +146,6 @@ public class RightSidebar {
                     selectedGroups.add(group);
                 lastSelectedGroup = group;
 
-                // Přidej všechny objekty této group do selection
                 for (GameObject go : group.getAllObjectsRecursive()) {
                     if (!selectedObjects.contains(go)) selectedObjects.add(go);
                 }
@@ -161,11 +155,10 @@ public class RightSidebar {
 
             } else {
                 selectedGroups.clear();
-                selectedObjects.clear(); // clear objekty při vybrání group
+                selectedObjects.clear();
                 selectedGroups.add(group);
                 lastSelectedGroup = group;
 
-                // Přidej všechny objekty této group do selection
                 selectedObjects.addAll(group.getAllObjectsRecursive());
                 selectedGroups.addAll(group.getAllGroupsRecursive());
             }
@@ -175,16 +168,24 @@ public class RightSidebar {
 
         }
 
+        if (isRoot && ImGui.isItemClicked()) {
+
+            selectedGroups.clear();
+            selectedObjects.clear();
+            lastSelectedGroup = null;
+            lastSelectedObject = null;
+            view.setActiveGroup(null);
+            view.setActiveGameObject(null);
+        }
 
 
+    
         if (!open) return;
 
-        // Rekurze přes podsložky
         for (Group sub : group.getGroups()) {
             drawGroup(sub, view, false);
         }
 
-        // Vypiš objekty v této skupině
         List<GameObject> objects = group.getObjects();
         for (int i = 0; i < objects.size(); i++) {
             GameObject go = objects.get(i);
@@ -242,13 +243,11 @@ public class RightSidebar {
         Group newGroup = new Group();
         newGroup.setName("New Group");
 
-        // Přidej vybrané objekty
         for (GameObject go : new ArrayList<>(selectedObjects)) {
             view.getRoot().remove(go);
             newGroup.add(go);
         }
 
-        // Přidej vybrané groups
         for (Group g : new ArrayList<>(selectedGroups)) {
             view.getRoot().removeGroup(g);
             newGroup.addGroup(g);

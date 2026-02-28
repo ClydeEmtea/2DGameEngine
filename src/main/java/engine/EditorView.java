@@ -41,13 +41,6 @@ public class EditorView extends View {
     private Vector2f selectionStart = new Vector2f();
     private Vector2f selectionEnd = new Vector2f();
 
-
-    private GameObject animovany;
-    private Spritesheet spritesheet;
-    private int spriteFlipTimeLeft = 100;
-    private int spriteFlipTime = 100;
-    private int spriteIndex = 0;
-
     private boolean draggingObjects = false;
     private final java.util.Map<GameObject, Vector2f> dragStartPositions = new java.util.HashMap<>();
 
@@ -99,16 +92,6 @@ public class EditorView extends View {
 
     @Override
     public void update(float dt) {
-
-//        spriteFlipTimeLeft -= dt;
-//        if (spriteFlipTimeLeft <= 0) {
-//            spriteFlipTimeLeft = spriteFlipTime;
-//            spriteIndex++;
-//            if (spriteIndex > 3) {
-//                spriteIndex = 1;
-//            }
-//            animovany.getComponent(SpriteRenderer.class).setSprite(spritesheet.getSprite(spriteIndex));
-//        }
 
         if (ProjectManager.get().getCurrentProject() != null && false) {
             System.out.println(ProjectManager.get().getCurrentProject().getProjectPath());
@@ -238,7 +221,6 @@ public class EditorView extends View {
             RigidBody2D rb = go.getComponent(RigidBody2D.class);
             if (rb != null) {
                 RigidBody2D newRb = new RigidBody2D();
-                // přenést další relevantní hodnoty jako velocity, acceleration atd.
                 newRb.setVelocity(rb.getVelocity());
                 newRb.setMass(rb.getMass());
                 newRb.setBodyType(rb.getBodyType());
@@ -515,11 +497,10 @@ public class EditorView extends View {
             }
 
             if (dragging) {
-                Vector2f oldPosition = new Vector2f(activeTransform.position); // pevná kopie
+                Vector2f oldPosition = new Vector2f(activeTransform.position);
                 activeTransform.position.set(mouseWorld.x - dragOffset.x, mouseWorld.y - dragOffset.y);
-                Vector2f diff = new Vector2f(activeTransform.position).sub(oldPosition); // rozdíl aktivního objektu
+                Vector2f diff = new Vector2f(activeTransform.position).sub(oldPosition);
 
-                // Pohyb všech ostatních vybraných objektů
                 for (GameObject go : RightSidebar.selectedObjects) {
                     if (go != getActiveGameObject()) {
                         go.transform.position.add(diff.x, diff.y);
@@ -633,7 +614,6 @@ public class EditorView extends View {
 
                 boolean intersects = false;
 
-                // 1) Test: nějaký roh objektu uvnitř výběru
                 for (Vector2f corner : corners) {
                     if (pointInPolygon(corner, selectionCorners)) {
                         intersects = true;
@@ -641,7 +621,6 @@ public class EditorView extends View {
                     }
                 }
 
-                // 2) Test: nějaký roh výběru uvnitř objektu
                 if (!intersects) {
                     for (Vector2f sc : selectionCorners) {
                         if (pointInPolygon(sc, corners)) {
@@ -651,7 +630,6 @@ public class EditorView extends View {
                     }
                 }
 
-                // 3) Test: hrany se protínají
                 if (!intersects) {
                     for (int i = 0; i < corners.length; i++) {
                         Vector2f a1 = corners[i];
@@ -795,13 +773,11 @@ public class EditorView extends View {
             }
             ImGui.treePop();
         }
-//        if (ImGui.button("Add GameObject")) {
-//            this.showCreationWindow = !this.showCreationWindow;
-//        }
+
 
         if (this.showCreationWindow) {
             if (ObjectCreationWindow.imgui(this)) {
-                this.showCreationWindow = false; // zavřít po vytvoření
+                this.showCreationWindow = false;
             }
         }
 
